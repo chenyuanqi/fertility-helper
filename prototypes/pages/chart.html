@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>备孕助手 - 图表</title>
+  <link rel="stylesheet" href="../assets/css/common.css">
+  <style>
+    /* 图表页面特有样式 */
+    .chart-header {
+      background: var(--surface);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      margin-bottom: var(--section-margin);
+      box-shadow: var(--shadow-small);
+    }
+    
+    .cycle-info-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .cycle-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .cycle-navigation {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .nav-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 50%;
+      background: var(--background);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    
+    .nav-btn:hover {
+      background: var(--border);
+    }
+    
+    .cycle-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    
+    .stat-item {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 4px;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    /* 三合一图表容器 */
+    .chart-container {
+      background: var(--surface);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      margin-bottom: var(--section-margin);
+      box-shadow: var(--shadow-small);
+      min-height: 400px;
+      position: relative;
+    }
+    
+    .chart-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .chart-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .chart-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .chart-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: var(--border-radius-small);
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    
+    .chart-btn.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+    
+    /* 模拟图表 */
+    .chart-mock {
+      width: 100%;
+      height: 300px;
+      position: relative;
+      background: linear-gradient(to bottom, #f8f9fa 0%, #f8f9fa 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--border-radius-small);
+      overflow: hidden;
+    }
+    
+    /* Y轴（体温） */
+    .y-axis {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 40px;
+      height: 100%;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 0;
+    }
+    
+    .y-axis-label {
+      font-size: 10px;
+      color: var(--text-secondary);
+      text-align: center;
+      transform: rotate(-90deg);
+      width: 20px;
+    }
+    
+    /* X轴（日期） */
+    .x-axis {
+      position: absolute;
+      bottom: 0;
+      left: 40px;
+      right: 0;
+      height: 30px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 10px;
+    }
+    
+    .x-axis-label {
+      font-size: 10px;
+      color: var(--text-secondary);
+    }
+    
+    /* 图表内容区域 */
+    .chart-content {
+      position: absolute;
+      left: 40px;
+      top: 0;
+      right: 0;
+      bottom: 30px;
+      overflow: hidden;
+    }
+    
+    /* 经量背景 */
+    .menstruation-background {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      opacity: 0.3;
+    }
+    
+    .menstruation-light {
+      background: var(--menstruation-light);
+    }
+    
+    .menstruation-medium {
+      background: var(--menstruation-medium);
+    }
+    
+    .menstruation-heavy {
+      background: var(--menstruation-heavy);
+    }
+    
+    /* 覆盖线 */
+    .coverline {
+      position: absolute;
+      width: 100%;
+      height: 1px;
+      background: var(--temperature-coverline);
+      border-top: 2px dashed var(--temperature-coverline);
+      top: 60%;
+    }
+    
+    /* 体温折线 */
+    .temperature-line {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .temperature-point {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: var(--primary-color);
+      border: 2px solid white;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      z-index: 10;
+    }
+    
+    .temperature-point.high-temp {
+      background: var(--temperature-high);
+    }
+    
+    .temperature-point.selected {
+      background: var(--warning-color);
+      transform: translate(-50%, -50%) scale(1.3);
+    }
+    
+    /* 同房图标 */
+    .intimacy-marker {
+      position: absolute;
+      font-size: 16px;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      z-index: 5;
+    }
+    
+    .intimacy-marker.recorded {
+      color: var(--secondary-color);
+    }
+    
+    .intimacy-marker.predicted {
+      color: var(--warning-color);
+    }
+    
+    /* 排卵标记 */
+    .ovulation-marker {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: var(--ovulation-day);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: white;
+      font-weight: 600;
+      z-index: 8;
+    }
+    
+    /* 图例 */
+    .chart-legend {
+      background: var(--surface);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      margin-bottom: var(--section-margin);
+      box-shadow: var(--shadow-small);
+    }
+    
+    .legend-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+    
+    .legend-items {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    .legend-icon {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    
+    .legend-icon.temperature {
+      background: var(--primary-color);
+    }
+    
+    .legend-icon.menstruation {
+      background: var(--menstruation-medium);
+    }
+    
+    .legend-icon.intimacy {
+      background: var(--secondary-color);
+    }
+    
+    .legend-icon.ovulation {
+      background: var(--ovulation-day);
+    }
+    
+    .legend-icon.coverline {
+      background: var(--temperature-coverline);
+      border-radius: 0;
+      height: 2px;
+    }
+    
+    /* 数据详情 */
+    .data-details {
+      background: var(--surface);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      box-shadow: var(--shadow-small);
+    }
+    
+    .details-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .selected-date {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .details-content {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    
+    .detail-item {
+      text-align: center;
+    }
+    
+    .detail-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 4px;
+    }
+    
+    .detail-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="mobile-container">
+    <div class="page-container">
+      <h1 class="page-title">体温图表</h1>
+      
+      <!-- 周期信息头部 -->
+      <div class="chart-header">
+        <div class="cycle-info-header">
+          <div class="cycle-title">当前周期 - 第15天</div>
+          <div class="cycle-navigation">
+            <button class="nav-btn" onclick="previousCycle()">‹</button>
+            <button class="nav-btn" onclick="nextCycle()">›</button>
+          </div>
+        </div>
+        
+        <div class="cycle-stats">
+          <div class="stat-item">
+            <div class="stat-value">15</div>
+            <div class="stat-label">周期天数</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">36.5</div>
+            <div class="stat-label">平均体温</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">1月24日</div>
+            <div class="stat-label">预计排卵</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 图表容器 -->
+      <div class="chart-container">
+        <div class="chart-controls">
+          <div class="chart-title">三合一图表</div>
+          <div class="chart-actions">
+            <button class="chart-btn active" onclick="toggleView('all')">全部</button>
+            <button class="chart-btn" onclick="toggleView('temperature')">体温</button>
+            <button class="chart-btn" onclick="toggleView('zoom')">缩放</button>
+          </div>
+        </div>
+        
+        <!-- 模拟图表 -->
+        <div class="chart-mock" id="chartArea">
+          <!-- Y轴 -->
+          <div class="y-axis">
+            <div class="y-axis-label">37.5</div>
+            <div class="y-axis-label">37.0</div>
+            <div class="y-axis-label">36.5</div>
+            <div class="y-axis-label">36.0</div>
+            <div class="y-axis-label">35.5</div>
+          </div>
+          
+          <!-- X轴 -->
+          <div class="x-axis">
+            <div class="x-axis-label">10日</div>
+            <div class="x-axis-label">15日</div>
+            <div class="x-axis-label">20日</div>
+            <div class="x-axis-label">25日</div>
+            <div class="x-axis-label">30日</div>
+          </div>
+          
+          <!-- 图表内容 -->
+          <div class="chart-content">
+            <!-- 经量背景 -->
+            <div class="menstruation-background menstruation-medium" 
+                 style="left: 0%; width: 20%;"></div>
+            <div class="menstruation-background menstruation-light" 
+                 style="left: 20%; width: 10%;"></div>
+            
+            <!-- 覆盖线 -->
+            <div class="coverline"></div>
+            
+            <!-- 体温点 -->
+            <div class="temperature-line">
+              <div class="temperature-point" style="left: 10%; top: 80%;" 
+                   onclick="selectPoint(this, '1月11日', 36.3)"></div>
+              <div class="temperature-point" style="left: 20%; top: 75%;" 
+                   onclick="selectPoint(this, '1月12日', 36.4)"></div>
+              <div class="temperature-point" style="left: 30%; top: 70%;" 
+                   onclick="selectPoint(this, '1月13日', 36.5)"></div>
+              <div class="temperature-point high-temp" style="left: 40%; top: 40%;" 
+                   onclick="selectPoint(this, '1月14日', 36.9)"></div>
+              <div class="temperature-point high-temp" style="left: 50%; top: 45%;" 
+                   onclick="selectPoint(this, '1月15日', 36.8)"></div>
+              <div class="temperature-point high-temp" style="left: 60%; top: 42%;" 
+                   onclick="selectPoint(this, '1月16日', 36.85)"></div>
+              <div class="temperature-point high-temp" style="left: 70%; top: 38%;" 
+                   onclick="selectPoint(this, '1月17日', 36.95)"></div>
+            </div>
+            
+            <!-- 同房标记 -->
+            <div class="intimacy-marker recorded" style="left: 25%; top: 90%;">💕</div>
+            <div class="intimacy-marker recorded" style="left: 45%; top: 90%;">💕</div>
+            <div class="intimacy-marker predicted" style="left: 65%; top: 90%;">💕</div>
+            
+            <!-- 排卵标记 -->
+            <div class="ovulation-marker" style="left: 55%; top: 20%;">O</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 图例 -->
+      <div class="chart-legend">
+        <div class="legend-title">图例说明</div>
+        <div class="legend-items">
+          <div class="legend-item">
+            <div class="legend-icon temperature"></div>
+            <span>基础体温</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-icon menstruation"></div>
+            <span>月经经量</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-icon intimacy"></div>
+            <span>同房记录</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-icon ovulation"></div>
+            <span>排卵日</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-icon coverline"></div>
+            <span>覆盖线</span>
+          </div>
+          <div class="legend-item">
+            <span style="color: var(--warning-color);">💕</span>
+            <span>推荐同房</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 选中点的详细信息 -->
+      <div class="data-details" id="dataDetails" style="display: none;">
+        <div class="details-header">
+          <div class="selected-date" id="selectedDate">1月15日</div>
+          <button class="chart-btn" onclick="closeDetails()">×</button>
+        </div>
+        <div class="details-content">
+          <div class="detail-item">
+            <div class="detail-value" id="detailTemperature">36.8°C</div>
+            <div class="detail-label">基础体温</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value" id="detailMenstruation">无</div>
+            <div class="detail-label">月经经量</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value" id="detailIntimacy">1次</div>
+            <div class="detail-label">同房次数</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TabBar 导航 -->
+    <div class="tabbar">
+      <a href="index.html" class="tab-item" data-page="index">
+        <div class="tab-icon">🏠</div>
+        <div>首页</div>
+      </a>
+      <a href="record.html" class="tab-item" data-page="record">
+        <div class="tab-icon">📝</div>
+        <div>记录</div>
+      </a>
+      <a href="chart.html" class="tab-item active" data-page="chart">
+        <div class="tab-icon">📊</div>
+        <div>图表</div>
+      </a>
+      <a href="calendar.html" class="tab-item" data-page="calendar">
+        <div class="tab-icon">📅</div>
+        <div>日历</div>
+      </a>
+      <a href="settings.html" class="tab-item" data-page="settings">
+        <div class="tab-icon">⚙️</div>
+        <div>设置</div>
+      </a>
+    </div>
+  </div>
+
+  <script src="../assets/js/common.js"></script>
+  <script>
+    let selectedPoint = null;
+
+    // 点击体温点
+    function selectPoint(element, date, temperature) {
+      // 移除之前选中的点
+      if (selectedPoint) {
+        selectedPoint.classList.remove('selected');
+      }
+      
+      // 选中当前点
+      element.classList.add('selected');
+      selectedPoint = element;
+      
+      // 显示详细信息
+      showDetails(date, temperature);
+    }
+
+    // 显示详细信息
+    function showDetails(date, temperature) {
+      const details = document.getElementById('dataDetails');
+      const selectedDate = document.getElementById('selectedDate');
+      const detailTemperature = document.getElementById('detailTemperature');
+      const detailMenstruation = document.getElementById('detailMenstruation');
+      const detailIntimacy = document.getElementById('detailIntimacy');
+      
+      selectedDate.textContent = date;
+      detailTemperature.textContent = temperature + '°C';
+      
+      // 模拟获取对应日期的其他数据
+      detailMenstruation.textContent = '无';
+      detailIntimacy.textContent = Math.random() > 0.5 ? '1次' : '无';
+      
+      details.style.display = 'block';
+      details.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 关闭详细信息
+    function closeDetails() {
+      const details = document.getElementById('dataDetails');
+      details.style.display = 'none';
+      
+      if (selectedPoint) {
+        selectedPoint.classList.remove('selected');
+        selectedPoint = null;
+      }
+    }
+
+    // 切换视图
+    function toggleView(view) {
+      const buttons = document.querySelectorAll('.chart-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      
+      event.target.classList.add('active');
+      
+      // 这里可以实现不同的视图切换逻辑
+      console.log('切换到视图:', view);
+      
+      switch(view) {
+        case 'all':
+          Toast.show('显示完整图表', 'info', 1000);
+          break;
+        case 'temperature':
+          Toast.show('仅显示体温曲线', 'info', 1000);
+          break;
+        case 'zoom':
+          Toast.show('缩放模式', 'info', 1000);
+          break;
+      }
+    }
+
+    // 周期导航
+    function previousCycle() {
+      Toast.show('切换到上一周期', 'info', 1000);
+      // 这里实现切换到上一周期的逻辑
+    }
+
+    function nextCycle() {
+      Toast.show('切换到下一周期', 'info', 1000);
+      // 这里实现切换到下一周期的逻辑
+    }
+
+    // 模拟连接体温点的线条
+    document.addEventListener('DOMContentLoaded', function() {
+      drawTemperatureLine();
+    });
+
+    function drawTemperatureLine() {
+      // 这里可以使用Canvas或SVG绘制连接线
+      // 为了简化原型，我们使用CSS来模拟
+      console.log('绘制体温连接线');
+    }
+  </script>
+</body>
+</html> 

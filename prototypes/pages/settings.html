@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>备孕助手 - 设置</title>
+  <link rel="stylesheet" href="../assets/css/common.css">
+  <style>
+    /* 设置页面特有样式 */
+    .profile-section {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+      border-radius: var(--border-radius);
+      padding: 24px;
+      margin-bottom: var(--section-margin);
+      text-align: center;
+    }
+    
+    .profile-avatar {
+      width: 60px;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin: 0 auto 12px;
+    }
+    
+    .profile-name {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .profile-stats {
+      display: flex;
+      justify-content: space-between;
+      opacity: 0.9;
+      font-size: 14px;
+    }
+    
+    .settings-group {
+      background: var(--surface);
+      border-radius: var(--border-radius);
+      margin-bottom: var(--section-margin);
+      box-shadow: var(--shadow-small);
+      overflow: hidden;
+    }
+    
+    .group-header {
+      padding: 16px 20px;
+      background: var(--background);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .group-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .group-description {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    
+    .settings-item {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .settings-item:last-child {
+      border-bottom: none;
+    }
+    
+    .settings-item:hover {
+      background: var(--background);
+    }
+    
+    .settings-item.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .item-icon {
+      font-size: 20px;
+      margin-right: 12px;
+      width: 24px;
+      text-align: center;
+    }
+    
+    .item-content {
+      flex: 1;
+    }
+    
+    .item-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+    
+    .item-description {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    .item-value {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-right: 8px;
+    }
+    
+    .item-arrow {
+      color: var(--text-disabled);
+      font-size: 12px;
+    }
+    
+    /* 开关控件 */
+    .switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .switch.active {
+      background: var(--primary-color);
+    }
+    
+    .switch-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+    
+    .switch.active .switch-thumb {
+      transform: translateX(20px);
+    }
+    
+    /* 版本信息 */
+    .version-info {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+    
+    .version-number {
+      margin-bottom: 8px;
+    }
+    
+    .copyright {
+      opacity: 0.7;
+    }
+    
+    /* 模态框特定样式 */
+    .input-modal .modal-content {
+      text-align: left;
+    }
+    
+    .input-group {
+      margin-bottom: 16px;
+    }
+    
+    .input-label {
+      display: block;
+      font-size: 14px;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    
+    .time-selector {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .time-input {
+      flex: 1;
+    }
+    
+    /* 数据统计卡片 */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      padding: 16px 20px;
+    }
+    
+    .stat-card {
+      text-align: center;
+      padding: 16px;
+      background: var(--background);
+      border-radius: var(--border-radius-small);
+    }
+    
+    .stat-number {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 4px;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    /* 危险操作 */
+    .danger-section .settings-item {
+      color: var(--error-color);
+    }
+    
+    .danger-section .item-icon {
+      color: var(--error-color);
+    }
+  </style>
+</head>
+<body>
+  <div class="mobile-container">
+    <div class="page-container">
+      <h1 class="page-title">设置</h1>
+      
+      <!-- 个人资料 -->
+      <div class="profile-section">
+        <div class="profile-avatar">👤</div>
+        <div class="profile-name">小明</div>
+        <div class="profile-stats">
+          <span>已使用 15 天</span>
+          <span>记录 12 次</span>
+          <span>周期 1 个</span>
+        </div>
+      </div>
+
+      <!-- 个人信息 -->
+      <div class="settings-group">
+        <div class="group-header">
+          <div class="group-title">个人信息</div>
+          <div class="group-description">设置个人基本信息和周期参数</div>
+        </div>
+        
+        <div class="settings-item" onclick="editNickname()">
+          <div class="item-icon">👤</div>
+          <div class="item-content">
+            <div class="item-title">昵称</div>
+            <div class="item-description">设置显示昵称</div>
+          </div>
+          <div class="item-value" id="nicknameValue">小明</div>
+          <div class="item-arrow">›</div>
+        </div>
+        
+        <div class="settings-item" onclick="editCycleLength()">
+          <div class="item-icon">📅</div>
+          <div class="item-content">
+            <div class="item-title">平均周期长度</div>
+            <div class="item-description">用于排卵预测计算</div>
+          </div>
+          <div class="item-value" id="cycleLengthValue">28天</div>
+          <div class="item-arrow">›</div>
+        </div>
+        
+        <div class="settings-item" onclick="editLutealPhase()">
+          <div class="item-icon">🌙</div>
+          <div class="item-content">
+            <div class="item-title">黄体期长度</div>
+            <div class="item-description">排卵后到月经的天数</div>
+          </div>
+          <div class="item-value" id="lutealPhaseValue">14天</div>
+          <div class="item-arrow">›</div>
+        </div>
+      </div>
+
+      <!-- 提醒设置 -->
+      <div class="settings-group">
+        <div class="group-header">
+          <div class="group-title">提醒设置</div>
+          <div class="group-description">设置各种提醒通知</div>
+        </div>
+        
+        <div class="settings-item">
+          <div class="item-icon">🔔</div>
+          <div class="item-content">
+            <div class="item-title">晨起测温提醒</div>
+            <div class="item-description">每天早上提醒测量体温</div>
+          </div>
+          <div class="switch" onclick="toggleSwitch(this, 'morningReminder')">
+            <div class="switch-thumb"></div>
+          </div>
+        </div>
+        
+        <div class="settings-item" onclick="setReminderTime()">
+          <div class="item-icon">⏰</div>
+          <div class="item-content">
+            <div class="item-title">提醒时间</div>
+            <div class="item-description">设置测温提醒时间</div>
+          </div>
+          <div class="item-value" id="reminderTimeValue">07:00</div>
+          <div class="item-arrow">›</div>
+        </div>
+        
+        <div class="settings-item">
+          <div class="item-icon">💕</div>
+          <div class="item-content">
+            <div class="item-title">易孕期提醒</div>
+            <div class="item-description">在易孕期前提醒</div>
+          </div>
+          <div class="switch active" onclick="toggleSwitch(this, 'fertilityReminder')">
+            <div class="switch-thumb"></div>
+          </div>
+        </div>
+        
+        <div class="settings-item">
+          <div class="item-icon">🎯</div>
+          <div class="item-content">
+            <div class="item-title">排卵日提醒</div>
+            <div class="item-description">预测排卵日当天提醒</div>
+          </div>
+          <div class="switch active" onclick="toggleSwitch(this, 'ovulationReminder')">
+            <div class="switch-thumb"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 数据管理 -->
+      <div class="settings-group">
+        <div class="group-header">
+          <div class="group-title">数据管理</div>
+          <div class="group-description">管理您的数据和隐私</div>
+        </div>
+        
+        <!-- 数据统计 -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number">12</div>
+            <div class="stat-label">记录天数</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">1</div>
+            <div class="stat-label">完整周期</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">8</div>
+            <div class="stat-label">体温记录</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">3</div>
+            <div class="stat-label">同房记录</div>
+          </div>
+        </div>
+        
+        <div class="settings-item" onclick="exportData()">
+          <div class="item-icon">📤</div>
+          <div class="item-content">
+            <div class="item-title">导出数据</div>
+            <div class="item-description">导出所有记录数据</div>
+          </div>
+          <div class="item-arrow">›</div>
+        </div>
+        
+        <div class="settings-item" onclick="importData()">
+          <div class="item-icon">📥</div>
+          <div class="item-content">
+            <div class="item-title">导入数据</div>
+            <div class="item-description">从备份文件导入数据</div>
+          </div>
+          <div class="item-arrow">›</div>
+        </div>
+        
+        <div class="settings-item" onclick="generateReport()">
+          <div class="item-icon">📊</div>
+          <div class="item-content">
+            <div class="item-title">生成报告</div>
+            <div class="item-description">生成周期分析报告</div>
+          </div>
+          <div class="item-arrow">›</div>
+        </div>
+      </div>
+
+      <!-- 应用设置 -->
+      <div class="settings-group">
+        <div class="group-header">
+          <div class="group-title">应用设置</div>
+          <div class="group-description">应用相关设置和信息</div>
+        </div>
+        
+        <div class="settings-item" onclick="checkUpdate()">
+          <div class="item-icon">🔄</div>
+          <div class="item-content">
+            <div class="item-title">检查更新</div>
+            <div class="item-description">查看是否有新版本</div>
+          </div>
+          <div class="item-value">v1.0.0</div>
+          <div class="item-arrow">›</div>
+        </div>
+        
+        <div class="settings-item" onclick="showHelp()">
+          <div class="item-icon">❓</div>
+          <div class="item-content">
+            <div class="item-title">使用帮助</div>
+            <div class="item-description">查看使用说明</div>
+          </div>
+          <div class="item-arrow">›</div>
+        </div>
+        
+        <div class="settings-item" onclick="showPrivacy()">
+          <div class="item-icon">🔒</div>
+          <div class="item-content">
+            <div class="item-title">隐私政策</div>
+            <div class="item-description">查看隐私保护说明</div>
+          </div>
+          <div class="item-arrow">›</div>
+        </div>
+        
+        <div class="settings-item" onclick="contactUs()">
+          <div class="item-icon">📧</div>
+          <div class="item-content">
+            <div class="item-title">联系我们</div>
+            <div class="item-description">反馈问题和建议</div>
+          </div>
+          <div class="item-arrow">›</div>
+        </div>
+      </div>
+
+      <!-- 危险操作 -->
+      <div class="settings-group danger-section">
+        <div class="group-header">
+          <div class="group-title" style="color: var(--error-color);">危险操作</div>
+          <div class="group-description">请谨慎操作，操作后无法恢复</div>
+        </div>
+        
+        <div class="settings-item" onclick="clearAllData()">
+          <div class="item-icon">🗑️</div>
+          <div class="item-content">
+            <div class="item-title">清空所有数据</div>
+            <div class="item-description">删除所有记录和设置</div>
+          </div>
+          <div class="item-arrow">›</div>
+        </div>
+      </div>
+
+      <!-- 版本信息 -->
+      <div class="version-info">
+        <div class="version-number">备孕助手 v1.0.0</div>
+        <div class="copyright">© 2024 备孕助手团队</div>
+      </div>
+    </div>
+
+    <!-- TabBar 导航 -->
+    <div class="tabbar">
+      <a href="index.html" class="tab-item" data-page="index">
+        <div class="tab-icon">🏠</div>
+        <div>首页</div>
+      </a>
+      <a href="record.html" class="tab-item" data-page="record">
+        <div class="tab-icon">📝</div>
+        <div>记录</div>
+      </a>
+      <a href="chart.html" class="tab-item" data-page="chart">
+        <div class="tab-icon">📊</div>
+        <div>图表</div>
+      </a>
+      <a href="calendar.html" class="tab-item" data-page="calendar">
+        <div class="tab-icon">📅</div>
+        <div>日历</div>
+      </a>
+      <a href="settings.html" class="tab-item active" data-page="settings">
+        <div class="tab-icon">⚙️</div>
+        <div>设置</div>
+      </a>
+    </div>
+
+    <!-- 输入模态框 -->
+    <div class="modal" id="inputModal">
+      <div class="modal-content input-modal">
+        <div class="modal-title" id="modalTitle">编辑设置</div>
+        <div id="modalBody">
+          <!-- 动态内容 -->
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" onclick="closeInputModal()">取消</button>
+          <button class="btn btn-primary" onclick="saveInput()">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/common.js"></script>
+  <script>
+    let currentInputType = '';
+    let inputModal = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      inputModal = new Modal('inputModal');
+    });
+
+    // 开关切换
+    function toggleSwitch(element, type) {
+      element.classList.toggle('active');
+      
+      const isActive = element.classList.contains('active');
+      console.log(`${type}: ${isActive ? '开启' : '关闭'}`);
+      
+      Toast.success(isActive ? '已开启' : '已关闭');
+    }
+
+    // 编辑昵称
+    function editNickname() {
+      currentInputType = 'nickname';
+      showInputModal('编辑昵称', `
+        <div class="input-group">
+          <label class="input-label">昵称</label>
+          <input type="text" class="input-field" id="inputValue" value="小明" maxlength="10">
+        </div>
+      `);
+    }
+
+    // 编辑周期长度
+    function editCycleLength() {
+      currentInputType = 'cycleLength';
+      showInputModal('编辑周期长度', `
+        <div class="input-group">
+          <label class="input-label">平均周期长度（天）</label>
+          <input type="number" class="input-field" id="inputValue" value="28" min="20" max="40">
+          <small style="color: var(--text-secondary); font-size: 12px;">正常范围：20-40天</small>
+        </div>
+      `);
+    }
+
+    // 编辑黄体期长度
+    function editLutealPhase() {
+      currentInputType = 'lutealPhase';
+      showInputModal('编辑黄体期长度', `
+        <div class="input-group">
+          <label class="input-label">黄体期长度（天）</label>
+          <input type="number" class="input-field" id="inputValue" value="14" min="10" max="16">
+          <small style="color: var(--text-secondary); font-size: 12px;">正常范围：10-16天</small>
+        </div>
+      `);
+    }
+
+    // 设置提醒时间
+    function setReminderTime() {
+      currentInputType = 'reminderTime';
+      showInputModal('设置提醒时间', `
+        <div class="input-group">
+          <label class="input-label">晨起测温提醒时间</label>
+          <input type="time" class="input-field" id="inputValue" value="07:00">
+        </div>
+      `);
+    }
+
+    // 显示输入模态框
+    function showInputModal(title, body) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalBody').innerHTML = body;
+      inputModal.show();
+    }
+
+    // 关闭输入模态框
+    function closeInputModal() {
+      inputModal.hide();
+    }
+
+    // 保存输入
+    function saveInput() {
+      const inputValue = document.getElementById('inputValue').value;
+      
+      if (!inputValue.trim()) {
+        Toast.error('请输入有效值');
+        return;
+      }
+      
+      switch(currentInputType) {
+        case 'nickname':
+          document.getElementById('nicknameValue').textContent = inputValue;
+          Toast.success('昵称已更新');
+          break;
+        case 'cycleLength':
+          if (inputValue < 20 || inputValue > 40) {
+            Toast.error('周期长度应在20-40天之间');
+            return;
+          }
+          document.getElementById('cycleLengthValue').textContent = inputValue + '天';
+          Toast.success('周期长度已更新');
+          break;
+        case 'lutealPhase':
+          if (inputValue < 10 || inputValue > 16) {
+            Toast.error('黄体期长度应在10-16天之间');
+            return;
+          }
+          document.getElementById('lutealPhaseValue').textContent = inputValue + '天';
+          Toast.success('黄体期长度已更新');
+          break;
+        case 'reminderTime':
+          document.getElementById('reminderTimeValue').textContent = inputValue;
+          Toast.success('提醒时间已更新');
+          break;
+      }
+      
+      inputModal.hide();
+    }
+
+    // 导出数据
+    function exportData() {
+      Toast.show('正在准备导出数据...', 'info', 2000);
+      
+      setTimeout(() => {
+        // 模拟导出过程
+        const exportData = {
+          version: '1.0.0',
+          exportDate: new Date().toISOString(),
+          userConfig: mockData.user,
+          records: mockData.records,
+          statistics: {
+            totalRecords: mockData.records.length,
+            totalCycles: 1
+          }
+        };
+        
+        console.log('导出的数据:', exportData);
+        Toast.success('数据导出成功');
+      }, 1000);
+    }
+
+    // 导入数据
+    function importData() {
+      // 模拟文件选择
+      Toast.show('请选择备份文件', 'info', 1000);
+      
+      setTimeout(() => {
+        Toast.success('数据导入成功');
+      }, 1500);
+    }
+
+    // 生成报告
+    function generateReport() {
+      Toast.show('正在生成周期分析报告...', 'info', 2000);
+      
+      setTimeout(() => {
+        Toast.success('报告生成成功，已保存到相册');
+      }, 1500);
+    }
+
+    // 检查更新
+    function checkUpdate() {
+      Toast.show('正在检查更新...', 'info', 1000);
+      
+      setTimeout(() => {
+        Toast.success('当前已是最新版本');
+      }, 1000);
+    }
+
+    // 显示帮助
+    function showHelp() {
+      Toast.show('打开使用帮助页面', 'info', 1000);
+    }
+
+    // 显示隐私政策
+    function showPrivacy() {
+      Toast.show('打开隐私政策页面', 'info', 1000);
+    }
+
+    // 联系我们
+    function contactUs() {
+      Toast.show('打开联系方式', 'info', 1000);
+    }
+
+    // 清空所有数据
+    function clearAllData() {
+      if (confirm('确定要清空所有数据吗？此操作无法撤销！')) {
+        Toast.show('正在清空数据...', 'warning', 1000);
+        
+        setTimeout(() => {
+          Toast.success('所有数据已清空');
+        }, 1000);
+      }
+    }
+  </script>
+</body>
+</html> 

@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>备孕助手 - 日历</title>
+  <link rel="stylesheet" href="../assets/css/common.css">
+  <style>
+    /* 日历页面特有样式 */
+    .calendar-header {
+      background: var(--surface);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      margin-bottom: var(--section-margin);
+      box-shadow: var(--shadow-small);
+    }
+    
+    .month-navigation {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .month-year {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .month-nav-btn {
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 50%;
+      background: var(--background);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    
+    .month-nav-btn:hover {
+      background: var(--border);
+    }
+    
+    .calendar-info {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    
+    .info-item {
+      text-align: center;
+    }
+    
+    .info-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 4px;
+    }
+    
+    .info-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    /* 日历网格 */
+    .calendar-container {
+      background: var(--surface);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      margin-bottom: var(--section-margin);
+      box-shadow: var(--shadow-small);
+    }
+    
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border-radius: var(--border-radius-small);
+      overflow: hidden;
+    }
+    
+    .weekday-header {
+      background: var(--background);
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    
+    .calendar-day {
+      background: var(--surface);
+      height: 80px;
+      position: relative;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .calendar-day:hover {
+      background: var(--background);
+    }
+    
+    .calendar-day.other-month {
+      opacity: 0.3;
+    }
+    
+    .calendar-day.today {
+      background: var(--primary-light);
+      color: white;
+    }
+    
+    .calendar-day.selected {
+      background: var(--primary-color);
+      color: white;
+    }
+    
+    .calendar-day.menstruation {
+      background: linear-gradient(to bottom, var(--surface) 0%, var(--menstruation-light) 100%);
+    }
+    
+    .calendar-day.ovulation {
+      background: linear-gradient(to bottom, var(--surface) 0%, var(--ovulation-day) 100%);
+    }
+    
+    .day-number {
+      position: absolute;
+      top: 4px;
+      left: 6px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .day-indicators {
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 2px;
+    }
+    
+    .indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    
+    .indicator.temperature {
+      background: var(--primary-color);
+    }
+    
+    .indicator.menstruation {
+      background: var(--menstruation-medium);
+    }
+    
+    .indicator.intimacy {
+      background: var(--secondary-color);
+    }
+    
+    .indicator.symptoms {
+      background: var(--warning-color);
+    }
+    
+    /* 选中日期详情 */
+    .selected-day-details {
+      background: var(--surface);
+      border-radius: var(--border-radius);
+      padding: 20px;
+      margin-bottom: var(--section-margin);
+      box-shadow: var(--shadow-small);
+      display: none;
+    }
+    
+    .selected-day-details.show {
+      display: block;
+    }
+    
+    .details-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .selected-date {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .edit-btn {
+      padding: 6px 12px;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius-small);
+      font-size: 12px;
+      cursor: pointer;
+    }
+    
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    
+    .detail-card {
+      background: var(--background);
+      border-radius: var(--border-radius-small);
+      padding: 12px;
+    }
+    
+    .detail-icon {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+    
+    .detail-title {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    
+    .detail-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .detail-value.empty {
+      color: var(--text-disabled);
+      font-weight: normal;
+    }
+    
+    .detail-notes {
+      grid-column: 1 / -1;
+      margin-top: 8px;
+    }
+    
+    .notes-content {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      padding: 8px;
+      background: var(--surface);
+      border-radius: var(--border-radius-small);
+    }
+    
+    /* 图例 */
+    .calendar-legend {
+      background: var(--surface);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      box-shadow: var(--shadow-small);
+    }
+    
+    .legend-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+    
+    .legend-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    
+    .legend-dot.temperature {
+      background: var(--primary-color);
+    }
+    
+    .legend-dot.menstruation {
+      background: var(--menstruation-medium);
+    }
+    
+    .legend-dot.intimacy {
+      background: var(--secondary-color);
+    }
+    
+    .legend-dot.symptoms {
+      background: var(--warning-color);
+    }
+  </style>
+</head>
+<body>
+  <div class="mobile-container">
+    <div class="page-container">
+      <h1 class="page-title">日历视图</h1>
+      
+      <!-- 日历头部信息 -->
+      <div class="calendar-header">
+        <div class="month-navigation">
+          <button class="month-nav-btn" onclick="previousMonth()">‹</button>
+          <div class="month-year" id="monthYear">2024年1月</div>
+          <button class="month-nav-btn" onclick="nextMonth()">›</button>
+        </div>
+        
+        <div class="calendar-info">
+          <div class="info-item">
+            <div class="info-value">15</div>
+            <div class="info-label">周期第几天</div>
+          </div>
+          <div class="info-item">
+            <div class="info-value">12</div>
+            <div class="info-label">记录天数</div>
+          </div>
+          <div class="info-item">
+            <div class="info-value">1月24日</div>
+            <div class="info-label">预计排卵</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 日历网格 -->
+      <div class="calendar-container">
+        <div class="calendar-grid" id="calendarGrid">
+          <!-- 星期标题 -->
+          <div class="weekday-header">日</div>
+          <div class="weekday-header">一</div>
+          <div class="weekday-header">二</div>
+          <div class="weekday-header">三</div>
+          <div class="weekday-header">四</div>
+          <div class="weekday-header">五</div>
+          <div class="weekday-header">六</div>
+          
+          <!-- 日期格子 - 这里用JavaScript动态生成 -->
+        </div>
+      </div>
+
+      <!-- 选中日期详情 -->
+      <div class="selected-day-details" id="dayDetails">
+        <div class="details-header">
+          <div class="selected-date" id="selectedDateText">1月15日 周一</div>
+          <button class="edit-btn" onclick="editSelectedDay()">编辑</button>
+        </div>
+        
+        <div class="details-grid">
+          <div class="detail-card">
+            <div class="detail-icon">🌡️</div>
+            <div class="detail-title">基础体温</div>
+            <div class="detail-value" id="detailTemperature">36.5°C</div>
+          </div>
+          
+          <div class="detail-card">
+            <div class="detail-icon">🩸</div>
+            <div class="detail-title">月经经量</div>
+            <div class="detail-value" id="detailMenstruation">无</div>
+          </div>
+          
+          <div class="detail-card">
+            <div class="detail-icon">💕</div>
+            <div class="detail-title">同房记录</div>
+            <div class="detail-value" id="detailIntimacy">1次</div>
+          </div>
+          
+          <div class="detail-card">
+            <div class="detail-icon">📝</div>
+            <div class="detail-title">症状备注</div>
+            <div class="detail-value" id="detailSymptoms">正常</div>
+          </div>
+          
+          <div class="detail-notes">
+            <div class="detail-title">详细备注</div>
+            <div class="notes-content" id="detailNotes">
+              今日感觉良好，体温稳定。晚上22:00同房，无其他特殊症状。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 图例说明 -->
+      <div class="calendar-legend">
+        <div class="legend-title">图例说明</div>
+        <div class="legend-grid">
+          <div class="legend-item">
+            <div class="legend-dot temperature"></div>
+            <span>基础体温</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot menstruation"></div>
+            <span>月经记录</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot intimacy"></div>
+            <span>同房记录</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot symptoms"></div>
+            <span>症状备注</span>
+          </div>
+          <div class="legend-item">
+            <div style="width:12px;height:12px;background:var(--primary-light);border-radius:2px;"></div>
+            <span>今天</span>
+          </div>
+          <div class="legend-item">
+            <div style="width:12px;height:12px;background:var(--ovulation-day);border-radius:2px;"></div>
+            <span>排卵期</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TabBar 导航 -->
+    <div class="tabbar">
+      <a href="index.html" class="tab-item" data-page="index">
+        <div class="tab-icon">🏠</div>
+        <div>首页</div>
+      </a>
+      <a href="record.html" class="tab-item" data-page="record">
+        <div class="tab-icon">📝</div>
+        <div>记录</div>
+      </a>
+      <a href="chart.html" class="tab-item" data-page="chart">
+        <div class="tab-icon">📊</div>
+        <div>图表</div>
+      </a>
+      <a href="calendar.html" class="tab-item active" data-page="calendar">
+        <div class="tab-icon">📅</div>
+        <div>日历</div>
+      </a>
+      <a href="settings.html" class="tab-item" data-page="settings">
+        <div class="tab-icon">⚙️</div>
+        <div>设置</div>
+      </a>
+    </div>
+  </div>
+
+  <script src="../assets/js/common.js"></script>
+  <script>
+    let currentDate = new Date(2024, 0, 1); // 2024年1月
+    let selectedDay = null;
+
+    // 模拟数据
+    const calendarData = {
+      '2024-01-10': { temperature: 36.3, menstruation: 'medium', intimacy: 0, symptoms: '' },
+      '2024-01-11': { temperature: 36.4, menstruation: 'light', intimacy: 0, symptoms: '' },
+      '2024-01-12': { temperature: 36.5, menstruation: 'none', intimacy: 1, symptoms: '轻微腹痛' },
+      '2024-01-13': { temperature: 36.6, menstruation: 'none', intimacy: 0, symptoms: '' },
+      '2024-01-14': { temperature: 36.8, menstruation: 'none', intimacy: 1, symptoms: '' },
+      '2024-01-15': { temperature: 36.5, menstruation: 'none', intimacy: 1, symptoms: '正常' },
+      '2024-01-16': { temperature: 36.9, menstruation: 'none', intimacy: 0, symptoms: '' },
+      '2024-01-17': { temperature: 37.0, menstruation: 'none', intimacy: 0, symptoms: '' },
+      '2024-01-18': { temperature: 36.8, menstruation: 'none', intimacy: 1, symptoms: '' },
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+      generateCalendar();
+    });
+
+    function generateCalendar() {
+      const grid = document.getElementById('calendarGrid');
+      const monthYear = document.getElementById('monthYear');
+      
+      // 更新月份显示
+      monthYear.textContent = `${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月`;
+      
+      // 清除现有内容（保留星期标题）
+      const weekHeaders = grid.querySelectorAll('.weekday-header');
+      grid.innerHTML = '';
+      weekHeaders.forEach(header => grid.appendChild(header));
+      
+      // 获取月份信息
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const startDate = new Date(firstDay);
+      startDate.setDate(startDate.getDate() - firstDay.getDay());
+      
+      // 生成日期格子
+      for (let i = 0; i < 42; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        
+        const dayElement = createDayElement(date, month);
+        grid.appendChild(dayElement);
+      }
+    }
+
+    function createDayElement(date, currentMonth) {
+      const dayElement = document.createElement('div');
+      dayElement.className = 'calendar-day';
+      
+      const dayNumber = document.createElement('div');
+      dayNumber.className = 'day-number';
+      dayNumber.textContent = date.getDate();
+      
+      // 判断是否是其他月份
+      if (date.getMonth() !== currentMonth) {
+        dayElement.classList.add('other-month');
+      }
+      
+      // 判断是否是今天
+      const today = new Date();
+      if (date.toDateString() === today.toDateString()) {
+        dayElement.classList.add('today');
+      }
+      
+      // 获取该日期的数据
+      const dateString = DateUtils.format(date);
+      const dayData = calendarData[dateString];
+      
+      if (dayData) {
+        // 添加背景样式
+        if (dayData.menstruation !== 'none') {
+          dayElement.classList.add('menstruation');
+        }
+        
+        // 创建指示器
+        const indicators = document.createElement('div');
+        indicators.className = 'day-indicators';
+        
+        if (dayData.temperature) {
+          const tempIndicator = document.createElement('div');
+          tempIndicator.className = 'indicator temperature';
+          indicators.appendChild(tempIndicator);
+        }
+        
+        if (dayData.menstruation !== 'none') {
+          const menIndicator = document.createElement('div');
+          menIndicator.className = 'indicator menstruation';
+          indicators.appendChild(menIndicator);
+        }
+        
+        if (dayData.intimacy > 0) {
+          const intimacyIndicator = document.createElement('div');
+          intimacyIndicator.className = 'indicator intimacy';
+          indicators.appendChild(intimacyIndicator);
+        }
+        
+        if (dayData.symptoms) {
+          const symptomsIndicator = document.createElement('div');
+          symptomsIndicator.className = 'indicator symptoms';
+          indicators.appendChild(symptomsIndicator);
+        }
+        
+        dayElement.appendChild(indicators);
+      }
+      
+      dayElement.appendChild(dayNumber);
+      
+      // 添加点击事件
+      dayElement.onclick = function() {
+        selectDay(dayElement, date, dayData);
+      };
+      
+      return dayElement;
+    }
+
+    function selectDay(element, date, data) {
+      // 移除之前选中的样式
+      if (selectedDay) {
+        selectedDay.classList.remove('selected');
+      }
+      
+      // 选中当前日期
+      element.classList.add('selected');
+      selectedDay = element;
+      
+      // 显示详情
+      showDayDetails(date, data);
+    }
+
+    function showDayDetails(date, data) {
+      const details = document.getElementById('dayDetails');
+      const selectedDateText = document.getElementById('selectedDateText');
+      
+      // 更新日期显示
+      const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const weekday = weekdays[date.getDay()];
+      selectedDateText.textContent = `${month}月${day}日 周${weekday}`;
+      
+      // 更新详细信息
+      if (data) {
+        document.getElementById('detailTemperature').textContent = 
+          data.temperature ? `${data.temperature}°C` : '未记录';
+        document.getElementById('detailTemperature').className = 
+          data.temperature ? 'detail-value' : 'detail-value empty';
+        
+        const flowMap = { 'none': '无', 'light': '少量', 'medium': '中量', 'heavy': '大量' };
+        document.getElementById('detailMenstruation').textContent = flowMap[data.menstruation] || '无';
+        document.getElementById('detailMenstruation').className = 
+          data.menstruation !== 'none' ? 'detail-value' : 'detail-value empty';
+        
+        document.getElementById('detailIntimacy').textContent = 
+          data.intimacy > 0 ? `${data.intimacy}次` : '无';
+        document.getElementById('detailIntimacy').className = 
+          data.intimacy > 0 ? 'detail-value' : 'detail-value empty';
+        
+        document.getElementById('detailSymptoms').textContent = data.symptoms || '无';
+        document.getElementById('detailSymptoms').className = 
+          data.symptoms ? 'detail-value' : 'detail-value empty';
+        
+        document.getElementById('detailNotes').textContent = 
+          data.symptoms ? `症状: ${data.symptoms}` : '暂无备注';
+      } else {
+        // 没有数据的情况
+        document.getElementById('detailTemperature').textContent = '未记录';
+        document.getElementById('detailTemperature').className = 'detail-value empty';
+        document.getElementById('detailMenstruation').textContent = '无';
+        document.getElementById('detailMenstruation').className = 'detail-value empty';
+        document.getElementById('detailIntimacy').textContent = '无';
+        document.getElementById('detailIntimacy').className = 'detail-value empty';
+        document.getElementById('detailSymptoms').textContent = '无';
+        document.getElementById('detailSymptoms').className = 'detail-value empty';
+        document.getElementById('detailNotes').textContent = '暂无记录';
+      }
+      
+      // 显示详情面板
+      details.classList.add('show');
+      details.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // 月份导航
+    function previousMonth() {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      generateCalendar();
+      hideDayDetails();
+    }
+
+    function nextMonth() {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      generateCalendar();
+      hideDayDetails();
+    }
+
+    function hideDayDetails() {
+      const details = document.getElementById('dayDetails');
+      details.classList.remove('show');
+      
+      if (selectedDay) {
+        selectedDay.classList.remove('selected');
+        selectedDay = null;
+      }
+    }
+
+    // 编辑选中日期
+    function editSelectedDay() {
+      if (selectedDay) {
+        Toast.success('跳转到记录页面');
+        setTimeout(() => {
+          window.location.href = 'record.html';
+        }, 500);
+      }
+    }
+  </script>
+</body>
+</html> 

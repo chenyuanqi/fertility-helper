@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>备孕助手 - 记录</title>
+  <link rel="stylesheet" href="../assets/css/common.css">
+  <style>
+    /* 记录页面特有样式 */
+    .date-selector {
+      background: var(--surface);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      margin-bottom: var(--section-margin);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-small);
+    }
+    
+    .date-display {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .date-nav {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .date-nav-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 50%;
+      background: var(--background);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .date-nav-btn:hover {
+      background: var(--border);
+    }
+    
+    .record-sections {
+      display: flex;
+      flex-direction: column;
+      gap: var(--section-margin);
+    }
+    
+    .record-section {
+      background: var(--surface);
+      border-radius: var(--border-radius);
+      padding: 20px;
+      box-shadow: var(--shadow-small);
+    }
+    
+    .section-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .section-icon {
+      font-size: 24px;
+      margin-right: 12px;
+    }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      flex: 1;
+    }
+    
+    .section-status {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      background: var(--background);
+      color: var(--text-secondary);
+    }
+    
+    .section-status.recorded {
+      background: var(--success-color);
+      color: white;
+    }
+    
+    /* 体温记录样式 */
+    .temperature-display {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .temperature-value {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+    }
+    
+    .temperature-time {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    .temperature-input-btn {
+      width: 100%;
+      height: 60px;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 16px;
+    }
+    
+    .temperature-options {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .option-btn {
+      flex: 1;
+      height: 36px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: var(--border-radius-small);
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    
+    .option-btn.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+    
+    /* 经量记录样式 */
+    .menstruation-section {
+      
+    }
+    
+    .flow-selector {
+      margin-bottom: 16px;
+    }
+    
+    .flow-slider {
+      margin: 20px 0;
+    }
+    
+    .flow-description {
+      text-align: center;
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+    
+    .flow-options {
+      display: flex;
+      gap: 8px;
+    }
+    
+    /* 同房记录样式 */
+    .intimacy-section {
+      
+    }
+    
+    .intimacy-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: var(--background);
+      border-radius: var(--border-radius);
+      margin-bottom: 16px;
+      cursor: pointer;
+    }
+    
+    .intimacy-toggle.active {
+      background: var(--secondary-color);
+      color: white;
+    }
+    
+    .toggle-switch {
+      width: 50px;
+      height: 30px;
+      background: var(--border);
+      border-radius: 15px;
+      position: relative;
+      transition: background-color 0.2s;
+    }
+    
+    .toggle-switch.active {
+      background: var(--primary-color);
+    }
+    
+    .toggle-thumb {
+      width: 26px;
+      height: 26px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s;
+    }
+    
+    .toggle-switch.active .toggle-thumb {
+      transform: translateX(20px);
+    }
+    
+    .intimacy-details {
+      display: none;
+    }
+    
+    .intimacy-details.show {
+      display: block;
+    }
+    
+    .time-input {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .time-input label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      width: 60px;
+    }
+    
+    /* 保存按钮 */
+    .save-section {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 32px);
+      max-width: 343px;
+      z-index: 100;
+    }
+    
+    .save-btn {
+      width: 100%;
+      height: 50px;
+      background: linear-gradient(135deg, var(--success-color), #26de81);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow-medium);
+    }
+    
+    .save-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-large);
+    }
+    
+    .save-btn:disabled {
+      background: var(--text-disabled);
+      transform: none;
+      box-shadow: var(--shadow-small);
+    }
+    
+    /* 键盘弹窗 */
+    .keyboard-modal {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: var(--surface);
+      border-radius: 12px 12px 0 0;
+      z-index: 9999;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+    
+    .keyboard-modal.show {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="mobile-container">
+    <div class="page-container">
+      <h1 class="page-title">记录数据</h1>
+      
+      <!-- 日期选择器 -->
+      <div class="date-selector">
+        <div class="date-display" id="selectedDate">今天 1月25日</div>
+        <div class="date-nav">
+          <button class="date-nav-btn" id="prevDay">←</button>
+          <button class="date-nav-btn" id="nextDay">→</button>
+        </div>
+      </div>
+
+      <div class="record-sections">
+        <!-- 体温记录 -->
+        <div class="record-section">
+          <div class="section-header">
+            <div class="section-icon">🌡️</div>
+            <div class="section-title">基础体温</div>
+            <div class="section-status" id="temperatureStatus">未记录</div>
+          </div>
+          
+          <div class="temperature-display">
+            <div class="temperature-value" id="temperatureValue">--.-</div>
+            <div class="temperature-time" id="temperatureTime">点击输入体温</div>
+          </div>
+          
+          <button class="temperature-input-btn" onclick="showTemperatureKeyboard()">
+            输入体温
+          </button>
+          
+          <div class="temperature-options">
+            <button class="option-btn active" data-method="oral">口温</button>
+            <button class="option-btn" data-method="vaginal">阴温</button>
+            <button class="option-btn" data-method="rectal">肛温</button>
+          </div>
+        </div>
+
+        <!-- 经量记录 -->
+        <div class="record-section menstruation-section">
+          <div class="section-header">
+            <div class="section-icon">🩸</div>
+            <div class="section-title">月经经量</div>
+            <div class="section-status" id="menstruationStatus">无</div>
+          </div>
+          
+          <div class="flow-description" id="flowDescription">
+            滑动选择经量大小
+          </div>
+          
+          <div class="flow-slider" id="flowSlider"></div>
+          
+          <div class="flow-options">
+            <button class="option-btn" data-start="true">经期开始</button>
+            <button class="option-btn" data-end="true">经期结束</button>
+          </div>
+        </div>
+
+        <!-- 同房记录 -->
+        <div class="record-section intimacy-section">
+          <div class="section-header">
+            <div class="section-icon">💕</div>
+            <div class="section-title">同房记录</div>
+            <div class="section-status" id="intimacyStatus">未记录</div>
+          </div>
+          
+          <div class="intimacy-toggle" onclick="toggleIntimacy()">
+            <span>今日同房</span>
+            <div class="toggle-switch" id="intimacySwitch">
+              <div class="toggle-thumb"></div>
+            </div>
+          </div>
+          
+          <div class="intimacy-details" id="intimacyDetails">
+            <div class="time-input">
+              <label>时间:</label>
+              <input type="time" class="input-field" id="intimacyTime" value="22:00">
+            </div>
+            
+            <div class="time-input">
+              <label>保护:</label>
+              <select class="input-field" id="protectionSelect">
+                <option value="false">无保护措施</option>
+                <option value="true">有保护措施</option>
+              </select>
+            </div>
+            
+            <div class="time-input">
+              <label>备注:</label>
+              <input type="text" class="input-field" id="intimacyNotes" placeholder="可选">
+            </div>
+          </div>
+        </div>
+
+        <!-- 症状记录 -->
+        <div class="record-section">
+          <div class="section-header">
+            <div class="section-icon">📝</div>
+            <div class="section-title">症状备注</div>
+            <div class="section-status">可选</div>
+          </div>
+          
+          <textarea class="input-field" id="symptomsNotes" rows="3" 
+                    placeholder="记录今日身体状况、症状等..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 保存按钮 -->
+    <div class="save-section">
+      <button class="save-btn" onclick="saveRecord()">
+        保存今日记录
+      </button>
+    </div>
+
+    <!-- TabBar 导航 -->
+    <div class="tabbar">
+      <a href="index.html" class="tab-item" data-page="index">
+        <div class="tab-icon">🏠</div>
+        <div>首页</div>
+      </a>
+      <a href="record.html" class="tab-item active" data-page="record">
+        <div class="tab-icon">📝</div>
+        <div>记录</div>
+      </a>
+      <a href="chart.html" class="tab-item" data-page="chart">
+        <div class="tab-icon">📊</div>
+        <div>图表</div>
+      </a>
+      <a href="calendar.html" class="tab-item" data-page="calendar">
+        <div class="tab-icon">📅</div>
+        <div>日历</div>
+      </a>
+      <a href="settings.html" class="tab-item" data-page="settings">
+        <div class="tab-icon">⚙️</div>
+        <div>设置</div>
+      </a>
+    </div>
+
+    <!-- 体温输入键盘弹窗 -->
+    <div class="keyboard-modal" id="temperatureKeyboard">
+      <div id="keyboardContainer"></div>
+    </div>
+  </div>
+
+  <script src="../assets/js/common.js"></script>
+  <script>
+    // 记录页面的状态
+    let currentDate = new Date();
+    let currentRecord = {
+      temperature: null,
+      menstruation: { flow: 'none' },
+      intimacy: [],
+      symptoms: ''
+    };
+    
+    let temperatureKeyboard = null;
+    let flowSlider = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      initializePage();
+    });
+
+    function initializePage() {
+      updateDateDisplay();
+      initializeTemperatureOptions();
+      initializeFlowSlider();
+      initializeMenstruationOptions();
+      loadTodayRecord();
+    }
+
+    function updateDateDisplay() {
+      const dateElement = document.getElementById('selectedDate');
+      const today = new Date();
+      
+      if (currentDate.toDateString() === today.toDateString()) {
+        dateElement.textContent = `今天 ${formatDate(currentDate, 'M月D日')}`;
+      } else {
+        dateElement.textContent = formatDate(currentDate, 'M月D日');
+      }
+    }
+
+    function formatDate(date, format) {
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      
+      return format
+        .replace('M', month)
+        .replace('D', day);
+    }
+
+    // 日期导航
+    document.getElementById('prevDay').onclick = function() {
+      currentDate.setDate(currentDate.getDate() - 1);
+      updateDateDisplay();
+      loadTodayRecord();
+    };
+
+    document.getElementById('nextDay').onclick = function() {
+      currentDate.setDate(currentDate.getDate() + 1);
+      updateDateDisplay();
+      loadTodayRecord();
+    };
+
+    // 体温相关功能
+    function initializeTemperatureOptions() {
+      const options = document.querySelectorAll('[data-method]');
+      options.forEach(option => {
+        option.onclick = function() {
+          options.forEach(o => o.classList.remove('active'));
+          this.classList.add('active');
+        };
+      });
+    }
+
+    function showTemperatureKeyboard() {
+      if (!temperatureKeyboard) {
+        temperatureKeyboard = new NumberKeyboard('keyboardContainer', {
+          maxLength: 4,
+          allowDecimal: true,
+          onConfirm: function(value) {
+            setTemperature(parseFloat(value));
+            hideTemperatureKeyboard();
+          }
+        });
+      }
+      
+      document.getElementById('temperatureKeyboard').classList.add('show');
+    }
+
+    function hideTemperatureKeyboard() {
+      document.getElementById('temperatureKeyboard').classList.remove('show');
+    }
+
+    function setTemperature(value) {
+      if (value >= 35.0 && value <= 42.0) {
+        currentRecord.temperature = {
+          value: value,
+          time: new Date().toTimeString().substr(0, 5),
+          method: document.querySelector('[data-method].active').dataset.method
+        };
+        
+        document.getElementById('temperatureValue').textContent = value.toFixed(1);
+        document.getElementById('temperatureTime').textContent = 
+          `记录时间: ${currentRecord.temperature.time}`;
+        document.getElementById('temperatureStatus').textContent = '已记录';
+        document.getElementById('temperatureStatus').classList.add('recorded');
+        
+        Toast.success('体温记录成功');
+      } else {
+        Toast.error('请输入有效的体温值 (35.0-42.0°C)');
+      }
+    }
+
+    // 经量相关功能
+    function initializeFlowSlider() {
+      flowSlider = new Slider('flowSlider', {
+        min: 0,
+        max: 3,
+        value: 0,
+        step: 1,
+        labels: ['无', '少量', '中量', '大量'],
+        onChange: function(value) {
+          const flows = ['none', 'light', 'medium', 'heavy'];
+          const labels = ['无', '少量', '中量', '大量'];
+          
+          currentRecord.menstruation.flow = flows[value];
+          
+          document.getElementById('flowDescription').textContent = 
+            `当前选择: ${labels[value]}`;
+          document.getElementById('menstruationStatus').textContent = labels[value];
+          
+          if (value > 0) {
+            document.getElementById('menstruationStatus').classList.add('recorded');
+          } else {
+            document.getElementById('menstruationStatus').classList.remove('recorded');
+          }
+        }
+      });
+    }
+
+    function initializeMenstruationOptions() {
+      const options = document.querySelectorAll('.menstruation-section [data-start], .menstruation-section [data-end]');
+      options.forEach(option => {
+        option.onclick = function() {
+          option.classList.toggle('active');
+          
+          if (option.dataset.start) {
+            currentRecord.menstruation.isStart = option.classList.contains('active');
+          }
+          if (option.dataset.end) {
+            currentRecord.menstruation.isEnd = option.classList.contains('active');
+          }
+        };
+      });
+    }
+
+    // 同房相关功能
+    function toggleIntimacy() {
+      const toggle = document.getElementById('intimacySwitch');
+      const details = document.getElementById('intimacyDetails');
+      const status = document.getElementById('intimacyStatus');
+      
+      toggle.classList.toggle('active');
+      details.classList.toggle('show');
+      
+      if (toggle.classList.contains('active')) {
+        currentRecord.intimacy = [{
+          time: document.getElementById('intimacyTime').value,
+          protection: document.getElementById('protectionSelect').value === 'true',
+          notes: document.getElementById('intimacyNotes').value
+        }];
+        status.textContent = '已记录';
+        status.classList.add('recorded');
+      } else {
+        currentRecord.intimacy = [];
+        status.textContent = '未记录';
+        status.classList.remove('recorded');
+      }
+    }
+
+    // 加载当日记录
+    function loadTodayRecord() {
+      const dateString = DateUtils.format(currentDate);
+      const existingRecord = mockData.records.find(r => r.date === dateString);
+      
+      if (existingRecord) {
+        // 加载现有记录
+        if (existingRecord.temperature) {
+          setTemperature(existingRecord.temperature.value);
+        }
+        
+        if (existingRecord.menstruation) {
+          const flowIndex = ['none', 'light', 'medium', 'heavy'].indexOf(existingRecord.menstruation.flow);
+          flowSlider.setValue(flowIndex);
+        }
+        
+        if (existingRecord.intimacy && existingRecord.intimacy.length > 0) {
+          document.getElementById('intimacySwitch').classList.add('active');
+          document.getElementById('intimacyDetails').classList.add('show');
+          document.getElementById('intimacyTime').value = existingRecord.intimacy[0].time;
+          currentRecord.intimacy = existingRecord.intimacy;
+        }
+      } else {
+        // 重置为默认状态
+        resetForm();
+      }
+    }
+
+    function resetForm() {
+      currentRecord = {
+        temperature: null,
+        menstruation: { flow: 'none' },
+        intimacy: [],
+        symptoms: ''
+      };
+      
+      document.getElementById('temperatureValue').textContent = '--.-';
+      document.getElementById('temperatureTime').textContent = '点击输入体温';
+      document.getElementById('temperatureStatus').textContent = '未记录';
+      document.getElementById('temperatureStatus').classList.remove('recorded');
+      
+      flowSlider.setValue(0);
+      
+      document.getElementById('intimacySwitch').classList.remove('active');
+      document.getElementById('intimacyDetails').classList.remove('show');
+      document.getElementById('intimacyStatus').textContent = '未记录';
+      document.getElementById('intimacyStatus').classList.remove('recorded');
+    }
+
+    // 保存记录
+    function saveRecord() {
+      // 更新症状备注
+      currentRecord.symptoms = document.getElementById('symptomsNotes').value;
+      
+      // 更新同房记录的详细信息
+      if (currentRecord.intimacy.length > 0) {
+        currentRecord.intimacy[0].time = document.getElementById('intimacyTime').value;
+        currentRecord.intimacy[0].protection = document.getElementById('protectionSelect').value === 'true';
+        currentRecord.intimacy[0].notes = document.getElementById('intimacyNotes').value;
+      }
+      
+      // 模拟保存到本地存储
+      const dateString = DateUtils.format(currentDate);
+      const recordToSave = {
+        id: Date.now().toString(),
+        date: dateString,
+        ...currentRecord,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      console.log('保存记录:', recordToSave);
+      
+      Toast.success('记录保存成功！');
+      
+      // 模拟保存延迟后跳转
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 1000);
+    }
+
+    // 键盘弹窗背景点击关闭
+    document.getElementById('temperatureKeyboard').onclick = function(e) {
+      if (e.target === this) {
+        hideTemperatureKeyboard();
+      }
+    };
+  </script>
+</body>
+</html> 
