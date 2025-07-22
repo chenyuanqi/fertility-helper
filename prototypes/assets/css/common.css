@@ -26,10 +26,12 @@
   --surface: #ffffff;
   --border: #e9ecef;
   
-  /* 经量颜色 */
-  --menstruation-light: #ffcccb;
-  --menstruation-medium: #ff6b6b;
-  --menstruation-heavy: #c0392b;
+  /* 经量颜色（按卫生巾数量） */
+  --menstruation-1pad: #ffe6e6;
+  --menstruation-2pad: #ffcccc;
+  --menstruation-3pad: #ff9999;
+  --menstruation-4pad: #ff6666;
+  --menstruation-5pad: #ff3333;
   
   /* 体温颜色 */
   --temperature-low: #74b9ff;

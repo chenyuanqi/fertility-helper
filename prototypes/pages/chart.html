@@ -190,16 +190,24 @@
       opacity: 0.3;
     }
     
-    .menstruation-light {
-      background: var(--menstruation-light);
+    .menstruation-1pad {
+      background: #ffe6e6;
     }
     
-    .menstruation-medium {
-      background: var(--menstruation-medium);
+    .menstruation-2pad {
+      background: #ffcccc;
     }
     
-    .menstruation-heavy {
-      background: var(--menstruation-heavy);
+    .menstruation-3pad {
+      background: #ff9999;
+    }
+    
+    .menstruation-4pad {
+      background: #ff6666;
+    }
+    
+    .menstruation-5pad {
+      background: #ff3333;
     }
     
     /* 覆盖线 */
@@ -441,9 +449,9 @@
           <!-- 图表内容 -->
           <div class="chart-content">
             <!-- 经量背景 -->
-            <div class="menstruation-background menstruation-medium" 
+            <div class="menstruation-background menstruation-3pad" 
                  style="left: 0%; width: 20%;"></div>
-            <div class="menstruation-background menstruation-light" 
+            <div class="menstruation-background menstruation-2pad" 
                  style="left: 20%; width: 10%;"></div>
             
             <!-- 覆盖线 -->
@@ -488,7 +496,7 @@
           </div>
           <div class="legend-item">
             <div class="legend-icon menstruation"></div>
-            <span>月经经量</span>
+            <span>卫生巾用量</span>
           </div>
           <div class="legend-item">
             <div class="legend-icon intimacy"></div>
@@ -522,7 +530,7 @@
           </div>
           <div class="detail-item">
             <div class="detail-value" id="detailMenstruation">无</div>
-            <div class="detail-label">月经经量</div>
+            <div class="detail-label">卫生巾用量</div>
           </div>
           <div class="detail-item">
             <div class="detail-value" id="detailIntimacy">1次</div>

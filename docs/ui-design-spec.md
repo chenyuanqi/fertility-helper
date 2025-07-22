@@ -41,14 +41,16 @@ $surface: #ffffff;                // 表面色
 $border: #e9ecef;                 // 边框色
 ```
 
-### 经量颜色
+### 经量颜色（按卫生巾数量）
 
 ```scss
-// 经量颜色渐变
-$menstruation-none: transparent;   // 无经血
-$menstruation-light: #ffcccb;     // 少量 - 淡粉色
-$menstruation-medium: #ff6b6b;    // 中量 - 正红色
-$menstruation-heavy: #c0392b;     // 大量 - 深红色
+// 经量颜色渐变（按卫生巾湿透数量）
+$menstruation-none: transparent;   // 0张 - 无经血
+$menstruation-1pad: #ffe6e6;      // 1张 - 极淡粉色
+$menstruation-2pad: #ffcccc;      // 2张 - 淡粉色  
+$menstruation-3pad: #ff9999;      // 3张 - 中粉色
+$menstruation-4pad: #ff6666;      // 4张 - 深粉色
+$menstruation-5pad: #ff3333;      // 5张+ - 深红色
 ```
 
 ### 体温颜色
@@ -205,41 +207,63 @@ $component-margin: 24rpx;         // 组件间距
 }
 ```
 
-### 3. 滑条组件
+### 3. 卫生巾选择组件
 
 ```scss
-.slider-component {
-  .slider-track {
-    height: 8rpx;
-    background-color: $border;
-    border-radius: 4rpx;
-    position: relative;
+.pad-selector {
+  .pad-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24rpx;
+    margin-bottom: 32rpx;
   }
   
-  .slider-progress {
-    height: 8rpx;
-    background: linear-gradient(90deg, $menstruation-light, $menstruation-heavy);
-    border-radius: 4rpx;
-  }
-  
-  .slider-thumb {
-    width: 48rpx;
-    height: 48rpx;
-    background-color: $surface;
-    border: 4rpx solid $primary-color;
-    border-radius: 50%;
-    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
-  }
-  
-  .slider-labels {
+  .pad-option {
     display: flex;
-    justify-content: space-between;
-    margin-top: 16rpx;
+    flex-direction: column;
+    align-items: center;
+    padding: 32rpx 16rpx;
+    border: 4rpx solid $border;
+    background-color: $surface;
+    border-radius: 16rpx;
+    cursor: pointer;
+    transition: all 0.2s ease;
     
-    .label {
-      font-size: 24rpx;
-      color: $text-secondary;
+    &:hover {
+      border-color: $primary-light;
+      background-color: $background;
     }
+    
+    &.active {
+      border-color: $primary-color;
+      background-color: $primary-color;
+      color: white;
+    }
+  }
+  
+  .pad-icon {
+    font-size: 36rpx;
+    margin-bottom: 8rpx;
+    line-height: 1.2;
+    min-height: 48rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .pad-label {
+    font-size: 24rpx;
+    font-weight: 500;
+  }
+  
+  .pad-description {
+    text-align: center;
+    font-size: 28rpx;
+    color: $text-secondary;
+    padding: 16rpx;
+    background-color: $background;
+    border-radius: 16rpx;
   }
 }
 ```

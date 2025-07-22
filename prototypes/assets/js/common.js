@@ -10,18 +10,18 @@ const mockData = {
   records: [
     {
       date: '2024-01-15',
-      temperature: { value: 36.5, time: '07:00' },
-      menstruation: { flow: 'medium' },
+      temperature: { value: 36.5, time: '07:00', method: 'oral' },
+      menstruation: { padCount: 3 },
       intimacy: [{ time: '22:00' }]
     },
     {
       date: '2024-01-16',
-      temperature: { value: 36.6, time: '07:00' },
-      menstruation: { flow: 'light' }
+      temperature: { value: 36.6, time: '07:00', method: 'oral' },
+      menstruation: { padCount: 2 }
     },
     {
       date: '2024-01-17',
-      temperature: { value: 36.8, time: '07:00' }
+      temperature: { value: 36.8, time: '07:00', method: 'oral' }
     }
   ],
   currentCycle: {

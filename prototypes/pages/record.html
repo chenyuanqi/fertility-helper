@@ -148,19 +148,70 @@
       
     }
     
-    .flow-selector {
-      margin-bottom: 16px;
-    }
-    
-    .flow-slider {
-      margin: 20px 0;
-    }
-    
     .flow-description {
       text-align: center;
       font-size: 14px;
       color: var(--text-secondary);
       margin-bottom: 16px;
+    }
+    
+    .pad-selector {
+      margin: 20px 0;
+    }
+    
+    .pad-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .pad-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 8px;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .pad-option:hover {
+      border-color: var(--primary-light);
+      background: var(--background);
+    }
+    
+    .pad-option.active {
+      border-color: var(--primary-color);
+      background: var(--primary-color);
+      color: white;
+    }
+    
+    .pad-icon {
+      font-size: 18px;
+      margin-bottom: 4px;
+      line-height: 1.2;
+      min-height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .pad-label {
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .pad-description {
+      text-align: center;
+      font-size: 14px;
+      color: var(--text-secondary);
+      padding: 8px;
+      background: var(--background);
+      border-radius: var(--border-radius);
     }
     
     .flow-options {
@@ -323,10 +374,8 @@
             输入体温
           </button>
           
-          <div class="temperature-options">
-            <button class="option-btn active" data-method="oral">口温</button>
-            <button class="option-btn" data-method="vaginal">阴温</button>
-            <button class="option-btn" data-method="rectal">肛温</button>
+          <div class="temperature-note">
+            <span style="font-size: 14px; color: var(--text-secondary);">📍 测量方式：口腔温度</span>
           </div>
         </div>
 
@@ -339,10 +388,40 @@
           </div>
           
           <div class="flow-description" id="flowDescription">
-            滑动选择经量大小
+            选择湿透的卫生巾数量
           </div>
           
-          <div class="flow-slider" id="flowSlider"></div>
+          <div class="pad-selector" id="padSelector">
+            <div class="pad-options">
+              <button class="pad-option active" data-count="0">
+                <div class="pad-icon">⚪</div>
+                <div class="pad-label">无</div>
+              </button>
+              <button class="pad-option" data-count="1">
+                <div class="pad-icon">🩸</div>
+                <div class="pad-label">1张</div>
+              </button>
+              <button class="pad-option" data-count="2">
+                <div class="pad-icon">🩸🩸</div>
+                <div class="pad-label">2张</div>
+              </button>
+              <button class="pad-option" data-count="3">
+                <div class="pad-icon">🩸🩸🩸</div>
+                <div class="pad-label">3张</div>
+              </button>
+              <button class="pad-option" data-count="4">
+                <div class="pad-icon">🩸🩸🩸🩸</div>
+                <div class="pad-label">4张</div>
+              </button>
+              <button class="pad-option" data-count="5">
+                <div class="pad-icon">🩸🩸🩸🩸🩸+</div>
+                <div class="pad-label">5张+</div>
+              </button>
+            </div>
+            <div class="pad-description" id="padDescription">
+              无经血
+            </div>
+          </div>
           
           <div class="flow-options">
             <button class="option-btn" data-start="true">经期开始</button>
@@ -458,7 +537,7 @@
     function initializePage() {
       updateDateDisplay();
       initializeTemperatureOptions();
-      initializeFlowSlider();
+      initializePadSelector();
       initializeMenstruationOptions();
       loadTodayRecord();
     }
@@ -498,13 +577,8 @@
 
     // 体温相关功能
     function initializeTemperatureOptions() {
-      const options = document.querySelectorAll('[data-method]');
-      options.forEach(option => {
-        option.onclick = function() {
-          options.forEach(o => o.classList.remove('active'));
-          this.classList.add('active');
-        };
-      });
+      // 体温现在固定为口腔温度，不需要选择
+      console.log('体温测量方式：口腔温度');
     }
 
     function showTemperatureKeyboard() {
@@ -531,7 +605,7 @@
         currentRecord.temperature = {
           value: value,
           time: new Date().toTimeString().substr(0, 5),
-          method: document.querySelector('[data-method].active').dataset.method
+          method: 'oral'  // 固定为口腔温度
         };
         
         document.getElementById('temperatureValue').textContent = value.toFixed(1);
@@ -546,30 +620,51 @@
       }
     }
 
-    // 经量相关功能
-    function initializeFlowSlider() {
-      flowSlider = new Slider('flowSlider', {
-        min: 0,
-        max: 3,
-        value: 0,
-        step: 1,
-        labels: ['无', '少量', '中量', '大量'],
-        onChange: function(value) {
-          const flows = ['none', 'light', 'medium', 'heavy'];
-          const labels = ['无', '少量', '中量', '大量'];
+    // 经量相关功能 - 改为卫生巾数量选择
+    function initializePadSelector() {
+      const padOptions = document.querySelectorAll('.pad-option');
+      const padDescription = document.getElementById('padDescription');
+      const menstruationStatus = document.getElementById('menstruationStatus');
+      
+      const descriptions = {
+        0: '无经血',
+        1: '轻微经血，湿透1张卫生巾',
+        2: '少量经血，湿透2张卫生巾', 
+        3: '中等经血，湿透3张卫生巾',
+        4: '较多经血，湿透4张卫生巾',
+        5: '大量经血，湿透5张或更多卫生巾'
+      };
+      
+      const statusLabels = {
+        0: '无',
+        1: '1张',
+        2: '2张',
+        3: '3张', 
+        4: '4张',
+        5: '5张+'
+      };
+      
+      padOptions.forEach(option => {
+        option.onclick = function() {
+          // 移除所有active状态
+          padOptions.forEach(o => o.classList.remove('active'));
+          // 添加active到当前选项
+          this.classList.add('active');
           
-          currentRecord.menstruation.flow = flows[value];
+          const count = parseInt(this.dataset.count);
+          currentRecord.menstruation.padCount = count;
           
-          document.getElementById('flowDescription').textContent = 
-            `当前选择: ${labels[value]}`;
-          document.getElementById('menstruationStatus').textContent = labels[value];
+          // 更新描述
+          padDescription.textContent = descriptions[count];
+          menstruationStatus.textContent = statusLabels[count];
           
-          if (value > 0) {
-            document.getElementById('menstruationStatus').classList.add('recorded');
+          // 更新状态样式
+          if (count > 0) {
+            menstruationStatus.classList.add('recorded');
           } else {
-            document.getElementById('menstruationStatus').classList.remove('recorded');
+            menstruationStatus.classList.remove('recorded');
           }
-        }
+        };
       });
     }
 
@@ -624,9 +719,14 @@
           setTemperature(existingRecord.temperature.value);
         }
         
-        if (existingRecord.menstruation) {
-          const flowIndex = ['none', 'light', 'medium', 'heavy'].indexOf(existingRecord.menstruation.flow);
-          flowSlider.setValue(flowIndex);
+        if (existingRecord.menstruation && existingRecord.menstruation.padCount !== undefined) {
+          const padCount = existingRecord.menstruation.padCount;
+          const padOption = document.querySelector(`[data-count="${padCount}"]`);
+          if (padOption) {
+            document.querySelectorAll('.pad-option').forEach(o => o.classList.remove('active'));
+            padOption.classList.add('active');
+            padOption.click(); // 触发点击事件来更新状态
+          }
         }
         
         if (existingRecord.intimacy && existingRecord.intimacy.length > 0) {
@@ -644,7 +744,7 @@
     function resetForm() {
       currentRecord = {
         temperature: null,
-        menstruation: { flow: 'none' },
+        menstruation: { padCount: 0 },
         intimacy: [],
         symptoms: ''
       };
@@ -654,7 +754,11 @@
       document.getElementById('temperatureStatus').textContent = '未记录';
       document.getElementById('temperatureStatus').classList.remove('recorded');
       
-      flowSlider.setValue(0);
+      // 重置卫生巾选择器
+      document.querySelectorAll('.pad-option').forEach(o => o.classList.remove('active'));
+      document.querySelector('[data-count="0"]').classList.add('active');
+      document.getElementById('padDescription').textContent = '无经血';
+      document.getElementById('menstruationStatus').textContent = '无';
       
       document.getElementById('intimacySwitch').classList.remove('active');
       document.getElementById('intimacyDetails').classList.remove('show');

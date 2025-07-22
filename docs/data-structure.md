@@ -53,12 +53,12 @@ interface DailyRecord {
 interface TemperatureRecord {
   value: number;                    // 体温值（摄氏度）
   time: string;                     // 测量时间 HH:mm
-  method: 'oral' | 'vaginal' | 'rectal'; // 测量方法
+  method: 'oral';                   // 测量方法（固定为口腔温度）
   quality: 'good' | 'disturbed' | 'sick'; // 测量质量
 }
 
 interface MenstruationRecord {
-  flow: 'none' | 'light' | 'medium' | 'heavy'; // 经量
+  padCount: number;                 // 湿透的卫生巾数量 (0-5+)
   isStart: boolean;                 // 是否是经期开始
   isEnd: boolean;                   // 是否是经期结束
   color?: 'bright_red' | 'dark_red' | 'brown' | 'pink'; // 颜色
