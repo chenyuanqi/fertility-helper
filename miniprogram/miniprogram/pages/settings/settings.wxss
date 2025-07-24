@@ -1,0 +1,68 @@
+/* 设置页面样式 */
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 0;
+  border-bottom: 1px solid #d9d9d9;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-label {
+  font-size: 28rpx;
+  color: #262626;
+}
+
+.setting-input {
+  width: 160rpx;
+  padding: 8rpx 16rpx;
+  border: 1px solid #d9d9d9;
+  border-radius: 8rpx;
+  text-align: right;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.setting-switch {
+  transform: scale(0.8);
+}
+
+/* 操作按钮 */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+/* 信息显示 */
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  border-bottom: 1px solid #d9d9d9;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  color: #8c8c8c;
+  font-size: 28rpx;
+}
+
+.info-value {
+  color: #262626;
+  font-weight: 500;
+  font-size: 28rpx;
+}
+
+/* 保存区域 */
+.save-section {
+  margin-top: 48rpx;
+  padding: 24rpx 0;
+}

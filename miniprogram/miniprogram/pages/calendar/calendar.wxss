@@ -1,0 +1,120 @@
+/* 日历页面样式 */
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx;
+  background: white;
+  border-radius: 8rpx;
+  margin-bottom: 32rpx;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nav-btn {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  background: #ff6b9d;
+  color: white;
+  font-size: 32rpx;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.month-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #ff6b9d;
+}
+
+/* 日历容器 */
+.calendar-container {
+  background: white;
+  border-radius: 8rpx;
+  padding: 24rpx;
+  margin-bottom: 32rpx;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.weekdays {
+  display: flex;
+  margin-bottom: 16rpx;
+}
+
+.weekday {
+  flex: 1;
+  text-align: center;
+  font-size: 24rpx;
+  color: #8c8c8c;
+  font-weight: 600;
+  padding: 8rpx;
+}
+
+.calendar-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.day-cell {
+  width: calc(100% / 7);
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border: 1px solid #d9d9d9;
+  gap: 4rpx;
+}
+
+.day-number {
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.day-indicators {
+  display: flex;
+  gap: 4rpx;
+}
+
+.indicator {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+}
+
+.indicator.temp {
+  background-color: #ff6b9d;
+}
+
+.indicator.flow {
+  background: linear-gradient(135deg, #ff6b9d, #ff80bf);
+}
+
+.indicator.intercourse {
+  background-color: #4ecdc4;
+}
+
+/* 日期详情 */
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  border-bottom: 1px solid #d9d9d9;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  color: #8c8c8c;
+}
+
+.detail-value {
+  font-weight: 600;
+  color: #ff6b9d;
+}

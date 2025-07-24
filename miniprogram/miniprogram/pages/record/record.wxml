@@ -1,0 +1,100 @@
+<!--记录页面-->
+<view class="container">
+  <!-- 体温记录 -->
+  <view class="card">
+    <view class="card-header">
+      <text>🌡️ 基础体温</text>
+    </view>
+    <view class="card-body">
+      <view class="temp-input-group">
+        <input 
+          class="temp-input" 
+          type="digit" 
+          placeholder="36.5" 
+          value="{{temperature}}"
+          bindinput="onTemperatureInput"
+        />
+        <text class="temp-unit">℃</text>
+      </view>
+      <view class="temp-tips">
+        <text class="text-secondary">请在每日清晨醒来后测量</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 经量记录 -->
+  <view class="card">
+    <view class="card-header">
+      <text>🩸 经期情况</text>
+    </view>
+    <view class="card-body">
+      <view class="flow-selector">
+        <view class="flow-options">
+          <view 
+            class="flow-option {{menstrualFlow === 'light' ? 'active' : ''}}"
+            data-value="light"
+            bindtap="onFlowChange"
+          >
+            <view class="flow-icon light"></view>
+            <text>少</text>
+          </view>
+          <view 
+            class="flow-option {{menstrualFlow === 'medium' ? 'active' : ''}}"
+            data-value="medium"
+            bindtap="onFlowChange"
+          >
+            <view class="flow-icon medium"></view>
+            <text>中</text>
+          </view>
+          <view 
+            class="flow-option {{menstrualFlow === 'heavy' ? 'active' : ''}}"
+            data-value="heavy"
+            bindtap="onFlowChange"
+          >
+            <view class="flow-icon heavy"></view>
+            <text>多</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 同房记录 -->
+  <view class="card">
+    <view class="card-header">
+      <text>💕 同房情况</text>
+    </view>
+    <view class="card-body">
+      <view class="intercourse-toggle">
+        <button 
+          class="btn {{hasIntercourse ? 'btn-primary' : 'btn-outline'}} btn-large btn-block"
+          bindtap="onIntercourseToggle"
+        >
+          {{hasIntercourse ? '✓ 已记录' : '点击记录'}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 备注 -->
+  <view class="card">
+    <view class="card-header">
+      <text>📝 备注</text>
+    </view>
+    <view class="card-body">
+      <textarea 
+        class="note-textarea"
+        placeholder="记录今日的症状或其他情况..."
+        value="{{note}}"
+        bindinput="onNoteInput"
+      ></textarea>
+    </view>
+  </view>
+
+  <!-- 保存按钮 -->
+  <view class="save-section">
+    <button class="btn btn-primary btn-large btn-block" bindtap="onSave">
+      保存记录
+    </button>
+  </view>
+</view>

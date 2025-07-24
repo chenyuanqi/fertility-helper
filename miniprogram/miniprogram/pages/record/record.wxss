@@ -1,0 +1,102 @@
+/* 记录页面样式 */
+
+.temp-input-group {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  justify-content: center;
+}
+
+.temp-input {
+  font-size: 48rpx;
+  font-weight: 600;
+  text-align: center;
+  border: 2px solid #ff6b9d;
+  border-radius: 8rpx;
+  padding: 24rpx;
+  min-width: 200rpx;
+  box-sizing: border-box;
+}
+
+.temp-unit {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #ff6b9d;
+}
+
+.temp-tips {
+  margin-top: 16rpx;
+  text-align: center;
+}
+
+/* 经量选择器 */
+.flow-options {
+  display: flex;
+  justify-content: space-around;
+  gap: 24rpx;
+}
+
+.flow-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 24rpx;
+  border-radius: 8rpx;
+  border: 2px solid #d9d9d9;
+  min-width: 120rpx;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.flow-option.active {
+  border-color: #ff6b9d;
+  background-color: rgba(255, 107, 157, 0.1);
+}
+
+.flow-icon {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+}
+
+.flow-icon.light {
+  background: linear-gradient(135deg, #ffb3d1, #ff80bf);
+}
+
+.flow-icon.medium {
+  background: linear-gradient(135deg, #ff6b9d, #ff1461);
+}
+
+.flow-icon.heavy {
+  background: linear-gradient(135deg, #d63384, #a71e2a);
+}
+
+/* 同房记录 */
+.intercourse-toggle {
+  margin: 24rpx 0;
+}
+
+/* 备注输入 */
+.note-textarea {
+  width: 100%;
+  min-height: 200rpx;
+  padding: 24rpx;
+  border: 1px solid #d9d9d9;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  line-height: 1.5;
+  resize: none;
+  box-sizing: border-box;
+}
+
+.note-textarea:focus {
+  border-color: #ff6b9d;
+  outline: none;
+}
+
+/* 保存区域 */
+.save-section {
+  margin-top: 48rpx;
+  padding: 24rpx 0;
+}

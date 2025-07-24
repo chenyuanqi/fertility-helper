@@ -1,0 +1,291 @@
+/* 全局样式 - 使用具体数值替代CSS变量 */
+
+/* 重置样式 */
+page {
+  background-color: #f5f5f5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 28rpx;
+  color: #262626;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* 通用组件样式 */
+.container {
+  padding: 24rpx;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 8rpx;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24rpx;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 24rpx;
+  border-bottom: 1px solid #d9d9d9;
+  font-weight: 600;
+  font-size: 32rpx;
+}
+
+.card-body {
+  padding: 24rpx;
+}
+
+/* 按钮样式 */
+button {
+  background: initial;
+  border: none;
+  outline: none;
+}
+
+button:focus {
+  outline: 0;
+}
+
+button::after {
+  border: none;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16rpx 24rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 80rpx;
+  box-sizing: border-box;
+}
+
+.btn-primary {
+  background-color: #ff6b9d;
+  color: white;
+}
+
+.btn-primary:hover {
+  opacity: 0.8;
+}
+
+.btn-secondary {
+  background-color: #4ecdc4;
+  color: white;
+}
+
+.btn-outline {
+  background-color: transparent;
+  border-color: #ff6b9d;
+  color: #ff6b9d;
+}
+
+.btn-large {
+  padding: 24rpx 32rpx;
+  font-size: 32rpx;
+  min-height: 88rpx;
+}
+
+.btn-small {
+  padding: 8rpx 16rpx;
+  font-size: 24rpx;
+  min-height: 60rpx;
+}
+
+.btn-block {
+  width: 100%;
+  display: flex;
+}
+
+/* 文本样式 */
+.text-primary {
+  color: #ff6b9d;
+}
+
+.text-secondary {
+  color: #8c8c8c;
+}
+
+.text-success {
+  color: #52c41a;
+}
+
+.text-warning {
+  color: #faad14;
+}
+
+.text-error {
+  color: #f5222d;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-small {
+  font-size: 24rpx;
+}
+
+.text-large {
+  font-size: 32rpx;
+}
+
+.text-xl {
+  font-size: 36rpx;
+}
+
+/* 布局样式 */
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.flex-center {
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  justify-content: space-between;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+/* 间距样式 */
+.m-xs { margin: 8rpx; }
+.m-sm { margin: 16rpx; }
+.m-md { margin: 24rpx; }
+.m-lg { margin: 32rpx; }
+.m-xl { margin: 48rpx; }
+
+.mt-xs { margin-top: 8rpx; }
+.mt-sm { margin-top: 16rpx; }
+.mt-md { margin-top: 24rpx; }
+.mt-lg { margin-top: 32rpx; }
+.mt-xl { margin-top: 48rpx; }
+
+.mb-xs { margin-bottom: 8rpx; }
+.mb-sm { margin-bottom: 16rpx; }
+.mb-md { margin-bottom: 24rpx; }
+.mb-lg { margin-bottom: 32rpx; }
+.mb-xl { margin-bottom: 48rpx; }
+
+.p-xs { padding: 8rpx; }
+.p-sm { padding: 16rpx; }
+.p-md { padding: 24rpx; }
+.p-lg { padding: 32rpx; }
+.p-xl { padding: 48rpx; }
+
+/* 输入框样式 */
+.input {
+  width: 100%;
+  padding: 16rpx;
+  border: 1px solid #d9d9d9;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  background-color: white;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: #ff6b9d;
+  outline: none;
+}
+
+/* 分割线 */
+.divider {
+  height: 1px;
+  background-color: #d9d9d9;
+  margin: 24rpx 0;
+}
+
+/* 加载动画 */
+.loading {
+  display: inline-block;
+  width: 40rpx;
+  height: 40rpx;
+  border: 4rpx solid #d9d9d9;
+  border-top: 4rpx solid #ff6b9d;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 消息提示样式 */
+.toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 24rpx;
+  border-radius: 8rpx;
+  z-index: 9999;
+  min-width: 200rpx;
+  text-align: center;
+}
+
+/* 模态框样式 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border-radius: 8rpx;
+  max-width: 90%;
+  max-height: 80%;
+  overflow: auto;
+}
+
+.modal-header {
+  padding: 24rpx;
+  border-bottom: 1px solid #d9d9d9;
+  font-weight: 600;
+}
+
+.modal-body {
+  padding: 24rpx;
+}
+
+.modal-footer {
+  padding: 24rpx;
+  border-top: 1px solid #d9d9d9;
+  display: flex;
+  justify-content: flex-end;
+  gap: 16rpx;
+}

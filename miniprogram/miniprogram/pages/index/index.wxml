@@ -1,0 +1,125 @@
+<!--首页-->
+<view class="container">
+  <!-- 今日数据概览 -->
+  <view class="today-overview">
+    <view class="card">
+      <view class="card-header">
+        <text>🌅 今日数据 ({{todayData.date}})</text>
+      </view>
+      <view class="card-body">
+        <view class="today-stats">
+          <view class="stat-item">
+            <view class="stat-icon temp">🌡️</view>
+            <view class="stat-info">
+              <text class="stat-value">{{todayData.temperature || '--'}}</text>
+              <text class="stat-unit">℃</text>
+            </view>
+          </view>
+          <view class="stat-item">
+            <view class="stat-icon flow">🩸</view>
+            <view class="stat-info">
+              <text class="stat-value">{{todayData.menstrualFlow || '无'}}</text>
+            </view>
+          </view>
+          <view class="stat-item">
+            <view class="stat-icon intercourse">💕</view>
+            <view class="stat-info">
+              <text class="stat-value">{{todayData.hasIntercourse ? '✓' : '×'}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 周期信息 -->
+  <view class="cycle-info">
+    <view class="card">
+      <view class="card-header">
+        <text>🔄 周期信息</text>
+      </view>
+      <view class="card-body">
+        <view class="cycle-stats">
+          <view class="cycle-item">
+            <text class="cycle-label">当前周期</text>
+            <text class="cycle-value">{{cycleInfo.currentDay}}/{{cycleInfo.cycleLength}}天</text>
+          </view>
+          <view class="cycle-item">
+            <text class="cycle-label">下次经期</text>
+            <text class="cycle-value">{{cycleInfo.nextPeriodDays}}天后</text>
+          </view>
+          <view class="cycle-item">
+            <text class="cycle-label">易孕期</text>
+            <text class="cycle-value {{cycleInfo.fertileWindow.isActive ? 'active' : ''}}">
+              {{cycleInfo.fertileWindow.isActive ? '进行中' : cycleInfo.fertileWindow.daysLeft + '天后'}}
+            </text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快速操作 -->
+  <view class="quick-actions">
+    <view class="card">
+      <view class="card-header">
+        <text>⚡ 快速操作</text>
+      </view>
+      <view class="card-body">
+        <view class="action-buttons">
+          <button class="btn btn-primary btn-large" bindtap="onQuickRecord">
+            📝 快速记录
+          </button>
+          <button class="btn btn-outline" bindtap="onViewChart">
+            📈 查看图表
+          </button>
+          <button class="btn btn-outline" bindtap="onViewCalendar">
+            📅 查看日历
+          </button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 最近记录 -->
+  <view class="recent-records">
+    <view class="card">
+      <view class="card-header">
+        <text>🕰️ 最近记录</text>
+      </view>
+      <view class="card-body">
+        <view class="records-list">
+          <!-- 模拟数据 -->
+          <view class="record-item">
+            <view class="record-date">12-20</view>
+            <view class="record-data">
+              <text class="record-temp">36.8℃</text>
+              <view class="record-indicators">
+                <view class="indicator flow"></view>
+                <view class="indicator intercourse"></view>
+              </view>
+            </view>
+          </view>
+          <view class="record-item">
+            <view class="record-date">12-19</view>
+            <view class="record-data">
+              <text class="record-temp">36.6℃</text>
+              <view class="record-indicators">
+                <view class="indicator temp"></view>
+              </view>
+            </view>
+          </view>
+          <view class="record-item">
+            <view class="record-date">12-18</view>
+            <view class="record-data">
+              <text class="record-temp">36.9℃</text>
+              <view class="record-indicators">
+                <view class="indicator intercourse"></view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
