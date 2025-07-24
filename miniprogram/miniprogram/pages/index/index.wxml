@@ -1,124 +1,139 @@
-<!--首页-->
+<!--pages/index/index.wxml-->
 <view class="container">
-  <!-- 今日数据概览 -->
-  <view class="today-overview">
-    <view class="card">
-      <view class="card-header">
-        <text>🌅 今日数据 ({{todayData.date}})</text>
-      </view>
-      <view class="card-body">
-        <view class="today-stats">
-          <view class="stat-item">
-            <view class="stat-icon temp">🌡️</view>
-            <view class="stat-info">
-              <text class="stat-value">{{todayData.temperature || '--'}}</text>
-              <text class="stat-unit">℃</text>
-            </view>
-          </view>
-          <view class="stat-item">
-            <view class="stat-icon flow">🩸</view>
-            <view class="stat-info">
-              <text class="stat-value">{{todayData.menstrualFlow || '无'}}</text>
-            </view>
-          </view>
-          <view class="stat-item">
-            <view class="stat-icon intercourse">💕</view>
-            <view class="stat-info">
-              <text class="stat-value">{{todayData.hasIntercourse ? '✓' : '×'}}</text>
-            </view>
-          </view>
-        </view>
-      </view>
-    </view>
+  <!-- 加载状态 -->
+  <view wx:if="{{isLoading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
   </view>
 
-  <!-- 周期信息 -->
-  <view class="cycle-info">
-    <view class="card">
+  <!-- 主要内容 -->
+  <view wx:else>
+    <!-- 日期头部 -->
+    <view class="date-header">
+      <text class="current-date">{{currentDate}}</text>
+      <text class="day-of-week">{{currentDate}}</text>
+    </view>
+
+    <!-- 周期信息卡片 -->
+    <view class="card cycle-card">
       <view class="card-header">
-        <text>🔄 周期信息</text>
+        <text class="card-title">周期信息</text>
       </view>
       <view class="card-body">
-        <view class="cycle-stats">
+        <view class="cycle-info">
           <view class="cycle-item">
-            <text class="cycle-label">当前周期</text>
-            <text class="cycle-value">{{cycleInfo.currentDay}}/{{cycleInfo.cycleLength}}天</text>
+            <text class="cycle-label">周期第</text>
+            <text class="cycle-value">{{cycleInfo.cycleDay}}</text>
+            <text class="cycle-label">天</text>
           </view>
           <view class="cycle-item">
-            <text class="cycle-label">下次经期</text>
-            <text class="cycle-value">{{cycleInfo.nextPeriodDays}}天后</text>
-          </view>
-          <view class="cycle-item">
-            <text class="cycle-label">易孕期</text>
-            <text class="cycle-value {{cycleInfo.fertileWindow.isActive ? 'active' : ''}}">
-              {{cycleInfo.fertileWindow.isActive ? '进行中' : cycleInfo.fertileWindow.daysLeft + '天后'}}
+            <text class="cycle-label">当前阶段</text>
+            <text class="cycle-value phase-{{cycleInfo.phase}}">
+              {{cycleInfo.phase === 'menstrual' ? '月经期' : 
+                cycleInfo.phase === 'follicular' ? '卵泡期' : 
+                cycleInfo.phase === 'ovulation' ? '排卵期' : 
+                cycleInfo.phase === 'luteal' ? '黄体期' : '未知'}}
             </text>
           </view>
         </view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 快速操作 -->
-  <view class="quick-actions">
-    <view class="card">
-      <view class="card-header">
-        <text>⚡ 快速操作</text>
-      </view>
-      <view class="card-body">
-        <view class="action-buttons">
-          <button class="btn btn-primary btn-large" bindtap="onQuickRecord">
-            📝 快速记录
-          </button>
-          <button class="btn btn-outline" bindtap="onViewChart">
-            📈 查看图表
-          </button>
-          <button class="btn btn-outline" bindtap="onViewCalendar">
-            📅 查看日历
-          </button>
+        <view class="predictions">
+          <view class="prediction-item" wx:if="{{cycleInfo.nextPeriod}}">
+            <text class="prediction-label">预测下次月经</text>
+            <text class="prediction-value">{{cycleInfo.nextPeriod}}</text>
+          </view>
+          <view class="prediction-item" wx:if="{{cycleInfo.ovulationPrediction}}">
+            <text class="prediction-label">预测排卵日</text>
+            <text class="prediction-value">{{cycleInfo.ovulationPrediction}}</text>
+          </view>
         </view>
       </view>
     </view>
-  </view>
 
-  <!-- 最近记录 -->
-  <view class="recent-records">
-    <view class="card">
+    <!-- 今日记录卡片 -->
+    <view class="card today-card">
       <view class="card-header">
-        <text>🕰️ 最近记录</text>
+        <text class="card-title">今日记录</text>
       </view>
       <view class="card-body">
-        <view class="records-list">
-          <!-- 模拟数据 -->
+        <view class="today-records">
           <view class="record-item">
-            <view class="record-date">12-20</view>
-            <view class="record-data">
-              <text class="record-temp">36.8℃</text>
-              <view class="record-indicators">
-                <view class="indicator flow"></view>
-                <view class="indicator intercourse"></view>
-              </view>
+            <view class="record-icon temperature-icon"></view>
+            <view class="record-content">
+              <text class="record-label">体温</text>
+              <text class="record-value">
+                {{todayRecord && todayRecord.temperature ? todayRecord.temperature.temperature + '°C' : '未记录'}}
+              </text>
+            </view>
+            <view class="record-action" bindtap="quickRecordTemperature">
+              <text class="action-text">{{todayRecord && todayRecord.temperature ? '修改' : '记录'}}</text>
             </view>
           </view>
+          
           <view class="record-item">
-            <view class="record-date">12-19</view>
-            <view class="record-data">
-              <text class="record-temp">36.6℃</text>
-              <view class="record-indicators">
-                <view class="indicator temp"></view>
-              </view>
+            <view class="record-icon menstrual-icon"></view>
+            <view class="record-content">
+              <text class="record-label">月经</text>
+              <text class="record-value">
+                {{todayRecord && todayRecord.menstrual ? 
+                  (todayRecord.menstrual.flow === 'light' ? '少量' : 
+                   todayRecord.menstrual.flow === 'medium' ? '中等' : 
+                   todayRecord.menstrual.flow === 'heavy' ? '大量' : '未知') : '未记录'}}
+              </text>
+            </view>
+            <view class="record-action" bindtap="quickRecordMenstrual">
+              <text class="action-text">{{todayRecord && todayRecord.menstrual ? '修改' : '记录'}}</text>
             </view>
           </view>
+          
           <view class="record-item">
-            <view class="record-date">12-18</view>
-            <view class="record-data">
-              <text class="record-temp">36.9℃</text>
-              <view class="record-indicators">
-                <view class="indicator intercourse"></view>
-              </view>
+            <view class="record-icon intercourse-icon"></view>
+            <view class="record-content">
+              <text class="record-label">同房</text>
+              <text class="record-value">
+                {{todayRecord && todayRecord.intercourse && todayRecord.intercourse.length > 0 ? 
+                  todayRecord.intercourse.length + '次' : '未记录'}}
+              </text>
+            </view>
+            <view class="record-action" bindtap="quickRecordIntercourse">
+              <text class="action-text">记录</text>
             </view>
           </view>
         </view>
+      </view>
+    </view>
+
+    <!-- 快速统计卡片 -->
+    <view class="card stats-card">
+      <view class="card-header">
+        <text class="card-title">最近30天统计</text>
+      </view>
+      <view class="card-body">
+        <view class="stats-grid">
+          <view class="stat-item">
+            <text class="stat-value">{{quickStats.temperatureRecords}}</text>
+            <text class="stat-label">体温记录</text>
+          </view>
+          <view class="stat-item">
+            <text class="stat-value">{{quickStats.menstrualDays}}</text>
+            <text class="stat-label">月经天数</text>
+          </view>
+          <view class="stat-item">
+            <text class="stat-value">{{quickStats.intercourseCount}}</text>
+            <text class="stat-label">同房次数</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 快速导航 -->
+    <view class="quick-nav">
+      <view class="nav-item" bindtap="viewChart">
+        <view class="nav-icon chart-icon"></view>
+        <text class="nav-label">查看图表</text>
+      </view>
+      <view class="nav-item" bindtap="viewCalendar">
+        <view class="nav-icon calendar-icon"></view>
+        <text class="nav-label">查看日历</text>
       </view>
     </view>
   </view>

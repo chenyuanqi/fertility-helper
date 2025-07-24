@@ -1,4 +1,6 @@
 {
-  "navigationBarTitleText": "备小孕",
-  "usingComponents": {}
+  "usingComponents": {},
+  "navigationBarTitleText": "备孕助手",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#f8f9fa"
 }

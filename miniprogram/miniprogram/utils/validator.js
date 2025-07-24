@@ -3,12 +3,12 @@
  * 提供各种数据验证功能
  */
 
-export class Validator {
+class Validator {
   /**
    * 验证体温数据
-   * @param temperature 体温值
+   * @param {number} temperature 体温值
    */
-  static validateTemperature(temperature: number): { valid: boolean; message?: string } {
+  static validateTemperature(temperature) {
     if (typeof temperature !== 'number' || isNaN(temperature)) {
       return { valid: false, message: '体温必须是数字' };
     }
@@ -28,9 +28,9 @@ export class Validator {
 
   /**
    * 验证日期格式 (YYYY-MM-DD)
-   * @param dateString 日期字符串
+   * @param {string} dateString 日期字符串
    */
-  static validateDate(dateString: string): { valid: boolean; message?: string } {
+  static validateDate(dateString) {
     if (!dateString || typeof dateString !== 'string') {
       return { valid: false, message: '日期不能为空' };
     }
@@ -59,9 +59,9 @@ export class Validator {
 
   /**
    * 验证时间格式 (HH:mm)
-   * @param timeString 时间字符串
+   * @param {string} timeString 时间字符串
    */
-  static validateTime(timeString: string): { valid: boolean; message?: string } {
+  static validateTime(timeString) {
     if (!timeString || typeof timeString !== 'string') {
       return { valid: false, message: '时间不能为空' };
     }
@@ -76,9 +76,9 @@ export class Validator {
 
   /**
    * 验证经量类型
-   * @param flow 经量类型
+   * @param {string} flow 经量类型
    */
-  static validateMenstrualFlow(flow: string): { valid: boolean; message?: string } {
+  static validateMenstrualFlow(flow) {
     const validFlows = ['light', 'medium', 'heavy'];
     if (!validFlows.includes(flow)) {
       return { valid: false, message: '经量类型必须是 light、medium 或 heavy' };
@@ -89,9 +89,9 @@ export class Validator {
 
   /**
    * 验证备注长度
-   * @param note 备注内容
+   * @param {string} note 备注内容
    */
-  static validateNote(note?: string): { valid: boolean; message?: string } {
+  static validateNote(note) {
     if (!note) {
       return { valid: true }; // 备注可以为空
     }
@@ -109,9 +109,9 @@ export class Validator {
 
   /**
    * 验证用户年龄
-   * @param age 年龄
+   * @param {number} age 年龄
    */
-  static validateAge(age: number): { valid: boolean; message?: string } {
+  static validateAge(age) {
     if (typeof age !== 'number' || isNaN(age)) {
       return { valid: false, message: '年龄必须是数字' };
     }
@@ -125,9 +125,9 @@ export class Validator {
 
   /**
    * 验证周期长度
-   * @param length 周期长度（天）
+   * @param {number} length 周期长度（天）
    */
-  static validateCycleLength(length: number): { valid: boolean; message?: string } {
+  static validateCycleLength(length) {
     if (typeof length !== 'number' || isNaN(length)) {
       return { valid: false, message: '周期长度必须是数字' };
     }
@@ -141,9 +141,9 @@ export class Validator {
 
   /**
    * 验证黄体期长度
-   * @param length 黄体期长度（天）
+   * @param {number} length 黄体期长度（天）
    */
-  static validateLutealPhaseLength(length: number): { valid: boolean; message?: string } {
+  static validateLutealPhaseLength(length) {
     if (typeof length !== 'number' || isNaN(length)) {
       return { valid: false, message: '黄体期长度必须是数字' };
     }
@@ -157,9 +157,9 @@ export class Validator {
 
   /**
    * 验证ID格式
-   * @param id ID字符串
+   * @param {string} id ID字符串
    */
-  static validateId(id: string): { valid: boolean; message?: string } {
+  static validateId(id) {
     if (!id || typeof id !== 'string') {
       return { valid: false, message: 'ID不能为空' };
     }
@@ -173,11 +173,11 @@ export class Validator {
 
   /**
    * 批量验证对象的多个字段
-   * @param data 要验证的数据对象
-   * @param rules 验证规则
+   * @param {any} data 要验证的数据对象
+   * @param {Object} rules 验证规则
    */
-  static validateObject(data: any, rules: { [key: string]: (value: any) => { valid: boolean; message?: string } }): { valid: boolean; errors: { [key: string]: string } } {
-    const errors: { [key: string]: string } = {};
+  static validateObject(data, rules) {
+    const errors = {};
     let valid = true;
     
     for (const [field, validator] of Object.entries(rules)) {
@@ -191,3 +191,7 @@ export class Validator {
     return { valid, errors };
   }
 }
+
+module.exports = {
+  Validator
+};

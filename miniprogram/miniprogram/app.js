@@ -9,7 +9,7 @@ App({
   },
 
   onLaunch: function () {
-    console.log('备小孕启动');
+    console.log('备孕助手启动');
     
     // 获取系统信息
     this.getSystemInfo().then(systemInfo => {

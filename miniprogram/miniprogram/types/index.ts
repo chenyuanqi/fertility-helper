@@ -157,4 +157,63 @@ export const STORAGE_KEYS = {
   CYCLES: 'fertility_cycles',
   STATISTICS: 'fertility_statistics',
   APP_VERSION: 'fertility_app_version',
+  BACKUP_DATA: 'fertility_backup_data',
+  LAST_SYNC: 'fertility_last_sync',
 } as const;
+
+// 数据版本管理
+export interface DataVersion {
+  version: string;
+  timestamp: string;
+  description: string;
+}
+
+// 备份数据结构
+export interface BackupData {
+  version: string;
+  timestamp: string;
+  userSettings: UserSettings;
+  dayRecords: { [date: string]: DayRecord };
+  cycles: MenstrualCycle[];
+  statistics: StatisticsData;
+}
+
+// 数据同步状态
+export interface SyncStatus {
+  lastSyncTime: string;
+  isSync: boolean;
+  pendingChanges: number;
+}
+
+// 数据操作结果
+export interface DataOperationResult<T = any> {
+  success: boolean;
+  data?: T;
+  error?: {
+    code: string;
+    message: string;
+    details?: any;
+  };
+}
+
+// 数据查询选项
+export interface QueryOptions {
+  startDate?: string;
+  endDate?: string;
+  limit?: number;
+  offset?: number;
+  sortBy?: 'date' | 'createdAt' | 'updatedAt';
+  sortOrder?: 'asc' | 'desc';
+}
+
+// 数据统计选项
+export interface StatisticsOptions {
+  dateRange: {
+    start: string;
+    end: string;
+  };
+  includeTemperature?: boolean;
+  includeMenstrual?: boolean;
+  includeIntercourse?: boolean;
+  includeSymptoms?: boolean;
+}
