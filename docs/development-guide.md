@@ -15,10 +15,10 @@
 ### 第一阶段：环境准备与项目初始化（预计1-2天）
 
 #### 1.1 开发环境搭建
-- [ ] 下载并安装[微信开发者工具](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)
-- [ ] 注册微信小程序账号（前往[微信公众平台](https://mp.weixin.qq.com)）
-- [ ] 获取小程序 AppID
-- [ ] 安装 Node.js（建议 16.x 或以上版本）
+- [x] 下载并安装[微信开发者工具](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)
+- [x] 注册微信小程序账号（前往[微信公众平台](https://mp.weixin.qq.com)）
+- [x] 获取小程序 AppID
+- [x] 安装 Node.js（建议 16.x 或以上版本）
 
 #### 1.2 项目初始化
 - [x] 创建小程序项目结构
