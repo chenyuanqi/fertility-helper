@@ -45,8 +45,8 @@
     "disableSWC": true
   },
   "appid": "wx7aed2592bf76adce",
-  "projectname": "quickstart-wx-cloud",
-  "libVersion": "2.20.1",
+  "projectname": "fertility-helper",
+  "libVersion": "3.8.12",
   "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
   "condition": {
     "search": {

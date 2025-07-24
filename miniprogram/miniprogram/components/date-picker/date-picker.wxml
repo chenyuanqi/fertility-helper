@@ -1,0 +1,73 @@
+<!--components/date-picker/date-picker.wxml-->
+<view class="date-picker-container" wx:if="{{visible}}">
+  <!-- 遮罩层 -->
+  <view class="date-picker-mask" bindtap="onMaskTap"></view>
+  
+  <!-- 选择器主体 -->
+  <view class="date-picker-main">
+    <!-- 头部 -->
+    <view class="date-picker-header">
+      <view class="date-picker-btn" bindtap="onCancelTap">取消</view>
+      <view class="date-picker-title">{{title}}</view>
+      <view class="date-picker-btn date-picker-btn--confirm" bindtap="onConfirmTap">确定</view>
+    </view>
+    
+    <!-- 选择器内容 -->
+    <view class="date-picker-content">
+      <picker-view 
+        class="date-picker-view" 
+        value="{{pickerValue}}" 
+        bindchange="onPickerChange"
+      >
+        <!-- 年份列 -->
+        <picker-view-column>
+          <view 
+            wx:for="{{years}}" 
+            wx:key="*this"
+            class="picker-item"
+          >
+            {{item}}年
+          </view>
+        </picker-view-column>
+        
+        <!-- 月份列 -->
+        <picker-view-column>
+          <view 
+            wx:for="{{months}}" 
+            wx:key="*this"
+            class="picker-item"
+          >
+            {{item}}月
+          </view>
+        </picker-view-column>
+        
+        <!-- 日期列 -->
+        <picker-view-column>
+          <view 
+            wx:for="{{days}}" 
+            wx:key="*this"
+            class="picker-item"
+          >
+            {{item}}日
+          </view>
+        </picker-view-column>
+      </picker-view>
+    </view>
+    
+    <!-- 快捷选择 -->
+    <view class="date-picker-shortcuts" wx:if="{{showShortcuts}}">
+      <view class="shortcuts-title">快捷选择</view>
+      <view class="shortcuts-list">
+        <view 
+          wx:for="{{shortcuts}}" 
+          wx:key="key"
+          class="shortcut-item"
+          bindtap="onShortcutTap"
+          data-key="{{item.key}}"
+        >
+          {{item.label}}
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

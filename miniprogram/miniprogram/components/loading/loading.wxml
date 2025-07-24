@@ -1,0 +1,42 @@
+<!--components/loading/loading.wxml-->
+<view class="loading-container {{visible ? 'loading-container--visible' : ''}}" wx:if="{{visible || type === 'inline'}}">
+  <!-- 全屏遮罩 -->
+  <view class="loading-mask" wx:if="{{type === 'fullscreen'}}"></view>
+  
+  <!-- 加载内容 -->
+  <view class="loading-content loading-content--{{type}}">
+    <!-- 加载动画 -->
+    <view class="loading-spinner loading-spinner--{{spinnerType}}">
+      <!-- 圆形加载器 -->
+      <view class="spinner-circle" wx:if="{{spinnerType === 'circle'}}">
+        <view class="circle-path"></view>
+      </view>
+      
+      <!-- 点状加载器 -->
+      <view class="spinner-dots" wx:if="{{spinnerType === 'dots'}}">
+        <view class="dot dot-1"></view>
+        <view class="dot dot-2"></view>
+        <view class="dot dot-3"></view>
+      </view>
+      
+      <!-- 波浪加载器 -->
+      <view class="spinner-wave" wx:if="{{spinnerType === 'wave'}}">
+        <view class="wave-bar wave-bar-1"></view>
+        <view class="wave-bar wave-bar-2"></view>
+        <view class="wave-bar wave-bar-3"></view>
+        <view class="wave-bar wave-bar-4"></view>
+        <view class="wave-bar wave-bar-5"></view>
+      </view>
+      
+      <!-- 脉冲加载器 -->
+      <view class="spinner-pulse" wx:if="{{spinnerType === 'pulse'}}">
+        <view class="pulse-ring pulse-ring-1"></view>
+        <view class="pulse-ring pulse-ring-2"></view>
+        <view class="pulse-ring pulse-ring-3"></view>
+      </view>
+    </view>
+    
+    <!-- 加载文本 -->
+    <view class="loading-text" wx:if="{{text}}">{{text}}</view>
+  </view>
+</view>

@@ -1,4 +1,4 @@
-// 备孕助手 - 通用JavaScript功能
+// 备小孕 - 通用JavaScript功能
 
 // 模拟数据存储
 const mockData = {

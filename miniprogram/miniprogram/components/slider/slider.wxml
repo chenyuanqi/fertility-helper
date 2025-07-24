@@ -1,0 +1,48 @@
+<!--components/slider/slider.wxml-->
+<view class="slider-container">
+  <!-- 滑条标题 -->
+  <view class="slider-header" wx:if="{{title}}">
+    <text class="slider-title">{{title}}</text>
+    <text class="slider-value">{{options[value].label}}</text>
+  </view>
+  
+  <!-- 滑条主体 -->
+  <view class="slider-main">
+    <!-- 滑条轨道 -->
+    <view class="slider-track">
+      <!-- 已选择部分 -->
+      <view class="slider-fill" style="width: {{fillWidth}}%"></view>
+      
+      <!-- 滑块 -->
+      <view 
+        class="slider-thumb" 
+        style="left: {{thumbPosition}}%"
+        bindtouchstart="onTouchStart"
+        bindtouchmove="onTouchMove"
+        bindtouchend="onTouchEnd"
+      >
+        <view class="slider-thumb-inner"></view>
+      </view>
+    </view>
+    
+    <!-- 刻度标签 -->
+    <view class="slider-labels">
+      <view 
+        wx:for="{{options}}" 
+        wx:key="value"
+        class="slider-label {{value === item.value ? 'slider-label--active' : ''}}"
+        style="left: {{item.position}}%"
+        bindtap="onLabelTap"
+        data-value="{{item.value}}"
+      >
+        <view class="slider-label-dot"></view>
+        <text class="slider-label-text">{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 描述信息 -->
+  <view class="slider-description" wx:if="{{options[value].description}}">
+    <text class="slider-description-text">{{options[value].description}}</text>
+  </view>
+</view>

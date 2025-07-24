@@ -1,0 +1,50 @@
+<!--components/keyboard/keyboard.wxml-->
+<view class="keyboard-container" wx:if="{{visible}}">
+  <!-- 遮罩层 -->
+  <view class="keyboard-mask" bindtap="onMaskTap"></view>
+  
+  <!-- 键盘主体 -->
+  <view class="keyboard-main">
+    <!-- 键盘头部 -->
+    <view class="keyboard-header">
+      <view class="keyboard-title">{{title}}</view>
+      <view class="keyboard-value">{{displayValue}}</view>
+    </view>
+    
+    <!-- 键盘按键区域 -->
+    <view class="keyboard-keys">
+      <!-- 数字键 -->
+      <view class="keyboard-row">
+        <view class="keyboard-key" bindtap="onKeyTap" data-key="1">1</view>
+        <view class="keyboard-key" bindtap="onKeyTap" data-key="2">2</view>
+        <view class="keyboard-key" bindtap="onKeyTap" data-key="3">3</view>
+      </view>
+      
+      <view class="keyboard-row">
+        <view class="keyboard-key" bindtap="onKeyTap" data-key="4">4</view>
+        <view class="keyboard-key" bindtap="onKeyTap" data-key="5">5</view>
+        <view class="keyboard-key" bindtap="onKeyTap" data-key="6">6</view>
+      </view>
+      
+      <view class="keyboard-row">
+        <view class="keyboard-key" bindtap="onKeyTap" data-key="7">7</view>
+        <view class="keyboard-key" bindtap="onKeyTap" data-key="8">8</view>
+        <view class="keyboard-key" bindtap="onKeyTap" data-key="9">9</view>
+      </view>
+      
+      <view class="keyboard-row">
+        <view class="keyboard-key" bindtap="onKeyTap" data-key=".">.</view>
+        <view class="keyboard-key" bindtap="onKeyTap" data-key="0">0</view>
+        <view class="keyboard-key keyboard-key--delete" bindtap="onDeleteTap">
+          <image class="delete-icon" src="/assets/icons/delete.png" mode="aspectFit"></image>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 键盘底部操作区 -->
+    <view class="keyboard-footer">
+      <view class="keyboard-btn keyboard-btn--cancel" bindtap="onCancelTap">取消</view>
+      <view class="keyboard-btn keyboard-btn--confirm" bindtap="onConfirmTap">确定</view>
+    </view>
+  </view>
+</view>

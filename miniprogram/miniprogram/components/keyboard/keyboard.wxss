@@ -1,0 +1,158 @@
+/* components/keyboard/keyboard.wxss */
+.keyboard-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+}
+
+.keyboard-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.keyboard-main {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.keyboard-header {
+  padding: 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  text-align: center;
+}
+
+.keyboard-title {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 16rpx;
+}
+
+.keyboard-value {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #ff6b9d;
+  min-height: 60rpx;
+  line-height: 60rpx;
+}
+
+.keyboard-keys {
+  padding: 24rpx 32rpx;
+}
+
+.keyboard-row {
+  display: flex;
+  margin-bottom: 24rpx;
+}
+
+.keyboard-row:last-child {
+  margin-bottom: 0;
+}
+
+.keyboard-key {
+  flex: 1;
+  height: 96rpx;
+  margin: 0 8rpx;
+  background-color: #f8f9fa;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  font-weight: 500;
+  color: #333;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.keyboard-key:first-child {
+  margin-left: 0;
+}
+
+.keyboard-key:last-child {
+  margin-right: 0;
+}
+
+.keyboard-key:active {
+  background-color: #e9ecef;
+  transform: scale(0.95);
+}
+
+.keyboard-key--delete {
+  background-color: #ff6b9d;
+}
+
+.keyboard-key--delete:active {
+  background-color: #e55a8a;
+}
+
+.delete-icon {
+  width: 32rpx;
+  height: 32rpx;
+  filter: brightness(0) invert(1);
+}
+
+.keyboard-footer {
+  display: flex;
+  padding: 24rpx 32rpx 32rpx;
+  gap: 24rpx;
+}
+
+.keyboard-btn {
+  flex: 1;
+  height: 88rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.keyboard-btn--cancel {
+  background-color: #f8f9fa;
+  color: #666;
+  border: 2rpx solid #e9ecef;
+}
+
+.keyboard-btn--cancel:active {
+  background-color: #e9ecef;
+}
+
+.keyboard-btn--confirm {
+  background-color: #ff6b9d;
+  color: #fff;
+}
+
+.keyboard-btn--confirm:active {
+  background-color: #e55a8a;
+}
+
+/* 禁用状态 */
+.keyboard-btn--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
