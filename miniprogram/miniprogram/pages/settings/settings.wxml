@@ -236,11 +236,11 @@
     </view>
     <view class="modal-body">
       <view class="avatar-options">
-        <view class="avatar-option" bindtap="chooseFromWechat">
+        <button class="avatar-option" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
           <view class="option-icon">🧑‍💼</view>
           <view class="option-title">使用微信头像</view>
           <view class="option-desc">使用当前微信头像</view>
-        </view>
+        </button>
         <view class="avatar-option" bindtap="chooseFromAlbum">
           <view class="option-icon">📷</view>
           <view class="option-title">从相册选择</view>

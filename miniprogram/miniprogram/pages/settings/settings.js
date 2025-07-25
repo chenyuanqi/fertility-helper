@@ -564,17 +564,16 @@ Page({
     });
   },
 
-  // 使用微信头像
-  async chooseFromWechat() {
+  // 选择微信头像（新版API）
+  async onChooseAvatar(e) {
     try {
       wx.showLoading({ title: '获取微信头像...' });
       
-      // 使用新版头像选择API
-      const res = await this.chooseAvatar();
+      const { avatarUrl } = e.detail;
       
-      if (res && res.avatarUrl) {
+      if (avatarUrl) {
         // 保存图片到本地
-        const savedFilePath = await this.saveImageToLocal(res.avatarUrl);
+        const savedFilePath = await this.saveImageToLocal(avatarUrl);
         await this.updateAvatar(savedFilePath);
         this.closeAvatarModal();
         
@@ -593,33 +592,10 @@ Page({
     } catch (error) {
       wx.hideLoading();
       console.error('获取微信头像失败:', error);
-      
-      // 如果新API失败，尝试使用getUserProfile
-      try {
-        const userInfo = await this.getUserProfile();
-        
-        if (userInfo && userInfo.avatarUrl) {
-          const savedFilePath = await this.saveImageToLocal(userInfo.avatarUrl);
-          await this.updateAvatar(savedFilePath);
-          this.closeAvatarModal();
-          
-          wx.showToast({
-            title: '头像更新成功',
-            icon: 'success'
-          });
-        } else {
-          wx.showToast({
-            title: '获取微信头像失败',
-            icon: 'none'
-          });
-        }
-      } catch (err) {
-        console.error('备用方案也失败:', err);
-        wx.showToast({
-          title: '获取微信头像失败',
-          icon: 'error'
-        });
-      }
+      wx.showToast({
+        title: '获取微信头像失败',
+        icon: 'error'
+      });
     }
   },
 
