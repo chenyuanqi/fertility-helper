@@ -28,11 +28,37 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
-    this.setData({
-      currentDate: DateUtils.getToday()
-    });
-    
-    this.loadPageData();
+    try {
+      console.log('Index page onLoad start');
+      
+      const today = DateUtils.getToday();
+      console.log('Today date:', today);
+      
+      this.setData({
+        currentDate: today
+      });
+      
+      console.log('Current date set to:', this.data.currentDate);
+      
+      this.loadPageData();
+    } catch (error) {
+      console.error('Index page onLoad error:', error);
+      // 设置一个默认日期，避免页面完全不可用
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+      
+      this.setData({
+        currentDate: dateString
+      });
+      
+      wx.showToast({
+        title: '页面初始化失败',
+        icon: 'none'
+      });
+    }
   },
 
   /**
@@ -48,6 +74,7 @@ Page({
    */
   async loadPageData() {
     try {
+      console.log('loadPageData start');
       this.setData({ isLoading: true });
       
       // 加载用户设置
@@ -62,6 +89,7 @@ Page({
       // 加载快速统计
       await this.loadQuickStats();
       
+      console.log('loadPageData completed');
     } catch (error) {
       console.error('加载页面数据失败:', error);
       wx.showToast({
@@ -183,27 +211,90 @@ Page({
    * 快速记录体温
    */
   quickRecordTemperature() {
-    wx.navigateTo({
-      url: `/pages/record/record?type=temperature&date=${this.data.currentDate}`
-    });
+    console.log('quickRecordTemperature clicked, currentDate:', this.data.currentDate);
+    try {
+      const url = `/pages/record/record?type=temperature&date=${this.data.currentDate}`;
+      console.log('Navigation URL:', url);
+      wx.navigateTo({
+        url: url,
+        success: () => {
+          console.log('Navigation success');
+        },
+        fail: (error) => {
+          console.error('Navigation fail:', error);
+          wx.showToast({
+            title: '跳转失败: ' + error.errMsg,
+            icon: 'none'
+          });
+        }
+      });
+    } catch (error) {
+      console.error('Navigation error:', error);
+      wx.showToast({
+        title: '跳转异常',
+        icon: 'none'
+      });
+    }
   },
 
   /**
    * 快速记录月经
    */
   quickRecordMenstrual() {
-    wx.navigateTo({
-      url: `/pages/record/record?type=menstrual&date=${this.data.currentDate}`
-    });
+    console.log('quickRecordMenstrual clicked, currentDate:', this.data.currentDate);
+    try {
+      const url = `/pages/record/record?type=menstrual&date=${this.data.currentDate}`;
+      console.log('Navigation URL:', url);
+      wx.navigateTo({
+        url: url,
+        success: () => {
+          console.log('Navigation success');
+        },
+        fail: (error) => {
+          console.error('Navigation fail:', error);
+          wx.showToast({
+            title: '跳转失败: ' + error.errMsg,
+            icon: 'none'
+          });
+        }
+      });
+    } catch (error) {
+      console.error('Navigation error:', error);
+      wx.showToast({
+        title: '跳转异常',
+        icon: 'none'
+      });
+    }
   },
 
   /**
    * 快速记录同房
    */
   quickRecordIntercourse() {
-    wx.navigateTo({
-      url: `/pages/record/record?type=intercourse&date=${this.data.currentDate}`
-    });
+    console.log('quickRecordIntercourse clicked, currentDate:', this.data.currentDate);
+    try {
+      const url = `/pages/record/record?type=intercourse&date=${this.data.currentDate}`;
+      console.log('Navigation URL:', url);
+      wx.navigateTo({
+        url: url,
+        success: () => {
+          console.log('Navigation success');
+        },
+        fail: (error) => {
+          console.error('Navigation fail:', error);
+          wx.showToast({
+            title: '跳转失败: ' + error.errMsg,
+            icon: 'none'
+          });
+        }
+      });
+    } catch (error) {
+      console.error('Navigation error:', error);
+      wx.showToast({
+        title: '跳转异常',
+        icon: 'none'
+      });
+    }
   },
 
   /**
