@@ -33,7 +33,10 @@ Page({
     showInputModal: false,
     modalTitle: '',
     inputType: '',
-    inputValue: ''
+    inputValue: '',
+    focus_nickname: false,
+    focus_cycleLength: false,
+    focus_lutealPhase: false
   },
 
   async onLoad() {
@@ -152,6 +155,16 @@ Page({
       inputType: type,
       inputValue: value
     });
+    
+    // 延迟一下确保DOM渲染完成后再设置焦点
+    setTimeout(() => {
+      if (type !== 'reminderTime') {
+        // 对于非时间选择器的输入框，确保焦点设置
+        this.setData({
+          [`focus_${type}`]: true
+        });
+      }
+    }, 100);
   },
 
   // 关闭输入模态框
@@ -160,8 +173,23 @@ Page({
       showInputModal: false,
       modalTitle: '',
       inputType: '',
-      inputValue: ''
+      inputValue: '',
+      focus_nickname: false,
+      focus_cycleLength: false,
+      focus_lutealPhase: false
     });
+  },
+
+  // 阻止事件冒泡
+  stopPropagation(e) {
+    // 阻止事件冒泡，防止点击输入框时关闭模态框
+    e.stopPropagation();
+  },
+
+  // 输入框获取焦点
+  focusInput(e) {
+    // 阻止事件冒泡
+    e.stopPropagation();
   },
 
   // 输入值变化

@@ -225,32 +225,60 @@
 </view>
 
 <!-- 输入模态框 -->
-<view class="modal-mask" wx:if="{{showInputModal}}" bindtap="closeInputModal">
-  <view class="modal" catchtap="">
+<view class="modal-mask" wx:if="{{showInputModal}}" catchtap="closeInputModal">
+  <view class="modal" catchtap="stopPropagation">
     <view class="modal-header">
       <view class="modal-title">{{modalTitle}}</view>
     </view>
     <view class="modal-body">
       <view class="input-group" wx:if="{{inputType === 'nickname'}}">
         <view class="input-label">昵称</view>
-        <input class="input" type="text" placeholder="请输入昵称" value="{{inputValue}}" bindinput="onInputChange" maxlength="10" />
+        <input 
+          class="input" 
+          type="text" 
+          placeholder="请输入昵称" 
+          value="{{inputValue}}" 
+          bindinput="onInputChange" 
+          bindtap="focusInput"
+          catchtouchstart="stopPropagation"
+          maxlength="10" 
+          focus="{{focus_nickname}}"
+        />
       </view>
       
       <view class="input-group" wx:if="{{inputType === 'cycleLength'}}">
         <view class="input-label">平均周期长度（天）</view>
-        <input class="input" type="number" placeholder="请输入周期长度" value="{{inputValue}}" bindinput="onInputChange" />
+        <input 
+          class="input" 
+          type="number" 
+          placeholder="请输入周期长度" 
+          value="{{inputValue}}" 
+          bindinput="onInputChange"
+          bindtap="focusInput"
+          catchtouchstart="stopPropagation"
+          focus="{{focus_cycleLength}}"
+        />
         <view class="input-tip">正常范围：20-40天</view>
       </view>
       
       <view class="input-group" wx:if="{{inputType === 'lutealPhase'}}">
         <view class="input-label">黄体期长度（天）</view>
-        <input class="input" type="number" placeholder="请输入黄体期长度" value="{{inputValue}}" bindinput="onInputChange" />
+        <input 
+          class="input" 
+          type="number" 
+          placeholder="请输入黄体期长度" 
+          value="{{inputValue}}" 
+          bindinput="onInputChange"
+          bindtap="focusInput"
+          catchtouchstart="stopPropagation"
+          focus="{{focus_lutealPhase}}"
+        />
         <view class="input-tip">正常范围：10-16天</view>
       </view>
       
       <view class="input-group" wx:if="{{inputType === 'reminderTime'}}">
         <view class="input-label">晨起测温提醒时间</view>
-        <picker mode="time" value="{{inputValue}}" bindchange="onTimeChange">
+        <picker mode="time" value="{{inputValue}}" bindchange="onTimeChange" catchtap="stopPropagation">
           <view class="picker-display">{{inputValue || '请选择时间'}}</view>
         </picker>
       </view>
