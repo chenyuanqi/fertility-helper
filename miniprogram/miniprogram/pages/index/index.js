@@ -190,8 +190,17 @@ Page({
       Object.entries(dayRecords).forEach(([date, record]) => {
         if (date >= thirtyDaysAgo) {
           if (record.temperature) temperatureRecords++;
-          if (record.menstrual) menstrualDays++;
-          if (record.intercourse) intercourseCount += record.intercourse.length;
+          
+          // 只统计有实际月经的天数（不包括"无月经"）
+          if (record.menstrual && record.menstrual.flow !== 'none') {
+            menstrualDays++;
+          }
+          
+          // 只统计实际同房次数（不包括"无同房"记录）
+          if (record.intercourse && record.intercourse.length > 0) {
+            const actualIntercourse = record.intercourse.filter(item => item.type !== 'none');
+            intercourseCount += actualIntercourse.length;
+          }
         }
       });
       

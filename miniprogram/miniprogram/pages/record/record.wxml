@@ -134,32 +134,44 @@
   <view class="record-form" wx:if="{{recordType === 'intercourse'}}">
     <view class="form-title">同房记录</view>
     
-    <!-- 时间选择 -->
+    <!-- 今日无同房选项 -->
     <view class="form-item">
-      <view class="label">时间</view>
-      <picker mode="time" value="{{intercourseTime}}" bindchange="onIntercourseTimeChange">
-        <view class="picker-display">{{intercourseTime}}</view>
-      </picker>
-    </view>
-    
-    <!-- 避孕措施 -->
-    <view class="form-item">
-      <view class="label">避孕措施</view>
-      <view class="protection-item">
-        <switch checked="{{hasProtection}}" bindchange="onProtectionChange"></switch>
-        <text>采取了避孕措施</text>
+      <view class="label">今日同房情况</view>
+      <view class="no-intercourse-item">
+        <switch checked="{{noIntercourseToday}}" bindchange="onNoIntercourseChange"></switch>
+        <text>今日无同房</text>
       </view>
     </view>
     
-    <!-- 备注 -->
-    <view class="form-item">
-      <view class="label">备注 (可选)</view>
-      <textarea class="note-input" 
-                placeholder="其他备注信息" 
-                value="{{intercourseNote}}"
-                bindinput="onIntercourseNoteInput"
-                maxlength="100"
-                show-confirm-bar="{{false}}"></textarea>
+    <!-- 同房信息 (仅当有同房时显示) -->
+    <view wx:if="{{!noIntercourseToday}}">
+      <!-- 时间选择 -->
+      <view class="form-item">
+        <view class="label">时间</view>
+        <picker mode="time" value="{{intercourseTime}}" bindchange="onIntercourseTimeChange">
+          <view class="picker-display">{{intercourseTime}}</view>
+        </picker>
+      </view>
+      
+      <!-- 避孕措施 -->
+      <view class="form-item">
+        <view class="label">避孕措施</view>
+        <view class="protection-item">
+          <switch checked="{{hasProtection}}" bindchange="onProtectionChange"></switch>
+          <text>采取了避孕措施</text>
+        </view>
+      </view>
+      
+      <!-- 备注 -->
+      <view class="form-item">
+        <view class="label">备注 (可选)</view>
+        <textarea class="note-input" 
+                  placeholder="其他备注信息" 
+                  value="{{intercourseNote}}"
+                  bindinput="onIntercourseNoteInput"
+                  maxlength="100"
+                  show-confirm-bar="{{false}}"></textarea>
+      </view>
     </view>
     
     <!-- 操作按钮 -->
@@ -210,8 +222,11 @@
       <view class="preview-content">
         <view class="preview-label">同房</view>
         <view class="preview-value">
-          {{todayRecord.intercourse.length}}次 
-          <text wx:if="{{todayRecord.intercourse[0].protection}}" class="protection-tag">有保护</text>
+          <text wx:if="{{todayRecord.intercourse[0].type === 'none'}}">今日无同房</text>
+          <block wx:else>
+            {{todayRecord.intercourse.length}}次 
+            <text wx:if="{{todayRecord.intercourse[0].protection}}" class="protection-tag">有保护</text>
+          </block>
         </view>
       </view>
     </view>

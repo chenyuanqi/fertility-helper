@@ -151,13 +151,15 @@
 }
 
 /* 避孕措施样式 */
-.protection-item {
+.protection-item,
+.no-intercourse-item {
   display: flex;
   align-items: center;
   gap: 12rpx;
 }
 
-.protection-item text {
+.protection-item text,
+.no-intercourse-item text {
   font-size: 28rpx;
   color: #333;
 }

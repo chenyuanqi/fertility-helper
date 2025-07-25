@@ -75,7 +75,8 @@
               <text class="record-label">月经</text>
               <text class="record-value">
                 {{todayRecord && todayRecord.menstrual ? 
-                  (todayRecord.menstrual.flow === 'light' ? '少量' : 
+                  (todayRecord.menstrual.flow === 'none' ? '无月经' :
+                   todayRecord.menstrual.flow === 'light' ? '少量' : 
                    todayRecord.menstrual.flow === 'medium' ? '中等' : 
                    todayRecord.menstrual.flow === 'heavy' ? '大量' : '未知') : '未记录'}}
               </text>
@@ -91,7 +92,7 @@
               <text class="record-label">同房</text>
               <text class="record-value">
                 {{todayRecord && todayRecord.intercourse && todayRecord.intercourse.length > 0 ? 
-                  todayRecord.intercourse.length + '次' : '未记录'}}
+                  (todayRecord.intercourse[0].type === 'none' ? '无同房' : todayRecord.intercourse.length + '次') : '未记录'}}
               </text>
             </view>
             <view class="record-action" bindtap="quickRecordIntercourse">

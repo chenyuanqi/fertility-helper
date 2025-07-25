@@ -276,29 +276,45 @@ class DataManager {
         };
       }
 
-      // 创建完整的记录
-      const fullRecord = {
-        ...record,
-        id: this.generateId(),
-        createdAt: DateUtils.formatISO(new Date()),
-        updatedAt: DateUtils.formatISO(new Date()),
-      };
-
       // 获取当天记录
       const dayRecords = await FertilityStorage.getDayRecords();
       const dayRecord = dayRecords[record.date] || { date: record.date };
 
-      // 更新月经记录
-      dayRecord.menstrual = fullRecord;
+      // 如果是"无月经"，保存无月经的标记记录
+      if (record.flow === 'none') {
+        const fullRecord = {
+          ...record,
+          id: this.generateId(),
+          createdAt: DateUtils.formatISO(new Date()),
+          updatedAt: DateUtils.formatISO(new Date()),
+        };
 
-      // 保存到存储
-      dayRecords[record.date] = dayRecord;
-      await FertilityStorage.saveDayRecords(dayRecords);
+        // 保存"无月经"记录
+        dayRecord.menstrual = fullRecord;
+        dayRecords[record.date] = dayRecord;
+      } else {
+        // 创建完整的记录
+        const fullRecord = {
+          ...record,
+          id: this.generateId(),
+          createdAt: DateUtils.formatISO(new Date()),
+          updatedAt: DateUtils.formatISO(new Date()),
+        };
 
-      // 如果是经期开始或结束，更新周期数据
-      if (record.isStart || record.isEnd) {
-        await this.updateMenstrualCycles(fullRecord);
+        // 更新月经记录
+        dayRecord.menstrual = fullRecord;
+
+        // 保存到存储
+        dayRecords[record.date] = dayRecord;
+
+        // 如果是经期开始或结束，更新周期数据
+        if (record.isStart || record.isEnd) {
+          await this.updateMenstrualCycles(fullRecord);
+        }
       }
+
+      // 保存数据
+      await FertilityStorage.saveDayRecords(dayRecords);
 
       // 清除相关缓存
       this.clearCache(`dayRecord_${record.date}`);
@@ -307,7 +323,7 @@ class DataManager {
 
       return {
         success: true,
-        data: fullRecord,
+        data: record.flow === 'none' ? null : record,
       };
     } catch (error) {
       return {
@@ -446,6 +462,50 @@ class DataManager {
     }
 
     return { valid, errors };
+  }
+
+  /**
+   * 保存无同房记录
+   */
+  async saveNoIntercourseRecord(record) {
+    try {
+      // 创建完整的记录
+      const fullRecord = {
+        ...record,
+        id: this.generateId(),
+        createdAt: DateUtils.formatISO(new Date()),
+        updatedAt: DateUtils.formatISO(new Date()),
+      };
+
+      // 获取当天记录
+      const dayRecords = await FertilityStorage.getDayRecords();
+      const dayRecord = dayRecords[record.date] || { date: record.date };
+
+      // 保存无同房标记（清空之前的同房记录，保存无同房标记）
+      dayRecord.intercourse = [fullRecord];
+
+      // 保存到存储
+      dayRecords[record.date] = dayRecord;
+      await FertilityStorage.saveDayRecords(dayRecords);
+
+      // 清除相关缓存
+      this.clearCache(`dayRecord_${record.date}`);
+      this.clearCache('allDayRecords');
+
+      return {
+        success: true,
+        data: fullRecord,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: {
+          code: 'SAVE_ERROR',
+          message: '保存无同房记录失败',
+          details: error,
+        },
+      };
+    }
   }
 
   /**

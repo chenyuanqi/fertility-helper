@@ -29,6 +29,7 @@ Page({
     intercourseTime: '',
     hasProtection: false,
     intercourseNote: '',
+    noIntercourseToday: false,
     
     // 通用
     selectedDate: '',
@@ -87,9 +88,21 @@ Page({
         // 填充已有的同房数据（取最新一次）
         if (record.intercourse && record.intercourse.length > 0) {
           const latest = record.intercourse[record.intercourse.length - 1];
-          updateData.intercourseTime = latest.time;
-          updateData.hasProtection = latest.protection;
-          updateData.intercourseNote = latest.note || '';
+          
+          // 检查是否是"无同房"记录
+          if (latest.type === 'none') {
+            updateData.noIntercourseToday = true;
+            updateData.intercourseTime = DateUtils.getCurrentTime();
+            updateData.hasProtection = false;
+            updateData.intercourseNote = '';
+          } else {
+            updateData.intercourseTime = latest.time;
+            updateData.hasProtection = latest.protection;
+            updateData.intercourseNote = latest.note || '';
+            updateData.noIntercourseToday = false;
+          }
+        } else {
+          updateData.noIntercourseToday = false;
         }
         
         this.setData(updateData);
@@ -298,15 +311,57 @@ Page({
   },
 
   /**
+   * 今日无同房切换
+   */
+  onNoIntercourseChange(e) {
+    const noIntercourseToday = e.detail.value;
+    this.setData({ 
+      noIntercourseToday,
+      // 如果选择了"今日无同房"，清空其他字段
+      intercourseTime: noIntercourseToday ? '' : (this.data.intercourseTime || DateUtils.getCurrentTime()),
+      hasProtection: false,
+      intercourseNote: ''
+    });
+  },
+
+  /**
    * 保存同房记录
    */
   async saveIntercourseRecord() {
-    const { intercourseTime, hasProtection, intercourseNote, selectedDate } = this.data;
+    const { intercourseTime, hasProtection, intercourseNote, selectedDate, noIntercourseToday } = this.data;
     
     try {
       this.setData({ isLoading: true });
       
       const dataManager = DataManager.getInstance();
+
+      // 如果选择了"今日无同房"，保存无同房标记
+      if (noIntercourseToday) {
+        const record = {
+          date: selectedDate,
+          time: null,
+          protection: false,
+          note: '',
+          type: 'none' // 标记为无同房
+        };
+        
+        const result = await dataManager.saveNoIntercourseRecord(record);
+        
+        if (result.success) {
+          wx.showToast({ title: '保存成功', icon: 'success' });
+          await this.loadTodayRecord();
+        } else {
+          throw new Error(result.error?.message || '保存失败');
+        }
+        return;
+      }
+
+      // 如果没有选择"今日无同房"，需要验证必填字段
+      if (!intercourseTime) {
+        wx.showToast({ title: '请选择时间', icon: 'none' });
+        return;
+      }
+
       const record = {
         date: selectedDate,
         time: intercourseTime,

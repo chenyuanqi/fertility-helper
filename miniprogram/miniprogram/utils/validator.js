@@ -79,9 +79,9 @@ class Validator {
    * @param {string} flow 经量类型
    */
   static validateMenstrualFlow(flow) {
-    const validFlows = ['light', 'medium', 'heavy'];
+    const validFlows = ['none', 'light', 'medium', 'heavy'];
     if (!validFlows.includes(flow)) {
-      return { valid: false, message: '经量类型必须是 light、medium 或 heavy' };
+      return { valid: false, message: '经量类型必须是 none、light、medium 或 heavy' };
     }
     
     return { valid: true };
