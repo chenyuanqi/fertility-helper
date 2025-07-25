@@ -1,0 +1,73 @@
+<!--components/chart/chart.wxml-->
+<view class="chart-container" style="width: {{width}}px; height: {{height}}px;">
+  <!-- 数据为空的状态 -->
+  <view wx:if="{{!processedData || processedData.length === 0}}" class="chart-empty">
+    <text class="empty-text">暂无数据</text>
+  </view>
+  
+  <!-- 简化图表显示 -->
+  <view wx:else class="chart-content">
+    <!-- Y轴标签 -->
+    <view class="y-axis">
+      <view class="y-label">37.5</view>
+      <view class="y-label">37.0</view>
+      <view class="y-label">36.5</view>
+      <view class="y-label">36.0</view>
+      <view class="y-label">35.5</view>
+    </view>
+    
+    <!-- 图表区域 -->
+    <view class="chart-area">
+      <!-- 网格线 -->
+      <view class="grid-lines">
+        <view class="grid-line horizontal" wx:for="{{[0,1,2,3,4]}}" wx:key="*this" style="top: {{item * 25}}%;"></view>
+      </view>
+      
+      <!-- 经量背景 -->
+      <view wx:if="{{viewMode === 'all'}}" class="menstrual-backgrounds">
+        <view wx:for="{{processedData}}" wx:key="index" 
+              class="menstrual-bg menstrual-level-{{item.menstrualLevel || 0}}"
+              wx:if="{{item.hasMenstrual}}"
+              style="left: {{(index / (processedData.length - 1)) * 100}}%; width: {{100 / processedData.length}}%;">
+        </view>
+      </view>
+      
+      <!-- 体温线和点 -->
+      <view class="temperature-layer">
+        <!-- 连接线（简化） -->
+        <view class="temperature-line"></view>
+        
+        <!-- 体温点 -->
+        <view wx:for="{{processedData}}" wx:key="index" 
+              wx:if="{{item.hasTemperature}}"
+              class="temperature-point {{item.isHighTemp ? 'high-temp' : ''}}"
+              style="left: {{(index / (processedData.length - 1)) * 100}}%; bottom: {{item.temperaturePercent}}%;"
+              bindtap="onPointClick"
+              data-index="{{index}}">
+        </view>
+      </view>
+      
+      <!-- 同房标记 -->
+      <view wx:if="{{viewMode === 'all'}}" class="intercourse-markers">
+        <view wx:for="{{processedData}}" wx:key="index" 
+              wx:if="{{item.hasIntercourse}}"
+              class="intercourse-marker"
+              style="left: {{(index / (processedData.length - 1)) * 100}}%;">
+          <text class="marker-icon">💕</text>
+          <text wx:if="{{item.intercourseCount > 1}}" class="marker-count">{{item.intercourseCount}}</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- X轴标签 -->
+    <view class="x-axis">
+      <view wx:for="{{processedData}}" wx:key="index" 
+            wx:for-item="item" wx:for-index="idx"
+            wx:if="{{displayIndexes.indexOf(idx) !== -1}}"
+            class="x-label"
+            style="left: {{(idx / (processedData.length - 1)) * 100}}%;">
+        {{formatDateForDisplay(item.date)}}
+      </view>
+    </view>
+  </view>
+</view>

@@ -149,6 +149,17 @@ class DateUtils {
   }
 
   /**
+   * 格式化为显示用的日期格式 (MM月DD日)
+   * @param {string|Date} date 日期
+   */
+  static formatDisplayDate(date) {
+    const d = new Date(date);
+    const month = d.getMonth() + 1;
+    const day = d.getDate();
+    return `${month}月${day}日`;
+  }
+
+  /**
    * 获取星期几的中文名称
    * @param {string|Date} date 日期
    */

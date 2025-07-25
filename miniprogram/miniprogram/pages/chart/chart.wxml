@@ -1,4 +1,109 @@
 <!--pages/chart/chart.wxml-->
 <view class="container">
-  <text>图表页面</text>
+  <!-- 加载状态 -->
+  <view wx:if="{{isLoading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载图表中...</text>
+  </view>
+
+  <!-- 主要内容 -->
+  <view wx:else>
+    <!-- 周期信息头部 -->
+    <view class="chart-header">
+      <view class="cycle-info-header">
+        <view class="cycle-title">当前周期 - 第{{cycleStats.cycleDay}}天</view>
+        <view class="cycle-navigation">
+          <button class="nav-btn" bindtap="onPreviousCycle">‹</button>
+          <button class="nav-btn" bindtap="onNextCycle">›</button>
+        </view>
+      </view>
+      
+      <view class="cycle-stats">
+        <view class="stat-item">
+          <view class="stat-value">{{cycleStats.cycleDay}}</view>
+          <view class="stat-label">周期天数</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-value">{{cycleStats.averageTemp || '--'}}</view>
+          <view class="stat-label">平均体温</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-value">{{cycleStats.predictedOvulation || '--'}}</view>
+          <view class="stat-label">预计排卵</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 图表容器 -->
+    <view class="chart-container">
+      <view class="chart-controls">
+        <view class="chart-title">三合一图表</view>
+        <view class="chart-actions">
+          <button class="chart-btn {{viewMode === 'all' ? 'active' : ''}}" 
+                  bindtap="onViewModeChange" data-mode="all">全部</button>
+          <button class="chart-btn {{viewMode === 'temperature' ? 'active' : ''}}" 
+                  bindtap="onViewModeChange" data-mode="temperature">体温</button>
+        </view>
+      </view>
+      
+      <!-- 图表组件 -->
+      <chart 
+        chart-data="{{chartData}}"
+        width="{{350}}"
+        height="{{300}}"
+        view-mode="{{viewMode}}"
+        bind:pointClick="onPointClick">
+      </chart>
+    </view>
+
+    <!-- 图例说明 -->
+    <view class="chart-legend">
+      <view class="legend-title">图例说明</view>
+      <view class="legend-items">
+        <view class="legend-item">
+          <view class="legend-icon temperature"></view>
+          <text>基础体温</text>
+        </view>
+        <view class="legend-item" wx:if="{{viewMode === 'all'}}">
+          <view class="legend-icon menstrual"></view>
+          <text>月经背景</text>
+        </view>
+        <view class="legend-item" wx:if="{{viewMode === 'all'}}">
+          <text class="legend-emoji">💕</text>
+          <text>同房记录</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-icon high-temp"></view>
+          <text>高温期</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 数据统计卡片 -->
+    <view class="data-summary">
+      <view class="summary-title">数据统计</view>
+      <view class="summary-content">
+        <view class="summary-item">
+          <text class="summary-label">体温记录</text>
+          <text class="summary-value">{{cycleStats.temperatureCount}}天</text>
+        </view>
+        <view class="summary-item">
+          <text class="summary-label">经期天数</text>
+          <text class="summary-value">{{cycleStats.menstrualDays}}天</text>
+        </view>
+        <view class="summary-item">
+          <text class="summary-label">同房次数</text>
+          <text class="summary-value">{{cycleStats.intercourseCount}}次</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 快速操作 -->
+    <view class="quick-actions">
+      <button class="action-btn primary" bindtap="goToRecord">
+        <text class="btn-icon">📝</text>
+        <text class="btn-text">记录数据</text>
+      </button>
+    </view>
+  </view>
 </view>
