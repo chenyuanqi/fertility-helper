@@ -1,4 +1,263 @@
 <!--pages/settings/settings.wxml-->
 <view class="container">
-  <text>设置页面</text>
+  <!-- 个人资料 -->
+  <view class="profile-section">
+    <view class="profile-avatar">👤</view>
+    <view class="profile-name">{{userSettings.nickname || '小明'}}</view>
+    <view class="profile-stats">
+      <text>已使用 {{statistics.daysUsed}} 天</text>
+      <text>记录 {{statistics.totalRecords}} 次</text>
+      <text>周期 {{statistics.completeCycles}} 个</text>
+    </view>
+  </view>
+
+  <!-- 个人信息 -->
+  <view class="settings-group">
+    <view class="group-header">
+      <view class="group-title">个人信息</view>
+      <view class="group-description">设置个人基本信息和周期参数</view>
+    </view>
+    
+    <view class="settings-item" bindtap="editNickname">
+      <view class="item-icon">👤</view>
+      <view class="item-content">
+        <view class="item-title">昵称</view>
+        <view class="item-description">设置显示昵称</view>
+      </view>
+      <view class="item-value">{{userSettings.nickname || '小明'}}</view>
+      <view class="item-arrow">›</view>
+    </view>
+    
+    <view class="settings-item" bindtap="editCycleLength">
+      <view class="item-icon">📅</view>
+      <view class="item-content">
+        <view class="item-title">平均周期长度</view>
+        <view class="item-description">用于排卵预测计算</view>
+      </view>
+      <view class="item-value">{{userSettings.personalInfo.averageCycleLength || 28}}天</view>
+      <view class="item-arrow">›</view>
+    </view>
+    
+    <view class="settings-item" bindtap="editLutealPhase">
+      <view class="item-icon">🌙</view>
+      <view class="item-content">
+        <view class="item-title">黄体期长度</view>
+        <view class="item-description">排卵后到月经的天数</view>
+      </view>
+      <view class="item-value">{{userSettings.personalInfo.averageLutealPhase || 14}}天</view>
+      <view class="item-arrow">›</view>
+    </view>
+  </view>
+
+  <!-- 提醒设置 -->
+  <view class="settings-group">
+    <view class="group-header">
+      <view class="group-title">提醒设置</view>
+      <view class="group-description">设置各种提醒通知</view>
+    </view>
+    
+    <view class="settings-item">
+      <view class="item-icon">🔔</view>
+      <view class="item-content">
+        <view class="item-title">晨起测温提醒</view>
+        <view class="item-description">每天早上提醒测量体温</view>
+      </view>
+      <view class="switch {{userSettings.reminders.morningTemperature.enabled ? 'active' : ''}}" bindtap="toggleMorningReminder">
+        <view class="switch-thumb"></view>
+      </view>
+    </view>
+    
+    <view class="settings-item {{!userSettings.reminders.morningTemperature.enabled ? 'disabled' : ''}}" bindtap="setReminderTime">
+      <view class="item-icon">⏰</view>
+      <view class="item-content">
+        <view class="item-title">提醒时间</view>
+        <view class="item-description">设置测温提醒时间</view>
+      </view>
+      <view class="item-value">{{userSettings.reminders.morningTemperature.time || '07:00'}}</view>
+      <view class="item-arrow">›</view>
+    </view>
+    
+    <view class="settings-item">
+      <view class="item-icon">💕</view>
+      <view class="item-content">
+        <view class="item-title">易孕期提醒</view>
+        <view class="item-description">在易孕期前提醒</view>
+      </view>
+      <view class="switch {{userSettings.reminders.fertileWindow.enabled ? 'active' : ''}}" bindtap="toggleFertileReminder">
+        <view class="switch-thumb"></view>
+      </view>
+    </view>
+    
+    <view class="settings-item">
+      <view class="item-icon">🎯</view>
+      <view class="item-content">
+        <view class="item-title">排卵日提醒</view>
+        <view class="item-description">预测排卵日当天提醒</view>
+      </view>
+      <view class="switch {{userSettings.reminders.periodPrediction.enabled ? 'active' : ''}}" bindtap="toggleOvulationReminder">
+        <view class="switch-thumb"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 数据管理 -->
+  <view class="settings-group">
+    <view class="group-header">
+      <view class="group-title">数据管理</view>
+      <view class="group-description">管理您的数据和隐私</view>
+    </view>
+    
+    <!-- 数据统计 -->
+    <view class="stats-grid">
+      <view class="stat-card">
+        <view class="stat-number">{{statistics.totalRecords}}</view>
+        <view class="stat-label">记录天数</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-number">{{statistics.completeCycles}}</view>
+        <view class="stat-label">完整周期</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-number">{{statistics.temperatureRecords}}</view>
+        <view class="stat-label">体温记录</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-number">{{statistics.intercourseRecords}}</view>
+        <view class="stat-label">同房记录</view>
+      </view>
+    </view>
+    
+    <view class="settings-item" bindtap="exportData">
+      <view class="item-icon">📤</view>
+      <view class="item-content">
+        <view class="item-title">导出数据</view>
+        <view class="item-description">导出所有记录数据</view>
+      </view>
+      <view class="item-arrow">›</view>
+    </view>
+    
+    <view class="settings-item" bindtap="importData">
+      <view class="item-icon">📥</view>
+      <view class="item-content">
+        <view class="item-title">导入数据</view>
+        <view class="item-description">从备份文件导入数据</view>
+      </view>
+      <view class="item-arrow">›</view>
+    </view>
+    
+    <view class="settings-item" bindtap="generateReport">
+      <view class="item-icon">📊</view>
+      <view class="item-content">
+        <view class="item-title">生成报告</view>
+        <view class="item-description">生成周期分析报告</view>
+      </view>
+      <view class="item-arrow">›</view>
+    </view>
+  </view>
+
+  <!-- 应用设置 -->
+  <view class="settings-group">
+    <view class="group-header">
+      <view class="group-title">应用设置</view>
+      <view class="group-description">应用相关设置和信息</view>
+    </view>
+    
+    <view class="settings-item" bindtap="checkUpdate">
+      <view class="item-icon">🔄</view>
+      <view class="item-content">
+        <view class="item-title">检查更新</view>
+        <view class="item-description">查看是否有新版本</view>
+      </view>
+      <view class="item-value">v1.0.0</view>
+      <view class="item-arrow">›</view>
+    </view>
+    
+    <view class="settings-item" bindtap="showHelp">
+      <view class="item-icon">❓</view>
+      <view class="item-content">
+        <view class="item-title">使用帮助</view>
+        <view class="item-description">查看使用说明</view>
+      </view>
+      <view class="item-arrow">›</view>
+    </view>
+    
+    <view class="settings-item" bindtap="showPrivacy">
+      <view class="item-icon">🔒</view>
+      <view class="item-content">
+        <view class="item-title">隐私政策</view>
+        <view class="item-description">查看隐私保护说明</view>
+      </view>
+      <view class="item-arrow">›</view>
+    </view>
+    
+    <view class="settings-item" bindtap="contactUs">
+      <view class="item-icon">📧</view>
+      <view class="item-content">
+        <view class="item-title">联系我们</view>
+        <view class="item-description">反馈问题和建议</view>
+      </view>
+      <view class="item-arrow">›</view>
+    </view>
+  </view>
+
+  <!-- 危险操作 -->
+  <view class="settings-group danger-section">
+    <view class="group-header">
+      <view class="group-title danger-title">危险操作</view>
+      <view class="group-description">请谨慎操作，操作后无法恢复</view>
+    </view>
+    
+    <view class="settings-item danger-item" bindtap="clearAllData">
+      <view class="item-icon danger-icon">🗑️</view>
+      <view class="item-content">
+        <view class="item-title danger-text">清空所有数据</view>
+        <view class="item-description">删除所有记录和设置</view>
+      </view>
+      <view class="item-arrow">›</view>
+    </view>
+  </view>
+
+  <!-- 版本信息 -->
+  <view class="version-info">
+    <view class="version-number">备小孕 v1.0.0</view>
+    <view class="copyright">© 2024 备小孕团队</view>
+  </view>
+</view>
+
+<!-- 输入模态框 -->
+<view class="modal-mask" wx:if="{{showInputModal}}" bindtap="closeInputModal">
+  <view class="modal" catchtap="">
+    <view class="modal-header">
+      <view class="modal-title">{{modalTitle}}</view>
+    </view>
+    <view class="modal-body">
+      <view class="input-group" wx:if="{{inputType === 'nickname'}}">
+        <view class="input-label">昵称</view>
+        <input class="input" type="text" placeholder="请输入昵称" value="{{inputValue}}" bindinput="onInputChange" maxlength="10" />
+      </view>
+      
+      <view class="input-group" wx:if="{{inputType === 'cycleLength'}}">
+        <view class="input-label">平均周期长度（天）</view>
+        <input class="input" type="number" placeholder="请输入周期长度" value="{{inputValue}}" bindinput="onInputChange" />
+        <view class="input-tip">正常范围：20-40天</view>
+      </view>
+      
+      <view class="input-group" wx:if="{{inputType === 'lutealPhase'}}">
+        <view class="input-label">黄体期长度（天）</view>
+        <input class="input" type="number" placeholder="请输入黄体期长度" value="{{inputValue}}" bindinput="onInputChange" />
+        <view class="input-tip">正常范围：10-16天</view>
+      </view>
+      
+      <view class="input-group" wx:if="{{inputType === 'reminderTime'}}">
+        <view class="input-label">晨起测温提醒时间</view>
+        <picker mode="time" value="{{inputValue}}" bindchange="onTimeChange">
+          <view class="picker-display">{{inputValue || '请选择时间'}}</view>
+        </picker>
+      </view>
+    </view>
+    <view class="modal-footer">
+      <button class="btn btn-outline" bindtap="closeInputModal">取消</button>
+      <button class="btn btn-primary" bindtap="saveInput">保存</button>
+    </view>
+  </view>
 </view>

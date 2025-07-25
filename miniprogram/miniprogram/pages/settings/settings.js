@@ -1,6 +1,518 @@
 // pages/settings/settings.js
+const { DataManager } = require('../../utils/dataManager');
+const { FertilityStorage } = require('../../utils/storage');
+
 Page({
   data: {
+    userSettings: {
+      nickname: '',
+      personalInfo: {
+        averageCycleLength: 28,
+        averageLutealPhase: 14
+      },
+      reminders: {
+        morningTemperature: {
+          enabled: true,
+          time: '07:00'
+        },
+        fertileWindow: {
+          enabled: true
+        },
+        periodPrediction: {
+          enabled: true
+        }
+      }
+    },
+    statistics: {
+      daysUsed: 0,
+      totalRecords: 0,
+      completeCycles: 0,
+      temperatureRecords: 0,
+      intercourseRecords: 0
+    },
+    showInputModal: false,
+    modalTitle: '',
+    inputType: '',
+    inputValue: ''
+  },
+
+  async onLoad() {
+    await this.loadUserSettings();
+    await this.loadStatistics();
+  },
+
+  async onShow() {
+    // 页面显示时更新统计数据
+    await this.loadStatistics();
+  },
+
+  // 加载用户设置
+  async loadUserSettings() {
+    try {
+      const settings = await FertilityStorage.getUserSettings();
+      if (settings) {
+        this.setData({
+          userSettings: {
+            ...this.data.userSettings,
+            ...settings
+          }
+        });
+      }
+    } catch (error) {
+      console.error('加载用户设置失败:', error);
+      wx.showToast({
+        title: '加载设置失败',
+        icon: 'none'
+      });
+    }
+  },
+
+  // 加载统计数据
+  async loadStatistics() {
+    try {
+      const dataManager = DataManager.getInstance();
+      
+      // 获取所有日记录
+      const dayRecords = await FertilityStorage.getDayRecords();
+      const cycles = await FertilityStorage.getCycles();
+      
+      // 计算统计数据
+      const statistics = this.calculateStatistics(dayRecords, cycles);
+      
+      this.setData({ statistics });
+    } catch (error) {
+      console.error('加载统计数据失败:', error);
+    }
+  },
+
+  // 计算统计数据
+  calculateStatistics(dayRecords, cycles) {
+    const records = Object.keys(dayRecords);
+    let temperatureCount = 0;
+    let intercourseCount = 0;
     
+    // 统计各类记录数量
+    records.forEach(date => {
+      const record = dayRecords[date];
+      if (record.temperature) temperatureCount++;
+      if (record.intercourse && record.intercourse.length > 0) {
+        intercourseCount += record.intercourse.length;
+      }
+    });
+    
+    // 计算使用天数
+    const firstRecord = records.sort()[0];
+    const daysUsed = firstRecord ? 
+      Math.ceil((new Date() - new Date(firstRecord)) / (1000 * 60 * 60 * 24)) + 1 : 0;
+    
+    return {
+      daysUsed,
+      totalRecords: records.length,
+      completeCycles: cycles.filter(cycle => cycle.isComplete).length,
+      temperatureRecords: temperatureCount,
+      intercourseRecords: intercourseCount
+    };
+  },
+
+  // 编辑昵称
+  editNickname() {
+    this.showInputModal('编辑昵称', 'nickname', this.data.userSettings.nickname || '小明');
+  },
+
+  // 编辑周期长度
+  editCycleLength() {
+    this.showInputModal('编辑周期长度', 'cycleLength', 
+      String(this.data.userSettings.personalInfo.averageCycleLength || 28));
+  },
+
+  // 编辑黄体期长度
+  editLutealPhase() {
+    this.showInputModal('编辑黄体期长度', 'lutealPhase', 
+      String(this.data.userSettings.personalInfo.averageLutealPhase || 14));
+  },
+
+  // 设置提醒时间
+  setReminderTime() {
+    if (!this.data.userSettings.reminders.morningTemperature.enabled) {
+      wx.showToast({
+        title: '请先开启测温提醒',
+        icon: 'none'
+      });
+      return;
+    }
+    this.showInputModal('设置提醒时间', 'reminderTime', 
+      this.data.userSettings.reminders.morningTemperature.time || '07:00');
+  },
+
+  // 显示输入模态框
+  showInputModal(title, type, value) {
+    this.setData({
+      showInputModal: true,
+      modalTitle: title,
+      inputType: type,
+      inputValue: value
+    });
+  },
+
+  // 关闭输入模态框
+  closeInputModal() {
+    this.setData({
+      showInputModal: false,
+      modalTitle: '',
+      inputType: '',
+      inputValue: ''
+    });
+  },
+
+  // 输入值变化
+  onInputChange(e) {
+    this.setData({
+      inputValue: e.detail.value
+    });
+  },
+
+  // 时间选择变化
+  onTimeChange(e) {
+    this.setData({
+      inputValue: e.detail.value
+    });
+  },
+
+  // 保存输入
+  async saveInput() {
+    const { inputType, inputValue } = this.data;
+    
+    if (!inputValue.trim()) {
+      wx.showToast({
+        title: '请输入有效值',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    try {
+      let newSettings = { ...this.data.userSettings };
+      
+      switch(inputType) {
+        case 'nickname':
+          newSettings.nickname = inputValue;
+          break;
+        case 'cycleLength':
+          const cycleLength = parseInt(inputValue);
+          if (cycleLength < 20 || cycleLength > 40) {
+            wx.showToast({
+              title: '周期长度应在20-40天之间',
+              icon: 'none'
+            });
+            return;
+          }
+          newSettings.personalInfo.averageCycleLength = cycleLength;
+          break;
+        case 'lutealPhase':
+          const lutealPhase = parseInt(inputValue);
+          if (lutealPhase < 10 || lutealPhase > 16) {
+            wx.showToast({
+              title: '黄体期长度应在10-16天之间',
+              icon: 'none'
+            });
+            return;
+          }
+          newSettings.personalInfo.averageLutealPhase = lutealPhase;
+          break;
+        case 'reminderTime':
+          newSettings.reminders.morningTemperature.time = inputValue;
+          break;
+      }
+      
+      // 保存设置
+      await FertilityStorage.saveUserSettings(newSettings);
+      
+      this.setData({ userSettings: newSettings });
+      this.closeInputModal();
+      
+      wx.showToast({
+        title: '保存成功',
+        icon: 'success'
+      });
+    } catch (error) {
+      console.error('保存设置失败:', error);
+      wx.showToast({
+        title: '保存失败',
+        icon: 'error'
+      });
+    }
+  },
+
+  // 切换晨起测温提醒
+  async toggleMorningReminder() {
+    const newSettings = { ...this.data.userSettings };
+    newSettings.reminders.morningTemperature.enabled = !newSettings.reminders.morningTemperature.enabled;
+    
+    await this.saveSettings(newSettings);
+    
+    wx.showToast({
+      title: newSettings.reminders.morningTemperature.enabled ? '已开启' : '已关闭',
+      icon: 'success'
+    });
+  },
+
+  // 切换易孕期提醒
+  async toggleFertileReminder() {
+    const newSettings = { ...this.data.userSettings };
+    newSettings.reminders.fertileWindow.enabled = !newSettings.reminders.fertileWindow.enabled;
+    
+    await this.saveSettings(newSettings);
+    
+    wx.showToast({
+      title: newSettings.reminders.fertileWindow.enabled ? '已开启' : '已关闭',
+      icon: 'success'
+    });
+  },
+
+  // 切换排卵日提醒
+  async toggleOvulationReminder() {
+    const newSettings = { ...this.data.userSettings };
+    newSettings.reminders.periodPrediction.enabled = !newSettings.reminders.periodPrediction.enabled;
+    
+    await this.saveSettings(newSettings);
+    
+    wx.showToast({
+      title: newSettings.reminders.periodPrediction.enabled ? '已开启' : '已关闭',
+      icon: 'success'
+    });
+  },
+
+  // 保存设置
+  async saveSettings(newSettings) {
+    try {
+      await FertilityStorage.saveUserSettings(newSettings);
+      this.setData({ userSettings: newSettings });
+    } catch (error) {
+      console.error('保存设置失败:', error);
+      wx.showToast({
+        title: '保存失败',
+        icon: 'error'
+      });
+    }
+  },
+
+  // 导出数据
+  async exportData() {
+    wx.showLoading({ title: '正在准备导出...' });
+    
+    try {
+      const dayRecords = await FertilityStorage.getDayRecords();
+      const cycles = await FertilityStorage.getCycles();
+      const userSettings = await FertilityStorage.getUserSettings();
+      
+      const exportData = {
+        version: '1.0.0',
+        exportDate: new Date().toISOString(),
+        userSettings,
+        dayRecords,
+        cycles,
+        statistics: this.data.statistics
+      };
+      
+      // 将数据转为JSON字符串
+      const jsonString = JSON.stringify(exportData, null, 2);
+      
+      // 保存到微信文件系统
+      const fs = wx.getFileSystemManager();
+      const fileName = `fertility-backup-${new Date().toISOString().split('T')[0]}.json`;
+      const filePath = `${wx.env.USER_DATA_PATH}/${fileName}`;
+      
+      fs.writeFile({
+        filePath,
+        data: jsonString,
+        encoding: 'utf8',
+        success: () => {
+          wx.hideLoading();
+          wx.showModal({
+            title: '导出成功',
+            content: `数据已导出到 ${fileName}，您可以通过微信文件管理器查看。`,
+            showCancel: false
+          });
+        },
+        fail: (error) => {
+          wx.hideLoading();
+          console.error('导出数据失败:', error);
+          wx.showToast({
+            title: '导出失败',
+            icon: 'error'
+          });
+        }
+      });
+    } catch (error) {
+      wx.hideLoading();
+      console.error('导出数据失败:', error);
+      wx.showToast({
+        title: '导出失败',
+        icon: 'error'
+      });
+    }
+  },
+
+  // 导入数据
+  importData() {
+    wx.chooseMessageFile({
+      count: 1,
+      type: 'file',
+      extension: ['json'],
+      success: (res) => {
+        const filePath = res.tempFiles[0].path;
+        this.processImportFile(filePath);
+      },
+      fail: () => {
+        wx.showToast({
+          title: '取消选择文件',
+          icon: 'none'
+        });
+      }
+    });
+  },
+
+  // 处理导入文件
+  async processImportFile(filePath) {
+    wx.showLoading({ title: '正在导入数据...' });
+    
+    try {
+      const fs = wx.getFileSystemManager();
+      const data = fs.readFileSync(filePath, 'utf8');
+      const importData = JSON.parse(data);
+      
+      // 验证数据格式
+      if (!importData.version || !importData.dayRecords) {
+        throw new Error('无效的备份文件格式');
+      }
+      
+      // 保存导入的数据
+      if (importData.userSettings) {
+        await FertilityStorage.saveUserSettings(importData.userSettings);
+      }
+      if (importData.dayRecords) {
+        await FertilityStorage.saveDayRecords(importData.dayRecords);
+      }
+      if (importData.cycles) {
+        await FertilityStorage.saveCycles(importData.cycles);
+      }
+      
+      wx.hideLoading();
+      
+      // 重新加载数据
+      await this.loadUserSettings();
+      await this.loadStatistics();
+      
+      wx.showModal({
+        title: '导入成功',
+        content: '数据已成功导入，页面已更新。',
+        showCancel: false
+      });
+    } catch (error) {
+      wx.hideLoading();
+      console.error('导入数据失败:', error);
+      wx.showToast({
+        title: '导入失败',
+        icon: 'error'
+      });
+    }
+  },
+
+  // 生成报告
+  generateReport() {
+    wx.showLoading({ title: '正在生成报告...' });
+    
+    setTimeout(() => {
+      wx.hideLoading();
+      wx.showModal({
+        title: '功能开发中',
+        content: '报告生成功能正在开发中，敬请期待。',
+        showCancel: false
+      });
+    }, 1500);
+  },
+
+  // 检查更新
+  checkUpdate() {
+    wx.showLoading({ title: '正在检查更新...' });
+    
+    setTimeout(() => {
+      wx.hideLoading();
+      wx.showToast({
+        title: '当前已是最新版本',
+        icon: 'success'
+      });
+    }, 1000);
+  },
+
+  // 显示帮助
+  showHelp() {
+    wx.showModal({
+      title: '使用帮助',
+      content: '帮助文档正在完善中，如有问题请联系客服。',
+      showCancel: false
+    });
+  },
+
+  // 显示隐私政策
+  showPrivacy() {
+    wx.showModal({
+      title: '隐私政策',
+      content: '我们非常重视您的隐私保护，所有数据仅存储在您的设备本地，不会上传到任何服务器。',
+      showCancel: false
+    });
+  },
+
+  // 联系我们
+  contactUs() {
+    wx.showModal({
+      title: '联系我们',
+      content: '如有问题或建议，请通过小程序内的反馈功能联系我们。',
+      showCancel: false
+    });
+  },
+
+  // 清空所有数据
+  clearAllData() {
+    wx.showModal({
+      title: '危险操作',
+      content: '确定要清空所有数据吗？此操作无法撤销！',
+      confirmColor: '#f5222d',
+      success: (res) => {
+        if (res.confirm) {
+          this.performClearData();
+        }
+      }
+    });
+  },
+
+  // 执行清空数据
+  async performClearData() {
+    wx.showLoading({ title: '正在清空数据...' });
+    
+    try {
+      const { StorageManager } = require('../../utils/storage');
+      await StorageManager.clear();
+      
+      wx.hideLoading();
+      
+      wx.showModal({
+        title: '清空完成',
+        content: '所有数据已清空，将返回首页。',
+        showCancel: false,
+        success: () => {
+          wx.reLaunch({
+            url: '/pages/index/index'
+          });
+        }
+      });
+    } catch (error) {
+      wx.hideLoading();
+      console.error('清空数据失败:', error);
+      wx.showToast({
+        title: '清空失败',
+        icon: 'error'
+      });
+    }
   }
 });
