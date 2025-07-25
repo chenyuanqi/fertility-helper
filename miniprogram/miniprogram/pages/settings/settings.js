@@ -6,6 +6,7 @@ Page({
   data: {
     userSettings: {
       nickname: '',
+      avatar: '', // 添加头像字段
       personalInfo: {
         averageCycleLength: 28,
         averageLutealPhase: 14
@@ -31,6 +32,7 @@ Page({
       intercourseRecords: 0
     },
     showInputModal: false,
+    showAvatarModal: false, // 添加头像模态框控制
     modalTitle: '',
     inputType: '',
     inputValue: '',
@@ -183,13 +185,17 @@ Page({
   // 阻止事件冒泡
   stopPropagation(e) {
     // 阻止事件冒泡，防止点击输入框时关闭模态框
-    e.stopPropagation();
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
+    }
   },
 
   // 输入框获取焦点
   focusInput(e) {
     // 阻止事件冒泡
-    e.stopPropagation();
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
+    }
   },
 
   // 输入值变化
@@ -539,6 +545,246 @@ Page({
       console.error('清空数据失败:', error);
       wx.showToast({
         title: '清空失败',
+        icon: 'error'
+      });
+    }
+  },
+
+  // 选择头像
+  selectAvatar() {
+    this.setData({
+      showAvatarModal: true
+    });
+  },
+
+  // 关闭头像选择模态框
+  closeAvatarModal() {
+    this.setData({
+      showAvatarModal: false
+    });
+  },
+
+  // 使用微信头像
+  async chooseFromWechat() {
+    try {
+      wx.showLoading({ title: '获取微信头像...' });
+      
+      // 使用新版头像选择API
+      const res = await this.chooseAvatar();
+      
+      if (res && res.avatarUrl) {
+        // 保存图片到本地
+        const savedFilePath = await this.saveImageToLocal(res.avatarUrl);
+        await this.updateAvatar(savedFilePath);
+        this.closeAvatarModal();
+        
+        wx.hideLoading();
+        wx.showToast({
+          title: '头像更新成功',
+          icon: 'success'
+        });
+      } else {
+        wx.hideLoading();
+        wx.showToast({
+          title: '获取微信头像失败',
+          icon: 'none'
+        });
+      }
+    } catch (error) {
+      wx.hideLoading();
+      console.error('获取微信头像失败:', error);
+      
+      // 如果新API失败，尝试使用getUserProfile
+      try {
+        const userInfo = await this.getUserProfile();
+        
+        if (userInfo && userInfo.avatarUrl) {
+          const savedFilePath = await this.saveImageToLocal(userInfo.avatarUrl);
+          await this.updateAvatar(savedFilePath);
+          this.closeAvatarModal();
+          
+          wx.showToast({
+            title: '头像更新成功',
+            icon: 'success'
+          });
+        } else {
+          wx.showToast({
+            title: '获取微信头像失败',
+            icon: 'none'
+          });
+        }
+      } catch (err) {
+        console.error('备用方案也失败:', err);
+        wx.showToast({
+          title: '获取微信头像失败',
+          icon: 'error'
+        });
+      }
+    }
+  },
+
+  // 选择头像（新版API）
+  chooseAvatar() {
+    return new Promise((resolve, reject) => {
+      if (wx.chooseAvatar) {
+        wx.chooseAvatar({
+          success: (res) => {
+            resolve(res);
+          },
+          fail: (error) => {
+            reject(error);
+          }
+        });
+      } else {
+        reject(new Error('API不支持'));
+      }
+    });
+  },
+
+  // 获取用户信息
+  getUserProfile() {
+    return new Promise((resolve, reject) => {
+      wx.getUserProfile({
+        desc: '获取头像用于个人资料展示',
+        success: (res) => {
+          resolve(res.userInfo);
+        },
+        fail: (error) => {
+          // 如果getUserProfile失败，尝试使用getUserInfo
+          wx.getUserInfo({
+            success: (res) => {
+              resolve(res.userInfo);
+            },
+            fail: (err) => {
+              console.log('获取用户信息失败:', err);
+              reject(err);
+            }
+          });
+        }
+      });
+    });
+  },
+
+  // 从相册选择
+  async chooseFromAlbum() {
+    try {
+      const res = await this.chooseImage();
+      
+      if (res && res.tempFilePaths && res.tempFilePaths.length > 0) {
+        const tempFilePath = res.tempFilePaths[0];
+        
+        // 保存图片到本地
+        const savedFilePath = await this.saveImageToLocal(tempFilePath);
+        
+        await this.updateAvatar(savedFilePath);
+        this.closeAvatarModal();
+        
+        wx.showToast({
+          title: '头像更新成功',
+          icon: 'success'
+        });
+      }
+    } catch (error) {
+      console.error('选择头像失败:', error);
+      wx.showToast({
+        title: '选择头像失败',
+        icon: 'error'
+      });
+    }
+  },
+
+  // 选择图片
+  chooseImage() {
+    return new Promise((resolve, reject) => {
+      wx.chooseImage({
+        count: 1,
+        sizeType: ['compressed'], // 使用压缩图
+        sourceType: ['album'], // 只允许从相册选择
+        success: (res) => {
+          resolve(res);
+        },
+        fail: (error) => {
+          reject(error);
+        }
+      });
+    });
+  },
+
+  // 保存图片到本地
+  saveImageToLocal(tempFilePath) {
+    return new Promise((resolve, reject) => {
+      // 如果是网络图片，先下载
+      if (tempFilePath.startsWith('http://') || tempFilePath.startsWith('https://')) {
+        wx.downloadFile({
+          url: tempFilePath,
+          success: (downloadRes) => {
+            if (downloadRes.statusCode === 200) {
+              this.copyImageToLocal(downloadRes.tempFilePath, resolve, reject);
+            } else {
+              reject(new Error('下载图片失败'));
+            }
+          },
+          fail: (error) => {
+            reject(error);
+          }
+        });
+      } else {
+        // 本地临时文件，直接复制
+        this.copyImageToLocal(tempFilePath, resolve, reject);
+      }
+    });
+  },
+
+  // 复制图片到本地存储
+  copyImageToLocal(srcPath, resolve, reject) {
+    const fs = wx.getFileSystemManager();
+    const fileName = `avatar_${Date.now()}.jpg`;
+    const savedPath = `${wx.env.USER_DATA_PATH}/${fileName}`;
+    
+    fs.copyFile({
+      srcPath: srcPath,
+      destPath: savedPath,
+      success: () => {
+        resolve(savedPath);
+      },
+      fail: (error) => {
+        reject(error);
+      }
+    });
+  },
+
+  // 更新头像
+  async updateAvatar(avatarUrl) {
+    try {
+      const newSettings = { ...this.data.userSettings };
+      newSettings.avatar = avatarUrl;
+      
+      await FertilityStorage.saveUserSettings(newSettings);
+      this.setData({ userSettings: newSettings });
+    } catch (error) {
+      console.error('保存头像失败:', error);
+      throw error;
+    }
+  },
+
+  // 移除头像
+  async removeAvatar() {
+    try {
+      const newSettings = { ...this.data.userSettings };
+      newSettings.avatar = '';
+      
+      await FertilityStorage.saveUserSettings(newSettings);
+      this.setData({ userSettings: newSettings });
+      this.closeAvatarModal();
+      
+      wx.showToast({
+        title: '头像已移除',
+        icon: 'success'
+      });
+    } catch (error) {
+      console.error('移除头像失败:', error);
+      wx.showToast({
+        title: '移除头像失败',
         icon: 'error'
       });
     }

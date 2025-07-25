@@ -2,7 +2,11 @@
 <view class="container">
   <!-- 个人资料 -->
   <view class="profile-section">
-    <view class="profile-avatar">👤</view>
+    <view class="profile-avatar" bindtap="selectAvatar">
+      <image wx:if="{{userSettings.avatar}}" src="{{userSettings.avatar}}" class="avatar-image" />
+      <text wx:else>👤</text>
+      <view class="avatar-edit-hint">点击更换</view>
+    </view>
     <view class="profile-name">{{userSettings.nickname || '小明'}}</view>
     <view class="profile-stats">
       <text>已使用 {{statistics.daysUsed}} 天</text>
@@ -221,6 +225,37 @@
   <view class="version-info">
     <view class="version-number">备小孕 v1.0.0</view>
     <view class="copyright">© 2024 备小孕团队</view>
+  </view>
+</view>
+
+<!-- 头像选择模态框 -->
+<view class="modal-mask" wx:if="{{showAvatarModal}}" catchtap="closeAvatarModal">
+  <view class="modal avatar-modal" catchtap="stopPropagation">
+    <view class="modal-header">
+      <view class="modal-title">选择头像</view>
+    </view>
+    <view class="modal-body">
+      <view class="avatar-options">
+        <view class="avatar-option" bindtap="chooseFromWechat">
+          <view class="option-icon">🧑‍💼</view>
+          <view class="option-title">使用微信头像</view>
+          <view class="option-desc">使用当前微信头像</view>
+        </view>
+        <view class="avatar-option" bindtap="chooseFromAlbum">
+          <view class="option-icon">📷</view>
+          <view class="option-title">从相册选择</view>
+          <view class="option-desc">选择相册中的图片</view>
+        </view>
+        <view class="avatar-option" wx:if="{{userSettings.avatar}}" bindtap="removeAvatar">
+          <view class="option-icon">🗑️</view>
+          <view class="option-title">移除头像</view>
+          <view class="option-desc">恢复默认头像</view>
+        </view>
+      </view>
+    </view>
+    <view class="modal-footer">
+      <button class="btn btn-outline btn-block" bindtap="closeAvatarModal">取消</button>
+    </view>
   </view>
 </view>
 
