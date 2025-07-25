@@ -1,4 +1,569 @@
 /* pages/calendar/calendar.wxss */
 .container {
+  padding: 0;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400rpx;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid #ff6b9d;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20rpx;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #666666;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 日历头部 */
+.calendar-header {
+  background: white;
+  border-radius: 16rpx;
   padding: 32rpx;
+  margin: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+.month-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32rpx;
+  padding: 0 20rpx;
+  height: 60rpx;
+}
+
+.month-nav-btn {
+  width: 32rpx;
+  height: 32rpx;
+  border: none;
+  background: transparent;
+  color: #666666;
+  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  margin: 0;
+  font-weight: bold;
+}
+
+.month-nav-btn:active {
+  color: #ff6b9d;
+  transform: scale(1.2);
+}
+
+.month-year {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+  text-align: center;
+  white-space: nowrap;
+  letter-spacing: 2rpx;
+  flex: 1;
+  margin: 0 20rpx;
+  background: rgba(255, 107, 157, 0.1);
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  min-height: 40rpx;
+  line-height: 40rpx;
+}
+
+/* 回到今天按钮容器 */
+.today-button-container {
+  margin-top: 24rpx;
+  text-align: center;
+}
+
+.today-btn-bottom {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 16rpx 32rpx;
+  background: linear-gradient(135deg, #ff6b9d, #ff8fab);
+  color: white;
+  border: none;
+  border-radius: 24rpx;
+  font-size: 24rpx;
+  font-weight: bold;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 157, 0.3);
+}
+
+.today-btn-bottom:active {
+  background: linear-gradient(135deg, #e85a8a, #e67394);
+  transform: translateY(1rpx);
+}
+
+.today-icon {
+  font-size: 28rpx;
+}
+
+.today-text {
+  font-size: 24rpx;
+}
+
+.calendar-info {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32rpx;
+}
+
+.info-item {
+  text-align: center;
+}
+
+.info-value {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #ff6b9d;
+  margin-bottom: 8rpx;
+}
+
+.info-label {
+  font-size: 24rpx;
+  color: #666666;
+}
+
+/* 日历容器 */
+.calendar-container {
+  background: white;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 星期标题 */
+.weekday-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 16rpx;
+}
+
+.weekday-item {
+  text-align: center;
+  font-size: 24rpx;
+  font-weight: bold;
+  color: #999999;
+  padding: 16rpx 0;
+}
+
+/* 日历网格 */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2rpx;
+  background: #f0f0f0;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.calendar-day {
+  background: white;
+  height: 120rpx;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 8rpx 4rpx;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calendar-day:active {
+  background: rgba(255, 107, 157, 0.1);
+}
+
+.calendar-day.other-month {
+  background: #f8f8f8;
+  opacity: 0.3;
+}
+
+.calendar-day.today {
+  background: rgba(255, 107, 157, 0.15);
+}
+
+.calendar-day.today .day-number {
+  color: #ff6b9d;
+  font-weight: bold;
+}
+
+.calendar-day.selected {
+  background: #ff6b9d;
+  color: white;
+}
+
+.calendar-day.selected .day-number {
+  color: white;
+}
+
+.calendar-day.menstruation {
+  background: linear-gradient(to bottom, white 0%, rgba(255, 182, 193, 0.3) 100%);
+}
+
+.calendar-day.selected.menstruation {
+  background: linear-gradient(to bottom, #ff6b9d 0%, #ff4081 100%);
+}
+
+.day-number {
+  font-size: 28rpx;
+  color: #333333;
+  margin-bottom: 4rpx;
+  z-index: 2;
+}
+
+.other-month .day-number {
+  color: #cccccc;
+}
+
+/* 数据指示器 */
+.day-indicators {
+  position: absolute;
+  bottom: 8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4rpx;
+}
+
+.indicator {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+}
+
+.indicator.temperature {
+  background: #ff6b9d;
+}
+
+.indicator.temperature.high-temp {
+  background: #ff3333;
+}
+
+.indicator.menstruation {
+  background: #ff9999;
+}
+
+.indicator.intimacy {
+  background: #4ecdc4;
+}
+
+.indicator.symptoms {
+  background: #ffa726;
+}
+
+/* 选中日期详情 */
+.selected-day-details {
+  background: white;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  animation: slideUp 0.3s ease-out;
+}
+
+.details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32rpx;
+}
+
+.selected-date {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.edit-btn {
+  padding: 12rpx 24rpx;
+  background: #ff6b9d;
+  color: white;
+  border: none;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  cursor: pointer;
+}
+
+.edit-btn:active {
+  background: #e85a8a;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24rpx;
+}
+
+.detail-card {
+  background: #f8f9fa;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  text-align: center;
+}
+
+.detail-icon {
+  font-size: 40rpx;
+  margin-bottom: 16rpx;
+}
+
+.detail-title {
+  font-size: 24rpx;
+  color: #666666;
+  margin-bottom: 8rpx;
+}
+
+.detail-value {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.detail-value.empty {
+  color: #cccccc;
+  font-weight: normal;
+}
+
+.detail-notes {
+  grid-column: 1 / -1;
+  margin-top: 16rpx;
+}
+
+.notes-content {
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.5;
+  padding: 16rpx;
+  background: white;
+  border-radius: 8rpx;
+  border: 1rpx solid #e0e0e0;
+}
+
+.close-details {
+  text-align: center;
+  margin-top: 24rpx;
+  padding: 16rpx;
+  color: #999999;
+  font-size: 24rpx;
+  cursor: pointer;
+}
+
+.close-details:active {
+  color: #666666;
+}
+
+/* 图例说明 */
+.calendar-legend {
+  background: white;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin: 16rpx;
+  margin-bottom: 100rpx; /* 为底部tabbar留空间 */
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+.legend-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 24rpx;
+}
+
+.legend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.legend-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+}
+
+.legend-square {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 4rpx;
+}
+
+.legend-dot.temperature {
+  background: #ff6b9d;
+}
+
+.legend-dot.menstruation {
+  background: #ff9999;
+}
+
+.legend-dot.intimacy {
+  background: #4ecdc4;
+}
+
+.legend-dot.symptoms {
+  background: #ffa726;
+}
+
+.legend-square.today-legend {
+  background: rgba(255, 107, 157, 0.15);
+}
+
+.legend-square.menstruation-bg {
+  background: linear-gradient(to bottom, white 0%, rgba(255, 182, 193, 0.3) 100%);
+  border: 1rpx solid #f0f0f0;
+}
+
+/* 响应式适配 */
+@media (max-width: 375px) {
+  .calendar-header,
+  .calendar-container,
+  .selected-day-details,
+  .calendar-legend {
+    margin: 12rpx;
+    padding: 24rpx;
+  }
+  
+  .month-navigation {
+    padding: 0 16rpx;
+    height: 48rpx;
+  }
+  
+  .month-nav-btn {
+    width: 28rpx;
+    height: 28rpx;
+    font-size: 20rpx;
+  }
+  
+  .month-year {
+    font-size: 28rpx;
+    letter-spacing: 1rpx;
+    margin: 0 16rpx;
+  }
+  
+  .today-btn-bottom {
+    padding: 12rpx 24rpx;
+    font-size: 22rpx;
+  }
+  
+  .today-icon {
+    font-size: 24rpx;
+  }
+  
+  .today-text {
+    font-size: 22rpx;
+  }
+  
+  .calendar-day {
+    height: 100rpx;
+    padding: 6rpx 2rpx;
+  }
+  
+  .day-number {
+    font-size: 24rpx;
+  }
+  
+  .indicator {
+    width: 10rpx;
+    height: 10rpx;
+  }
+  
+  .info-value {
+    font-size: 32rpx;
+  }
+  
+  .details-grid {
+    grid-template-columns: 1fr;
+    gap: 16rpx;
+  }
+}
+
+@media (max-width: 320px) {
+  .month-navigation {
+    padding: 0 12rpx;
+    height: 44rpx;
+  }
+  
+  .month-nav-btn {
+    width: 24rpx;
+    height: 24rpx;
+    font-size: 18rpx;
+  }
+  
+  .month-year {
+    font-size: 24rpx;
+    letter-spacing: 0;
+    margin: 0 12rpx;
+  }
+  
+  .today-btn-bottom {
+    padding: 10rpx 20rpx;
+    font-size: 20rpx;
+  }
+  
+  .today-icon {
+    font-size: 22rpx;
+  }
+  
+  .today-text {
+    font-size: 20rpx;
+  }
+  
+  .calendar-info {
+    gap: 16rpx;
+  }
+  
+  .info-value {
+    font-size: 28rpx;
+  }
+  
+  .info-label {
+    font-size: 20rpx;
+  }
+}
+
+/* 动画效果 */
+.calendar-container,
+.calendar-header,
+.selected-day-details,
+.calendar-legend {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

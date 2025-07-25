@@ -1,4 +1,170 @@
 <!--pages/calendar/calendar.wxml-->
 <view class="container">
-  <text>日历页面</text>
+  <!-- 加载状态 -->
+  <view wx:if="{{isLoading}}" class="loading-container">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载日历中...</text>
+  </view>
+
+  <!-- 主要内容 -->
+  <view wx:else>
+    <!-- 日历头部信息 -->
+    <view class="calendar-header">
+      <view class="month-navigation">
+        <button class="month-nav-btn" bindtap="onPrevMonth">◀</button>
+        <view class="month-year">{{currentYear}}.{{currentMonth < 10 ? '0' + currentMonth : currentMonth}}</view>
+        <button class="month-nav-btn" bindtap="onNextMonth">▶</button>
+      </view>
+      
+      <view class="calendar-info">
+        <view class="info-item">
+          <view class="info-value">{{calendarStats.cycleDay || '--'}}</view>
+          <view class="info-label">周期第几天</view>
+        </view>
+        <view class="info-item">
+          <view class="info-value">{{calendarStats.recordDays}}</view>
+          <view class="info-label">记录天数</view>
+        </view>
+        <view class="info-item">
+          <view class="info-value">{{calendarStats.predictedOvulation}}</view>
+          <view class="info-label">预计排卵</view>
+        </view>
+      </view>
+      
+      <!-- 回到今天按钮 - 仅当不是当前月时显示 -->
+      <view wx:if="{{!isCurrentMonth}}" class="today-button-container">
+        <button class="today-btn-bottom" bindtap="onToday">
+          <text class="today-icon">📅</text>
+          <text class="today-text">回到今天</text>
+        </button>
+      </view>
+    </view>
+
+    <!-- 日历网格 -->
+    <view class="calendar-container">
+      <!-- 星期标题 -->
+      <view class="weekday-header">
+        <view wx:for="{{weekDays}}" wx:key="*this" class="weekday-item">{{item}}</view>
+      </view>
+      
+      <!-- 日历网格 -->
+      <view class="calendar-grid">
+        <view wx:for="{{calendarGrid}}" wx:key="date" 
+              class="calendar-day {{item.isCurrentMonth ? 'current-month' : 'other-month'}} {{item.isToday ? 'today' : ''}} {{selectedDate === item.date ? 'selected' : ''}} {{item.hasMenstrual ? 'menstruation' : ''}}"
+              bindtap="onDateClick"
+              data-date="{{item.date}}"
+              data-is-current-month="{{item.isCurrentMonth}}">
+          
+          <!-- 日期数字 -->
+          <view class="day-number">{{item.day}}</view>
+          
+          <!-- 数据指示器 -->
+          <view wx:if="{{item.hasData}}" class="day-indicators">
+            <!-- 体温指示器 -->
+            <view wx:if="{{item.hasTemperature}}" 
+                  class="indicator temperature {{item.temperatureValue >= 36.8 ? 'high-temp' : ''}}">
+            </view>
+            
+            <!-- 经期指示器 -->
+            <view wx:if="{{item.hasMenstrual}}" 
+                  class="indicator menstruation">
+            </view>
+            
+            <!-- 同房指示器 -->
+            <view wx:if="{{item.hasIntercourse}}" 
+                  class="indicator intimacy">
+            </view>
+            
+            <!-- 症状指示器 -->
+            <view wx:if="{{item.hasSymptoms}}" 
+                  class="indicator symptoms">
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 选中日期详情 -->
+    <view wx:if="{{showDetails}}" class="selected-day-details">
+      <view class="details-header">
+        <view class="selected-date">
+          {{formatDisplayDate(selectedDate)}} {{getDayOfWeekName(selectedDate)}}
+        </view>
+        <button class="edit-btn" bindtap="onEditDate">编辑</button>
+      </view>
+      
+      <view class="details-grid">
+        <view class="detail-card">
+          <view class="detail-icon">🌡️</view>
+          <view class="detail-title">基础体温</view>
+          <view class="detail-value {{selectedData.hasTemperature ? '' : 'empty'}}">
+            {{selectedData.hasTemperature ? selectedData.temperatureValue + '°C' : '未记录'}}
+          </view>
+        </view>
+        
+        <view class="detail-card">
+          <view class="detail-icon">🩸</view>
+          <view class="detail-title">月经经量</view>
+          <view class="detail-value {{selectedData.hasMenstrual ? '' : 'empty'}}">
+            {{selectedData.hasMenstrual ? (selectedData.menstrualFlow === 'light' ? '少量' : selectedData.menstrualFlow === 'medium' ? '中量' : '大量') : '无'}}
+          </view>
+        </view>
+        
+        <view class="detail-card">
+          <view class="detail-icon">💕</view>
+          <view class="detail-title">同房记录</view>
+          <view class="detail-value {{selectedData.hasIntercourse ? '' : 'empty'}}">
+            {{selectedData.hasIntercourse ? selectedData.intercourseCount + '次' : '无'}}
+          </view>
+        </view>
+        
+        <view class="detail-card">
+          <view class="detail-icon">📝</view>
+          <view class="detail-title">症状备注</view>
+          <view class="detail-value {{selectedData.hasSymptoms ? '' : 'empty'}}">
+            {{selectedData.hasSymptoms ? '有备注' : '无'}}
+          </view>
+        </view>
+        
+        <view wx:if="{{selectedData.hasSymptoms}}" class="detail-notes">
+          <view class="detail-title">详细备注</view>
+          <view class="notes-content">{{selectedData.symptoms}}</view>
+        </view>
+      </view>
+      
+      <!-- 关闭按钮 -->
+      <view class="close-details" bindtap="onHideDetails">收起</view>
+    </view>
+
+    <!-- 图例说明 -->
+    <view class="calendar-legend">
+      <view class="legend-title">图例说明</view>
+      <view class="legend-grid">
+        <view class="legend-item">
+          <view class="legend-dot temperature"></view>
+          <text>基础体温</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-dot menstruation"></view>
+          <text>月经记录</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-dot intimacy"></view>
+          <text>同房记录</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-dot symptoms"></view>
+          <text>症状备注</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-square today-legend"></view>
+          <text>今天</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-square menstruation-bg"></view>
+          <text>经期背景</text>
+        </view>
+      </view>
+    </view>
+  </view>
 </view>
