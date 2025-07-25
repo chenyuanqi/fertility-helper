@@ -1,0 +1,119 @@
+<!--components/avatar/avatar.wxml-->
+<view 
+  class="avatar-container {{isHighContrast ? 'avatar-container--high-contrast' : ''}}" 
+  style="width: {{size}}rpx; height: {{size}}rpx;"
+  role="{{editable ? 'button' : 'img'}}"
+  aria-label="{{accessibilityLabel}}"
+  aria-describedby="{{editable ? 'avatar-description-' + componentId : ''}}"
+  aria-live="{{isLoading ? 'polite' : 'off'}}"
+  aria-busy="{{isLoading}}"
+  tabindex="{{editable ? 0 : -1}}"
+  bindtap="{{editable ? 'onAvatarTap' : ''}}"
+  bindkeydown="onKeyDown"
+  data-testid="avatar-container"
+>
+  <!-- 头像图片 -->
+  <image 
+    wx:if="{{!isLoading && currentSrc}}"
+    class="avatar-image" 
+    src="{{currentSrc}}" 
+    mode="{{mode}}"
+    style="width: {{size}}rpx; height: {{size}}rpx;"
+    bindload="onImageLoad"
+    binderror="onImageError"
+    alt="{{userName}}的头像图片"
+    aria-hidden="false"
+    role="presentation"
+  />
+  
+  <!-- 默认头像占位符 -->
+  <view 
+    wx:elif="{{!isLoading && !currentSrc}}"
+    class="avatar-placeholder"
+    style="width: {{size}}rpx; height: {{size}}rpx; font-size: {{size * 0.4}}rpx;"
+    aria-label="{{userName}}的默认头像"
+    role="presentation"
+  >
+    <text class="placeholder-icon" aria-hidden="true">👤</text>
+    <text class="sr-only">默认用户头像图标</text>
+  </view>
+  
+  <!-- 加载状态 -->
+  <view 
+    wx:if="{{isLoading}}"
+    class="avatar-loading"
+    style="width: {{size}}rpx; height: {{size}}rpx;"
+    aria-label="{{userName}}的头像正在加载"
+    role="status"
+    aria-live="polite"
+  >
+    <view 
+      class="loading-spinner" 
+      style="width: {{size * 0.3}}rpx; height: {{size * 0.3}}rpx;"
+      aria-hidden="true"
+    ></view>
+    <text class="sr-only">{{userName}}的头像正在加载，请稍候</text>
+  </view>
+  
+  <!-- 可编辑时的遮罩层 -->
+  <view 
+    wx:if="{{editable}}"
+    class="avatar-overlay {{showOverlay ? 'avatar-overlay--visible' : ''}}"
+    style="width: {{size}}rpx; height: {{size}}rpx;"
+    hover-class="avatar-overlay--hover"
+    aria-hidden="true"
+  >
+    <view class="overlay-content">
+      <text class="overlay-icon" aria-hidden="true">📷</text>
+      <text class="overlay-text">点击更换</text>
+    </view>
+  </view>
+  
+  <!-- 错误状态指示 -->
+  <view 
+    wx:if="{{loadError}}"
+    class="avatar-error"
+    style="width: {{size}}rpx; height: {{size}}rpx;"
+    role="alert"
+    aria-label="{{userName}}的头像加载失败"
+    aria-live="assertive"
+  >
+    <text class="error-icon" aria-hidden="true">❌</text>
+    <text class="sr-only">{{userName}}的头像加载失败，当前显示默认头像</text>
+  </view>
+  
+  <!-- 无障碍描述文本 -->
+  <text 
+    wx:if="{{editable}}" 
+    id="avatar-description-{{componentId}}" 
+    class="sr-only"
+  >
+    {{accessibilityDescription}}
+  </text>
+  
+  <!-- 屏幕阅读器实时通知 -->
+  <view 
+    wx:if="{{announceText}}"
+    class="sr-only"
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+  >
+    {{announceText}}
+  </view>
+  
+  <!-- 键盘操作提示 -->
+  <text 
+    wx:if="{{editable}}" 
+    class="sr-only"
+  >
+    按回车键或空格键更换头像，按ESC键取消操作
+  </text>
+</view>
+
+<!-- 隐藏的canvas用于图片处理 -->
+<canvas 
+  canvas-id="avatarCanvas" 
+  class="hidden-canvas"
+  style="width: {{size}}rpx; height: {{size}}rpx;"
+></canvas>

@@ -2,11 +2,20 @@
 <view class="container">
   <!-- 个人资料 -->
   <view class="profile-section">
-    <button class="profile-avatar" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-      <image wx:if="{{userSettings.avatar}}" src="{{userSettings.avatar}}" class="avatar-image" />
-      <text wx:else>👤</text>
-      <view class="avatar-edit-hint">点击更换</view>
-    </button>
+    <view class="avatar-wrapper">
+      <avatar 
+        src="{{userSettings.avatar}}"
+        size="{{160}}"
+        editable="{{true}}"
+        userName="{{userSettings.nickname || '小明'}}"
+        showBorder="{{true}}"
+        borderColor="#ff6b9d"
+        bind:avatarTap="onAvatarTap"
+        bind:imageSelected="onImageSelected"
+        bind:load="onAvatarLoad"
+        bind:error="onAvatarError"
+      />
+    </view>
     <view class="profile-name">{{userSettings.nickname || '小明'}}</view>
     <view class="profile-stats">
       <text>已使用 {{statistics.daysUsed}} 天</text>

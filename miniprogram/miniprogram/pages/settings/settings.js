@@ -642,4 +642,59 @@ Page({
     }
   },
 
+  // 头像组件事件处理
+  /**
+   * 头像点击事件
+   */
+  onAvatarTap(e) {
+    console.log('头像被点击:', e.detail);
+  },
+
+  /**
+   * 头像图片选择事件
+   */
+  async onImageSelected(e) {
+    const { tempFilePath } = e.detail;
+    console.log('选择了新头像:', tempFilePath);
+    
+    try {
+      wx.showLoading({ title: '处理头像中...' });
+      
+      // 保存图片到本地
+      const savedFilePath = await this.saveImageToLocal(tempFilePath);
+      await this.updateAvatar(savedFilePath);
+      
+      wx.hideLoading();
+      wx.showToast({
+        title: '头像更新成功',
+        icon: 'success'
+      });
+    } catch (error) {
+      wx.hideLoading();
+      console.error('保存头像失败:', error);
+      wx.showToast({
+        title: '头像更新失败',
+        icon: 'none'
+      });
+    }
+  },
+
+  /**
+   * 头像加载成功事件
+   */
+  onAvatarLoad(e) {
+    console.log('头像加载成功:', e.detail);
+  },
+
+  /**
+   * 头像加载失败事件
+   */
+  onAvatarError(e) {
+    console.error('头像加载失败:', e.detail);
+    wx.showToast({
+      title: '头像加载失败',
+      icon: 'none'
+    });
+  },
+
 });
