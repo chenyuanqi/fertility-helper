@@ -11,9 +11,13 @@
     <!-- 日历头部信息 -->
     <view class="calendar-header">
       <view class="month-navigation">
-        <button class="month-nav-btn" bindtap="onPrevMonth">◀</button>
+        <button class="month-nav-btn prev-btn" bindtap="onPrevMonth">
+          <text class="nav-icon">‹</text>
+        </button>
         <view class="month-year">{{currentYear}}.{{currentMonth < 10 ? '0' + currentMonth : currentMonth}}</view>
-        <button class="month-nav-btn" bindtap="onNextMonth">▶</button>
+        <button class="month-nav-btn next-btn" bindtap="onNextMonth">
+          <text class="nav-icon">›</text>
+        </button>
       </view>
       
       <view class="calendar-info">

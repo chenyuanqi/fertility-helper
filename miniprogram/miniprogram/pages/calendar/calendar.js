@@ -38,6 +38,7 @@ Page({
 
   onLoad(options) {
     const today = new Date();
+    console.log('Calendar onLoad - currentYear:', this.data.currentYear, 'currentMonth:', this.data.currentMonth);
     this.setData({
       today: DateUtils.formatDate(today)
     });
@@ -59,6 +60,8 @@ Page({
       
       const dataManager = DataManager.getInstance();
       const { currentYear, currentMonth } = this.data;
+      
+      console.log('LoadCalendarData - currentYear:', currentYear, 'currentMonth:', currentMonth);
       
       // 获取当前月的第一天和最后一天
       const firstDay = DateUtils.formatDate(new Date(currentYear, currentMonth - 1, 1));
@@ -85,6 +88,12 @@ Page({
         
         // 检查是否为当前月
         this.checkIsCurrentMonth();
+        
+        console.log('Calendar data loaded successfully. Current data:', {
+          currentYear: this.data.currentYear,
+          currentMonth: this.data.currentMonth,
+          isCurrentMonth: this.data.isCurrentMonth
+        });
       } else {
         console.error('加载日历数据失败:', result.error);
         wx.showToast({
@@ -249,6 +258,7 @@ Page({
    * 上一月
    */
   onPrevMonth() {
+    console.log('onPrevMonth clicked');
     let { currentYear, currentMonth } = this.data;
     currentMonth--;
     
@@ -271,6 +281,7 @@ Page({
    * 下一月
    */
   onNextMonth() {
+    console.log('onNextMonth clicked');
     let { currentYear, currentMonth } = this.data;
     currentMonth++;
     
