@@ -1,6 +1,7 @@
 {
   "usingComponents": {
-    "chart": "../../components/chart/chart"
+    "chart": "../../components/chart/chart",
+    "calendar": "../../components/calendar/calendar"
   },
   "navigationBarTitleText": "体温图表"
 }

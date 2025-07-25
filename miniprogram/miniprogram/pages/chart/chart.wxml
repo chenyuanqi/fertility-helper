@@ -38,41 +38,65 @@
     <!-- 图表容器 -->
     <view class="chart-container">
       <view class="chart-controls">
-        <view class="chart-title">三合一图表</view>
+        <view class="chart-title">数据可视化</view>
         <view class="chart-actions">
-          <button class="chart-btn {{viewMode === 'all' ? 'active' : ''}}" 
-                  bindtap="onViewModeChange" data-mode="all">全部</button>
-          <button class="chart-btn {{viewMode === 'temperature' ? 'active' : ''}}" 
-                  bindtap="onViewModeChange" data-mode="temperature">体温</button>
-          <button class="chart-btn" bindtap="onZoomToggle">
-            {{isZoomed ? '缩小' : '放大'}}
-          </button>
+          <!-- 显示模式切换 -->
+          <button class="chart-btn {{displayMode === 'chart' ? 'active' : ''}}" 
+                  bindtap="onDisplayModeChange" data-mode="chart">图表</button>
+          <button class="chart-btn {{displayMode === 'calendar' ? 'active' : ''}}" 
+                  bindtap="onDisplayModeChange" data-mode="calendar">日历</button>
+          
+          <!-- 图表视图模式切换（仅在图表模式下显示） -->
+          <view wx:if="{{displayMode === 'chart'}}" class="view-mode-btns">
+            <button class="chart-btn {{viewMode === 'all' ? 'active' : ''}}" 
+                    bindtap="onViewModeChange" data-mode="all">全部</button>
+            <button class="chart-btn {{viewMode === 'temperature' ? 'active' : ''}}" 
+                    bindtap="onViewModeChange" data-mode="temperature">体温</button>
+            <button class="chart-btn" bindtap="onZoomToggle">
+              {{isZoomed ? '缩小' : '放大'}}
+            </button>
+          </view>
         </view>
       </view>
       
-      <!-- 图表组件 -->
-      <scroll-view wx:if="{{isZoomed}}" 
-                  class="chart-scroll-view"
-                  scroll-x="true"
-                  enhanced="true"
-                  show-scrollbar="false"
-                  scroll-left="{{chartScrollLeft}}">
-        <chart 
+      <!-- 图表视图 -->
+      <view wx:if="{{displayMode === 'chart'}}">
+        <!-- 图表组件 -->
+        <scroll-view wx:if="{{isZoomed}}" 
+                    class="chart-scroll-view"
+                    scroll-x="true"
+                    enhanced="true"
+                    show-scrollbar="false"
+                    scroll-left="{{chartScrollLeft}}">
+          <chart 
+            chart-data="{{chartData}}"
+            width="{{chartWidth}}"
+            height="{{300}}"
+            view-mode="{{viewMode}}"
+            bind:pointClick="onPointClick">
+          </chart>
+        </scroll-view>
+        
+        <chart wx:else
           chart-data="{{chartData}}"
-          width="{{chartWidth}}"
+          width="{{350}}"
           height="{{300}}"
           view-mode="{{viewMode}}"
           bind:pointClick="onPointClick">
         </chart>
-      </scroll-view>
+      </view>
       
-      <chart wx:else
-        chart-data="{{chartData}}"
-        width="{{350}}"
-        height="{{300}}"
-        view-mode="{{viewMode}}"
-        bind:pointClick="onPointClick">
-      </chart>
+      <!-- 日历视图 -->
+      <view wx:elif="{{displayMode === 'calendar'}}">
+        <calendar 
+          current-year="{{calendarYear}}"
+          current-month="{{calendarMonth}}"
+          calendar-data="{{calendarData}}"
+          selected-date="{{selectedDate}}"
+          bind:monthChange="onCalendarMonthChange"
+          bind:dateSelect="onCalendarDateSelect">
+        </calendar>
+      </view>
     </view>
 
     <!-- 图例说明 -->

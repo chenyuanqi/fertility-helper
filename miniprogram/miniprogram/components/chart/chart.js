@@ -180,6 +180,15 @@ Component({
           position: { index }
         });
       }
+    },
+
+    /**
+     * 格式化日期显示（供WXML调用）
+     */
+    formatDateForDisplay(dateStr) {
+      const { DateUtils } = require('../../utils/date.js');
+      const date = new Date(dateStr);
+      return `${date.getMonth() + 1}/${date.getDate()}`;
     }
   }
 });

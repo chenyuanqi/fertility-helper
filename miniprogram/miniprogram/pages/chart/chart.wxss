@@ -135,6 +135,16 @@
 .chart-actions {
   display: flex;
   gap: 16rpx;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.view-mode-btns {
+  display: flex;
+  gap: 16rpx;
+  margin-left: 16rpx;
+  padding-left: 16rpx;
+  border-left: 1rpx solid #e0e0e0;
 }
 
 .chart-btn {

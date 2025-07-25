@@ -1,0 +1,70 @@
+<!--components/calendar/calendar.wxml-->
+<view class="calendar-container">
+  <!-- 日历头部 -->
+  <view class="calendar-header">
+    <button class="nav-btn" bindtap="onPrevMonth">‹</button>
+    <view class="month-title">{{currentYear}}年{{currentMonth}}月</view>
+    <button class="nav-btn" bindtap="onNextMonth">›</button>
+    <button class="today-btn" bindtap="onToday">今</button>
+  </view>
+
+  <!-- 星期标题 -->
+  <view class="week-header">
+    <view wx:for="{{weekDays}}" wx:key="*this" class="week-day">{{item}}</view>
+  </view>
+
+  <!-- 日历网格 -->
+  <view class="calendar-grid">
+    <view wx:for="{{calendarGrid}}" wx:key="index" class="calendar-week">
+      <view wx:for="{{item}}" wx:key="day" 
+            wx:for-item="dayItem" 
+            class="calendar-day {{dayItem.isCurrentMonth ? 'current-month' : 'other-month'}} {{dayItem.isToday ? 'today' : ''}} {{selectedDate === dayItem.date ? 'selected' : ''}}"
+            bindtap="onDateClick"
+            data-date="{{dayItem.date}}"
+            data-is-current-month="{{dayItem.isCurrentMonth}}">
+        
+        <!-- 日期数字 -->
+        <view class="day-number">{{dayItem.day}}</view>
+        
+        <!-- 数据摘要（仅当前月显示） -->
+        <view wx:if="{{dayItem.isCurrentMonth && dayItem.data}}" class="day-summary">
+          <!-- 体温指示器 -->
+          <view wx:if="{{dayItem.data.hasTemperature}}" 
+                class="temp-indicator {{dayItem.data.temperatureValue >= 36.8 ? 'high-temp' : 'normal-temp'}}">
+          </view>
+          
+          <!-- 经期背景 -->
+          <view wx:if="{{dayItem.data.hasMenstrual}}" 
+                class="menstrual-bg menstrual-{{dayItem.data.menstrualFlow}}">
+          </view>
+          
+          <!-- 同房标记 -->
+          <view wx:if="{{dayItem.data.hasIntercourse}}" class="intercourse-mark">
+            <text class="intercourse-icon">💕</text>
+            <text wx:if="{{dayItem.data.intercourseCount > 1}}" class="intercourse-count">{{dayItem.data.intercourseCount}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 图例说明 -->
+  <view class="calendar-legend">
+    <view class="legend-item">
+      <view class="legend-symbol temp-indicator high-temp"></view>
+      <text class="legend-text">高温</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-symbol temp-indicator normal-temp"></view>
+      <text class="legend-text">体温</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-symbol menstrual-bg menstrual-heavy"></view>
+      <text class="legend-text">经期</text>
+    </view>
+    <view class="legend-item">
+      <text class="legend-symbol intercourse-icon">💕</text>
+      <text class="legend-text">同房</text>
+    </view>
+  </view>
+</view>

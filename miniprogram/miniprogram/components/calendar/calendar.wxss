@@ -1,0 +1,303 @@
+/* components/calendar/calendar.wxss */
+.calendar-container {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 日历头部 */
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32rpx;
+}
+
+.nav-btn {
+  width: 56rpx;
+  height: 56rpx;
+  border: none;
+  border-radius: 50%;
+  background: #f8f8f8;
+  color: #666666;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-btn:active {
+  background: #e0e0e0;
+}
+
+.month-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+  flex: 1;
+  text-align: center;
+}
+
+.today-btn {
+  width: 56rpx;
+  height: 56rpx;
+  border: none;
+  border-radius: 50%;
+  background: #ff6b9d;
+  color: white;
+  font-size: 24rpx;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.today-btn:active {
+  background: #e85a8a;
+}
+
+/* 星期标题 */
+.week-header {
+  display: flex;
+  margin-bottom: 16rpx;
+}
+
+.week-day {
+  flex: 1;
+  text-align: center;
+  font-size: 24rpx;
+  color: #999999;
+  padding: 16rpx 0;
+  font-weight: bold;
+}
+
+/* 日历网格 */
+.calendar-grid {
+  border-top: 1rpx solid #f0f0f0;
+  border-left: 1rpx solid #f0f0f0;
+}
+
+.calendar-week {
+  display: flex;
+}
+
+.calendar-day {
+  flex: 1;
+  position: relative;
+  aspect-ratio: 1;
+  border-right: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 8rpx 4rpx;
+  cursor: pointer;
+  min-height: 90rpx;
+}
+
+.calendar-day:active {
+  background: rgba(255, 107, 157, 0.1);
+}
+
+.calendar-day.current-month {
+  background: #ffffff;
+}
+
+.calendar-day.other-month {
+  background: #f8f8f8;
+  color: #cccccc;
+}
+
+.calendar-day.today {
+  background: rgba(255, 107, 157, 0.15);
+}
+
+.calendar-day.today .day-number {
+  color: #ff6b9d;
+  font-weight: bold;
+}
+
+.calendar-day.selected {
+  background: rgba(255, 107, 157, 0.2);
+  border: 2rpx solid #ff6b9d;
+}
+
+.day-number {
+  font-size: 26rpx;
+  color: #333333;
+  margin-bottom: 4rpx;
+  z-index: 2;
+}
+
+.other-month .day-number {
+  color: #cccccc;
+}
+
+/* 日数据摘要 */
+.day-summary {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+/* 体温指示器 */
+.temp-indicator {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  position: absolute;
+  top: 32rpx;
+  right: 8rpx;
+  z-index: 3;
+}
+
+.temp-indicator.normal-temp {
+  background: #ff6b9d;
+}
+
+.temp-indicator.high-temp {
+  background: #ff3333;
+}
+
+/* 经期背景 */
+.menstrual-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.3;
+  z-index: 0;
+}
+
+.menstrual-bg.menstrual-light {
+  background: rgba(255, 182, 193, 0.4);
+}
+
+.menstrual-bg.menstrual-medium {
+  background: rgba(255, 160, 160, 0.5);
+}
+
+.menstrual-bg.menstrual-heavy {
+  background: rgba(255, 102, 102, 0.6);
+}
+
+/* 同房标记 */
+.intercourse-mark {
+  position: absolute;
+  bottom: 4rpx;
+  right: 4rpx;
+  display: flex;
+  align-items: center;
+  z-index: 3;
+}
+
+.intercourse-icon {
+  font-size: 16rpx;
+  line-height: 1;
+}
+
+.intercourse-count {
+  font-size: 12rpx;
+  color: #666666;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  width: 16rpx;
+  height: 16rpx;
+  text-align: center;
+  line-height: 16rpx;
+  margin-left: 2rpx;
+  border: 1rpx solid #e0e0e0;
+}
+
+/* 图例说明 */
+.calendar-legend {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.legend-symbol {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+}
+
+.legend-symbol.intercourse-icon {
+  width: auto;
+  height: auto;
+  font-size: 16rpx;
+}
+
+.legend-text {
+  font-size: 20rpx;
+  color: #666666;
+}
+
+/* 响应式适配 */
+@media (max-width: 375px) {
+  .calendar-day {
+    min-height: 80rpx;
+    padding: 6rpx 2rpx;
+  }
+  
+  .day-number {
+    font-size: 24rpx;
+  }
+  
+  .temp-indicator {
+    width: 10rpx;
+    height: 10rpx;
+    top: 28rpx;
+    right: 6rpx;
+  }
+  
+  .intercourse-icon {
+    font-size: 14rpx;
+  }
+  
+  .intercourse-count {
+    font-size: 10rpx;
+    width: 14rpx;
+    height: 14rpx;
+    line-height: 14rpx;
+  }
+}
+
+/* 动画效果 */
+.calendar-day {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.calendar-container {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -6,6 +6,7 @@ Page({
   data: {
     chartData: [],
     viewMode: 'all', // all, temperature, minimal
+    displayMode: 'chart', // chart, calendar
     isLoading: true,
     currentCycle: null,
     cycleStats: {
@@ -22,7 +23,12 @@ Page({
     },
     isZoomed: false,
     chartWidth: 350,
-    chartScrollLeft: 0
+    chartScrollLeft: 0,
+    // 日历相关数据
+    calendarYear: new Date().getFullYear(),
+    calendarMonth: new Date().getMonth() + 1,
+    calendarData: [],
+    selectedDate: ''
   },
 
   onLoad(options) {
@@ -40,9 +46,50 @@ Page({
     this.loadChartData();
   },
 
+  /**
+   * 加载日历数据
+   */
+  async loadCalendarData() {
+    try {
+      this.setData({ isLoading: true });
+      
+      const dataManager = DataManager.getInstance();
+      const { calendarYear, calendarMonth } = this.data;
+      
+      // 获取当前月的第一天和最后一天
+      const firstDay = DateUtils.formatDate(new Date(calendarYear, calendarMonth - 1, 1));
+      const lastDay = DateUtils.formatDate(new Date(calendarYear, calendarMonth, 0));
+      
+      // 获取月份数据
+      const result = await dataManager.getDayRecordsInRange(firstDay, lastDay);
+      
+      if (result.success) {
+        const calendarData = result.data || [];
+        this.setData({ calendarData });
+      } else {
+        console.error('加载日历数据失败:', result.error);
+        wx.showToast({
+          title: '加载数据失败',
+          icon: 'none'
+        });
+      }
+    } catch (error) {
+      console.error('加载日历数据异常:', error);
+      wx.showToast({
+        title: '加载数据异常',
+        icon: 'none'
+      });
+    } finally {
+      this.setData({ isLoading: false });
+    }
+  },
+
   onShow() {
     // 页面显示时刷新数据
     this.loadChartData();
+    if (this.data.displayMode === 'calendar') {
+      this.loadCalendarData();
+    }
   },
 
   /**
@@ -226,6 +273,100 @@ Page({
   onViewModeChange(e) {
     const mode = e.currentTarget.dataset.mode;
     this.setData({ viewMode: mode });
+  },
+
+  /**
+   * 切换显示模式（图表/日历）
+   */
+  onDisplayModeChange(e) {
+    const mode = e.currentTarget.dataset.mode;
+    this.setData({ displayMode: mode });
+    
+    if (mode === 'calendar') {
+      this.loadCalendarData();
+    }
+    
+    wx.showToast({
+      title: mode === 'calendar' ? '切换到日历视图' : '切换到图表视图',
+      icon: 'none',
+      duration: 1000
+    });
+  },
+
+  /**
+   * 日历月份变化事件
+   */
+  onCalendarMonthChange(e) {
+    const { year, month, selectedDate } = e.detail;
+    
+    this.setData({
+      calendarYear: year,
+      calendarMonth: month,
+      selectedDate: selectedDate || ''
+    });
+    
+    this.loadCalendarData();
+  },
+
+  /**
+   * 日历日期选择事件
+   */
+  onCalendarDateSelect(e) {
+    const { date, data } = e.detail;
+    
+    this.setData({ selectedDate: date });
+    
+    // 显示日期详情（和图表点击显示类似）
+    if (data) {
+      this.showDateDetails(date, data);
+    } else {
+      // 没有数据，提示用户可以添加记录
+      wx.showModal({
+        title: '记录提醒',
+        content: `${DateUtils.formatDisplayDate(date)} 暂无数据，是否前往记录页面添加？`,
+        confirmText: '去记录',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: `/pages/record/record?date=${date}`
+            });
+          }
+        }
+      });
+    }
+  },
+
+  /**
+   * 显示日期详情
+   */
+  showDateDetails(date, data) {
+    const content = [];
+    
+    content.push(`日期: ${DateUtils.formatDisplayDate(date)}`);
+    
+    if (data.hasTemperature) {
+      content.push(`体温: ${data.temperatureValue}°C`);
+    }
+    
+    if (data.hasMenstrual) {
+      const flowMap = {
+        light: '少量',
+        medium: '中等', 
+        heavy: '大量'
+      };
+      content.push(`经量: ${flowMap[data.menstrualFlow] || '未知'}`);
+    }
+    
+    if (data.hasIntercourse) {
+      content.push(`同房: ${data.intercourseCount}次`);
+    }
+    
+    wx.showModal({
+      title: '详细信息',
+      content: content.join('\n'),
+      showCancel: false
+    });
   },
 
   /**
