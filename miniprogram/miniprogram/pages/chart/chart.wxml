@@ -14,6 +14,7 @@
         <view class="cycle-title">当前周期 - 第{{cycleStats.cycleDay}}天</view>
         <view class="cycle-navigation">
           <button class="nav-btn" bindtap="onPreviousCycle">‹</button>
+          <button class="nav-btn today-btn" bindtap="goToCurrentCycle">今</button>
           <button class="nav-btn" bindtap="onNextCycle">›</button>
         </view>
       </view>
@@ -43,11 +44,29 @@
                   bindtap="onViewModeChange" data-mode="all">全部</button>
           <button class="chart-btn {{viewMode === 'temperature' ? 'active' : ''}}" 
                   bindtap="onViewModeChange" data-mode="temperature">体温</button>
+          <button class="chart-btn" bindtap="onZoomToggle">
+            {{isZoomed ? '缩小' : '放大'}}
+          </button>
         </view>
       </view>
       
       <!-- 图表组件 -->
-      <chart 
+      <scroll-view wx:if="{{isZoomed}}" 
+                  class="chart-scroll-view"
+                  scroll-x="true"
+                  enhanced="true"
+                  show-scrollbar="false"
+                  scroll-left="{{chartScrollLeft}}">
+        <chart 
+          chart-data="{{chartData}}"
+          width="{{chartWidth}}"
+          height="{{300}}"
+          view-mode="{{viewMode}}"
+          bind:pointClick="onPointClick">
+        </chart>
+      </scroll-view>
+      
+      <chart wx:else
         chart-data="{{chartData}}"
         width="{{350}}"
         height="{{300}}"

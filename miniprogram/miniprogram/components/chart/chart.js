@@ -3,6 +3,8 @@
  * 包含体温折线图、经量背景区块、同房图标叠加
  */
 
+const { TemperatureAnalyzer } = require('../../utils/temperatureAnalyzer.js');
+
 Component({
   properties: {
     // 图表数据
@@ -31,7 +33,9 @@ Component({
     canvasId: '',
     processedData: [],
     isReady: false,
-    displayIndexes: [] // 用于显示X轴标签的索引
+    displayIndexes: [], // 用于显示X轴标签的索引
+    coverLine: null, // cover-line数据
+    ovulationPrediction: null // 排卵预测数据
   },
 
   lifetimes: {
@@ -63,9 +67,40 @@ Component({
       if (!data || data.length === 0) {
         this.setData({ 
           processedData: [],
-          displayIndexes: []
+          displayIndexes: [],
+          coverLine: null,
+          ovulationPrediction: null
         });
         return;
+      }
+
+      // 计算cover-line
+      const coverLineResult = TemperatureAnalyzer.calculateCoverLine(data);
+      let coverLine = null;
+      if (coverLineResult.isValid) {
+        // 将cover-line温度转换为显示位置
+        const coverLinePercent = ((coverLineResult.temperature - 35.5) / 2.0) * 100;
+        coverLine = {
+          temperature: coverLineResult.temperature,
+          percent: coverLinePercent,
+          shiftDate: coverLineResult.shiftDate,
+          message: coverLineResult.message
+        };
+      }
+
+      // 预测排卵日
+      const ovulationResult = TemperatureAnalyzer.predictOvulationDay(data);
+      let ovulationPrediction = null;
+      if (ovulationResult.isValid) {
+        // 找到排卵日在数据中的索引
+        const ovulationIndex = data.findIndex(item => item.date === ovulationResult.date);
+        ovulationPrediction = {
+          date: ovulationResult.date,
+          index: ovulationIndex,
+          confidence: ovulationResult.confidence,
+          method: ovulationResult.method,
+          message: ovulationResult.message
+        };
       }
 
       const processedData = data.map((item, index) => {
@@ -84,6 +119,11 @@ Component({
           // 体温范围 35.5-37.5°C
           processed.temperaturePercent = ((temp - 35.5) / 2.0) * 100;
           processed.isHighTemp = temp >= 36.8;
+          
+          // 判断是否在cover-line之上
+          if (coverLine) {
+            processed.isAboveCoverLine = temp >= coverLine.temperature;
+          }
         }
 
         if (processed.hasMenstrual) {
@@ -93,6 +133,11 @@ Component({
 
         if (processed.hasIntercourse) {
           processed.intercourseCount = item.intercourse.filter(record => record.type !== 'none').length;
+        }
+
+        // 标记是否为预测排卵日
+        if (ovulationPrediction && index === ovulationPrediction.index) {
+          processed.isOvulationDay = true;
         }
 
         return processed;
@@ -108,7 +153,9 @@ Component({
 
       this.setData({ 
         processedData,
-        displayIndexes
+        displayIndexes,
+        coverLine,
+        ovulationPrediction
       });
     },
 

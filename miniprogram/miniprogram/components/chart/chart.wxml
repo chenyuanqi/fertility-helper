@@ -23,6 +23,13 @@
         <view class="grid-line horizontal" wx:for="{{[0,1,2,3,4]}}" wx:key="*this" style="top: {{item * 25}}%;"></view>
       </view>
       
+      <!-- Cover-line 覆盖线 -->
+      <view wx:if="{{coverLine && (viewMode === 'all' || viewMode === 'temperature')}}" 
+            class="cover-line"
+            style="bottom: {{coverLine.percent}}%;">
+        <view class="cover-line-label">{{coverLine.temperature}}°C</view>
+      </view>
+      
       <!-- 经量背景 -->
       <view wx:if="{{viewMode === 'all'}}" class="menstrual-backgrounds">
         <view wx:for="{{processedData}}" wx:key="index" 
@@ -40,10 +47,21 @@
         <!-- 体温点 -->
         <view wx:for="{{processedData}}" wx:key="index" 
               wx:if="{{item.hasTemperature}}"
-              class="temperature-point {{item.isHighTemp ? 'high-temp' : ''}}"
+              class="temperature-point {{item.isHighTemp ? 'high-temp' : ''}} {{item.isAboveCoverLine ? 'above-coverline' : ''}}"
               style="left: {{(index / (processedData.length - 1)) * 100}}%; bottom: {{item.temperaturePercent}}%;"
               bindtap="onPointClick"
               data-index="{{index}}">
+        </view>
+      </view>
+      
+      <!-- 排卵日标记 -->
+      <view wx:if="{{ovulationPrediction && (viewMode === 'all' || viewMode === 'temperature')}}" class="ovulation-markers">
+        <view wx:for="{{processedData}}" wx:key="index" 
+              wx:if="{{item.isOvulationDay}}"
+              class="ovulation-marker confidence-{{ovulationPrediction.confidence}}"
+              style="left: {{(index / (processedData.length - 1)) * 100}}%;">
+          <text class="ovulation-icon">🥚</text>
+          <text class="ovulation-label">排卵</text>
         </view>
       </view>
       

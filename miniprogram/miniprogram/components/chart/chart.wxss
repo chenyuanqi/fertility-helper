@@ -100,6 +100,29 @@
   background: rgba(255, 102, 102, 0.6);
 }
 
+/* Cover-line 覆盖线样式 */
+.cover-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2rpx;
+  background: #666666;
+  border-top: 2rpx dashed #666666;
+  z-index: 8;
+}
+
+.cover-line-label {
+  position: absolute;
+  right: 10rpx;
+  top: -12rpx;
+  font-size: 18rpx;
+  color: #666666;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2rpx 6rpx;
+  border-radius: 4rpx;
+  border: 1rpx solid #e0e0e0;
+}
+
 /* 体温层 */
 .temperature-layer {
   position: absolute;
@@ -126,8 +149,64 @@
   background: #ff3333;
 }
 
+.temperature-point.above-coverline {
+  border-color: #4ecdc4;
+  border-width: 4rpx;
+}
+
 .temperature-point:active {
   transform: translate(-50%, 50%) scale(1.2);
+}
+
+/* 排卵日标记样式 */
+.ovulation-markers {
+  position: absolute;
+  top: -50rpx;
+  left: 0;
+  right: 0;
+  height: 50rpx;
+}
+
+.ovulation-marker {
+  position: absolute;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 9;
+}
+
+.ovulation-icon {
+  font-size: 28rpx;
+  line-height: 1;
+  margin-bottom: 2rpx;
+}
+
+.ovulation-label {
+  font-size: 16rpx;
+  color: #ff6b9d;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2rpx 6rpx;
+  border-radius: 6rpx;
+  border: 1rpx solid #ff6b9d;
+  font-weight: bold;
+}
+
+/* 不同置信度的排卵标记 */
+.ovulation-marker.confidence-high .ovulation-label {
+  background: #ff6b9d;
+  color: white;
+}
+
+.ovulation-marker.confidence-medium .ovulation-label {
+  background: rgba(255, 107, 157, 0.2);
+  color: #ff6b9d;
+}
+
+.ovulation-marker.confidence-low .ovulation-label {
+  background: rgba(255, 107, 157, 0.1);
+  color: #ff6b9d;
+  border-style: dashed;
 }
 
 /* 同房标记 */

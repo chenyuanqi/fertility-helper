@@ -11,12 +11,18 @@ Page({
     cycleStats: {
       cycleDay: 0,
       averageTemp: 0,
-      predictedOvulation: ''
+      predictedOvulation: '',
+      temperatureCount: 0,
+      menstrualDays: 0,
+      intercourseCount: 0
     },
     dateRange: {
       start: '',
       end: ''
-    }
+    },
+    isZoomed: false,
+    chartWidth: 350,
+    chartScrollLeft: 0
   },
 
   onLoad(options) {
@@ -223,6 +229,38 @@ Page({
   },
 
   /**
+   * 切换缩放模式
+   */
+  onZoomToggle() {
+    const isZoomed = !this.data.isZoomed;
+    let chartWidth = 350;
+    let chartScrollLeft = 0;
+    
+    if (isZoomed) {
+      // 根据数据量动态计算宽度，每天至少30rpx宽度
+      const dataCount = this.data.chartData.length;
+      chartWidth = Math.max(700, dataCount * 30);
+      
+      // 自动滚动到最右侧（最新数据）
+      setTimeout(() => {
+        chartScrollLeft = chartWidth - 350; // 滚动到最右侧
+        this.setData({ chartScrollLeft });
+      }, 100);
+    }
+    
+    this.setData({ 
+      isZoomed,
+      chartWidth
+    });
+
+    wx.showToast({
+      title: isZoomed ? '已放大图表，可左右滑动查看' : '已缩小图表',
+      icon: 'none',
+      duration: 1500
+    });
+  },
+
+  /**
    * 切换到上一周期
    */
   onPreviousCycle() {
@@ -235,6 +273,12 @@ Page({
         start: newStart,
         end: newEnd
       }
+    });
+    
+    wx.showToast({
+      title: '切换至上一周期',
+      icon: 'none',
+      duration: 1000
     });
     
     this.loadChartData();
@@ -257,16 +301,47 @@ Page({
     }
     
     const newStart = DateUtils.addDays(end, 1);
-    const newEnd = DateUtils.addDays(newStart, 29);
+    let newEnd = DateUtils.addDays(newStart, 29);
     
     // 确保不超过今天
-    const actualEnd = newEnd > today ? today : newEnd;
+    if (newEnd > today) {
+      newEnd = today;
+    }
     
     this.setData({
       dateRange: {
         start: newStart,
-        end: actualEnd
+        end: newEnd
       }
+    });
+    
+    wx.showToast({
+      title: '切换至下一周期',
+      icon: 'none',
+      duration: 1000
+    });
+    
+    this.loadChartData();
+  },
+
+  /**
+   * 快速跳转到当前周期
+   */
+  goToCurrentCycle() {
+    const today = DateUtils.formatDate(new Date());
+    const thirtyDaysAgo = DateUtils.subtractDays(today, 29);
+    
+    this.setData({
+      dateRange: {
+        start: thirtyDaysAgo,
+        end: today
+      }
+    });
+    
+    wx.showToast({
+      title: '已回到当前周期',
+      icon: 'none',
+      duration: 1000
     });
     
     this.loadChartData();
