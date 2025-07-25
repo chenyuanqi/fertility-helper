@@ -184,7 +184,7 @@ Page({
    */
   quickRecordTemperature() {
     wx.navigateTo({
-      url: '/pages/record/record?type=temperature'
+      url: `/pages/record/record?type=temperature&date=${this.data.currentDate}`
     });
   },
 
@@ -193,7 +193,7 @@ Page({
    */
   quickRecordMenstrual() {
     wx.navigateTo({
-      url: '/pages/record/record?type=menstrual'
+      url: `/pages/record/record?type=menstrual&date=${this.data.currentDate}`
     });
   },
 
@@ -202,7 +202,7 @@ Page({
    */
   quickRecordIntercourse() {
     wx.navigateTo({
-      url: '/pages/record/record?type=intercourse'
+      url: `/pages/record/record?type=intercourse&date=${this.data.currentDate}`
     });
   },
 

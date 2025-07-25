@@ -1,4 +1,11 @@
 {
-  "usingComponents": {},
-  "navigationBarTitleText": "数据记录"
+  "usingComponents": {
+    "keyboard": "../../components/keyboard/keyboard",
+    "slider": "../../components/slider/slider",
+    "loading": "../../components/loading/loading"
+  },
+  "navigationBarTitleText": "数据记录",
+  "navigationBarBackgroundColor": "#ff6b9d",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#f5f5f5"
 }

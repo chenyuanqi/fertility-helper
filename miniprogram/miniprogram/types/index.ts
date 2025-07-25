@@ -217,3 +217,7 @@ export interface StatisticsOptions {
   includeIntercourse?: boolean;
   includeSymptoms?: boolean;
 }
+
+module.exports = {
+  STORAGE_KEYS
+};

@@ -8,15 +8,17 @@ const { DateUtils } = require('./date');
 const { Validator } = require('./validator');
 
 class DataManager {
-  private static instance: DataManager;
-  private cache: Map<string, any> = new Map();
-  private cacheExpiry: Map<string, number> = new Map();
-  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5分钟缓存
+  constructor() {
+    this.cache = new Map();
+    this.cacheExpiry = new Map();
+    this.CACHE_DURATION = 5 * 60 * 1000; // 5分钟缓存
+    this.initializeData();
+  }
 
   /**
    * 获取单例实例
    */
-  static getInstance(): DataManager {
+  static getInstance() {
     if (!DataManager.instance) {
       DataManager.instance = new DataManager();
     }
@@ -24,16 +26,9 @@ class DataManager {
   }
 
   /**
-   * 私有构造函数
-   */
-  private constructor() {
-    this.initializeData();
-  }
-
-  /**
    * 初始化数据
    */
-  private async initializeData(): Promise<void> {
+  async initializeData() {
     try {
       // 检查数据版本
       await this.checkDataVersion();
@@ -50,7 +45,7 @@ class DataManager {
   /**
    * 检查数据版本
    */
-  private async checkDataVersion(): Promise<void> {
+  async checkDataVersion() {
     const currentVersion = '1.0.0';
     const storedVersion = await StorageManager.getItem(STORAGE_KEYS.APP_VERSION);
     
@@ -64,31 +59,23 @@ class DataManager {
   /**
    * 数据迁移
    */
-  private async migrateData(fromVersion: string | undefined, toVersion: string): Promise<void> {
+  async migrateData(fromVersion, toVersion) {
     console.log(`数据迁移: ${fromVersion || '未知'} -> ${toVersion}`);
-    
-    // 这里可以添加具体的数据迁移逻辑
-    // 例如：字段重命名、数据结构调整等
     
     if (!fromVersion) {
       // 首次安装，无需迁移
       return;
     }
-    
-    // 根据版本执行相应的迁移逻辑
-    // if (fromVersion === '0.9.0') {
-    //   await this.migrateFrom090To100();
-    // }
   }
 
   /**
    * 初始化默认数据
    */
-  private async initializeDefaultData(): Promise<void> {
+  async initializeDefaultData() {
     // 检查并初始化用户设置
     const userSettings = await FertilityStorage.getUserSettings();
     if (!userSettings) {
-      const defaultSettings: UserSettings = {
+      const defaultSettings = {
         id: this.generateId(),
         personalInfo: {
           averageCycleLength: 28,
@@ -140,19 +127,19 @@ class DataManager {
   /**
    * 生成唯一ID
    */
-  private generateId(): string {
+  generateId() {
     return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   /**
    * 缓存管理
    */
-  private setCache(key: string, data: any): void {
+  setCache(key, data) {
     this.cache.set(key, data);
     this.cacheExpiry.set(key, Date.now() + this.CACHE_DURATION);
   }
 
-  private getCache(key: string): any {
+  getCache(key) {
     const expiry = this.cacheExpiry.get(key);
     if (expiry && Date.now() > expiry) {
       this.cache.delete(key);
@@ -162,7 +149,7 @@ class DataManager {
     return this.cache.get(key);
   }
 
-  private clearCache(key?: string): void {
+  clearCache(key) {
     if (key) {
       this.cache.delete(key);
       this.cacheExpiry.delete(key);
@@ -175,15 +162,10 @@ class DataManager {
   /**
    * 保存体温记录
    */
-  async saveTemperatureRecord(record: Omit<TemperatureRecord, 'id' | 'createdAt' | 'updatedAt'>): Promise<DataOperationResult<TemperatureRecord>> {
+  async saveTemperatureRecord(record) {
     try {
       // 数据验证
-      const validation = Validator.validateObject(record, {
-        date: Validator.validateDate,
-        time: Validator.validateTime,
-        temperature: Validator.validateTemperature,
-        note: Validator.validateNote,
-      });
+      const validation = this.validateTemperatureRecord(record);
 
       if (!validation.valid) {
         return {
@@ -197,7 +179,7 @@ class DataManager {
       }
 
       // 创建完整的记录
-      const fullRecord: TemperatureRecord = {
+      const fullRecord = {
         ...record,
         id: this.generateId(),
         createdAt: DateUtils.formatISO(new Date()),
@@ -236,16 +218,52 @@ class DataManager {
   }
 
   /**
+   * 验证体温记录
+   */
+  validateTemperatureRecord(record) {
+    const errors = {};
+    let valid = true;
+
+    // 验证日期
+    const dateValidation = Validator.validateDate(record.date);
+    if (!dateValidation.valid) {
+      errors.date = dateValidation.message;
+      valid = false;
+    }
+
+    // 验证时间
+    const timeValidation = Validator.validateTime(record.time);
+    if (!timeValidation.valid) {
+      errors.time = timeValidation.message;
+      valid = false;
+    }
+
+    // 验证体温
+    const tempValidation = Validator.validateTemperature(record.temperature);
+    if (!tempValidation.valid) {
+      errors.temperature = tempValidation.message;
+      valid = false;
+    }
+
+    // 验证备注
+    if (record.note) {
+      const noteValidation = Validator.validateNote(record.note);
+      if (!noteValidation.valid) {
+        errors.note = noteValidation.message;
+        valid = false;
+      }
+    }
+
+    return { valid, errors };
+  }
+
+  /**
    * 保存月经记录
    */
-  async saveMenstrualRecord(record: Omit<MenstrualRecord, 'id' | 'createdAt' | 'updatedAt'>): Promise<DataOperationResult<MenstrualRecord>> {
+  async saveMenstrualRecord(record) {
     try {
       // 数据验证
-      const validation = Validator.validateObject(record, {
-        date: Validator.validateDate,
-        flow: Validator.validateMenstrualFlow,
-        note: Validator.validateNote,
-      });
+      const validation = this.validateMenstrualRecord(record);
 
       if (!validation.valid) {
         return {
@@ -259,7 +277,7 @@ class DataManager {
       }
 
       // 创建完整的记录
-      const fullRecord: MenstrualRecord = {
+      const fullRecord = {
         ...record,
         id: this.generateId(),
         createdAt: DateUtils.formatISO(new Date()),
@@ -279,7 +297,7 @@ class DataManager {
 
       // 如果是经期开始或结束，更新周期数据
       if (record.isStart || record.isEnd) {
-        await this.updateMenstrualCycles(record);
+        await this.updateMenstrualCycles(fullRecord);
       }
 
       // 清除相关缓存
@@ -304,16 +322,45 @@ class DataManager {
   }
 
   /**
+   * 验证月经记录
+   */
+  validateMenstrualRecord(record) {
+    const errors = {};
+    let valid = true;
+
+    // 验证日期
+    const dateValidation = Validator.validateDate(record.date);
+    if (!dateValidation.valid) {
+      errors.date = dateValidation.message;
+      valid = false;
+    }
+
+    // 验证经量
+    const flowValidation = Validator.validateMenstrualFlow(record.flow);
+    if (!flowValidation.valid) {
+      errors.flow = flowValidation.message;
+      valid = false;
+    }
+
+    // 验证备注
+    if (record.note) {
+      const noteValidation = Validator.validateNote(record.note);
+      if (!noteValidation.valid) {
+        errors.note = noteValidation.message;
+        valid = false;
+      }
+    }
+
+    return { valid, errors };
+  }
+
+  /**
    * 保存同房记录
    */
-  async saveIntercourseRecord(record: Omit<IntercourseRecord, 'id' | 'createdAt' | 'updatedAt'>): Promise<DataOperationResult<IntercourseRecord>> {
+  async saveIntercourseRecord(record) {
     try {
       // 数据验证
-      const validation = Validator.validateObject(record, {
-        date: Validator.validateDate,
-        time: Validator.validateTime,
-        note: Validator.validateNote,
-      });
+      const validation = this.validateIntercourseRecord(record);
 
       if (!validation.valid) {
         return {
@@ -327,7 +374,7 @@ class DataManager {
       }
 
       // 创建完整的记录
-      const fullRecord: IntercourseRecord = {
+      const fullRecord = {
         ...record,
         id: this.generateId(),
         createdAt: DateUtils.formatISO(new Date()),
@@ -369,9 +416,42 @@ class DataManager {
   }
 
   /**
+   * 验证同房记录
+   */
+  validateIntercourseRecord(record) {
+    const errors = {};
+    let valid = true;
+
+    // 验证日期
+    const dateValidation = Validator.validateDate(record.date);
+    if (!dateValidation.valid) {
+      errors.date = dateValidation.message;
+      valid = false;
+    }
+
+    // 验证时间
+    const timeValidation = Validator.validateTime(record.time);
+    if (!timeValidation.valid) {
+      errors.time = timeValidation.message;
+      valid = false;
+    }
+
+    // 验证备注
+    if (record.note) {
+      const noteValidation = Validator.validateNote(record.note);
+      if (!noteValidation.valid) {
+        errors.note = noteValidation.message;
+        valid = false;
+      }
+    }
+
+    return { valid, errors };
+  }
+
+  /**
    * 获取指定日期的记录
    */
-  async getDayRecord(date: string): Promise<DataOperationResult<DayRecord | null>> {
+  async getDayRecord(date) {
     try {
       // 先检查缓存
       const cacheKey = `dayRecord_${date}`;
@@ -408,12 +488,12 @@ class DataManager {
   /**
    * 获取日期范围内的记录
    */
-  async getDayRecordsInRange(startDate: string, endDate: string): Promise<DataOperationResult<DayRecord[]>> {
+  async getDayRecordsInRange(startDate, endDate) {
     try {
       const dayRecords = await FertilityStorage.getDayRecords();
       const dateRange = DateUtils.getDateRange(startDate, endDate);
       
-      const records: DayRecord[] = [];
+      const records = [];
       dateRange.forEach(date => {
         if (dayRecords[date]) {
           records.push(dayRecords[date]);
@@ -439,7 +519,7 @@ class DataManager {
   /**
    * 删除记录
    */
-  async deleteRecord(date: string, type: 'temperature' | 'menstrual' | 'intercourse' | 'symptoms', recordId?: string): Promise<DataOperationResult<boolean>> {
+  async deleteRecord(date, type, recordId) {
     try {
       const dayRecords = await FertilityStorage.getDayRecords();
       const dayRecord = dayRecords[date];
@@ -514,12 +594,12 @@ class DataManager {
   /**
    * 更新月经周期数据
    */
-  private async updateMenstrualCycles(record: MenstrualRecord): Promise<void> {
+  async updateMenstrualCycles(record) {
     const cycles = await FertilityStorage.getCycles();
     
     if (record.isStart) {
-      // 经期开始，创建新周期或更新现有周期
-      const newCycle: MenstrualCycle = {
+      // 经期开始，创建新周期
+      const newCycle = {
         id: this.generateId(),
         startDate: record.date,
         isComplete: false,
@@ -549,124 +629,6 @@ class DataManager {
     }
     
     await FertilityStorage.saveCycles(cycles);
-  }
-
-  /**
-   * 获取统计数据
-   */
-  async getStatistics(options?: StatisticsOptions): Promise<DataOperationResult<StatisticsData>> {
-    try {
-      const dayRecords = await FertilityStorage.getDayRecords();
-      const cycles = await FertilityStorage.getCycles();
-      
-      // 计算统计数据
-      const totalRecords = Object.keys(dayRecords).length;
-      
-      // 计算平均周期长度
-      const completeCycles = cycles.filter(cycle => cycle.isComplete && cycle.length);
-      const averageCycleLength = completeCycles.length > 0 
-        ? completeCycles.reduce((sum, cycle) => sum + (cycle.length || 0), 0) / completeCycles.length
-        : 28;
-
-      // 计算平均体温
-      const temperatureRecords = Object.values(dayRecords)
-        .filter(record => record.temperature)
-        .map(record => record.temperature!.temperature);
-      
-      const averageTemperature = temperatureRecords.length > 0
-        ? temperatureRecords.reduce((sum, temp) => sum + temp, 0) / temperatureRecords.length
-        : 0;
-
-      // 计算周期规律性（简化版本）
-      const cycleRegularity = completeCycles.length >= 3 
-        ? this.calculateCycleRegularity(completeCycles)
-        : 0;
-
-      const statistics: StatisticsData = {
-        totalRecords,
-        averageCycleLength: Math.round(averageCycleLength * 10) / 10,
-        averageTemperature: Math.round(averageTemperature * 100) / 100,
-        fertileWindowAccuracy: 0.8, // 这里需要实际的算法计算
-        cycleRegularity,
-        lastUpdated: DateUtils.formatISO(new Date()),
-      };
-
-      // 保存统计数据
-      await FertilityStorage.saveStatistics(statistics);
-
-      return {
-        success: true,
-        data: statistics,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: {
-          code: 'STATISTICS_ERROR',
-          message: '获取统计数据失败',
-          details: error,
-        },
-      };
-    }
-  }
-
-  /**
-   * 计算周期规律性
-   */
-  private calculateCycleRegularity(cycles: MenstrualCycle[]): number {
-    if (cycles.length < 3) return 0;
-
-    const lengths = cycles.map(cycle => cycle.length || 0);
-    const average = lengths.reduce((sum, length) => sum + length, 0) / lengths.length;
-    
-    // 计算标准差
-    const variance = lengths.reduce((sum, length) => sum + Math.pow(length - average, 2), 0) / lengths.length;
-    const standardDeviation = Math.sqrt(variance);
-    
-    // 规律性评分（标准差越小，规律性越高）
-    const regularity = Math.max(0, 1 - (standardDeviation / 7)); // 7天作为基准
-    
-    return Math.round(regularity * 100) / 100;
-  }
-
-  /**
-   * 清理历史数据
-   */
-  async cleanupOldData(daysToKeep: number = 365): Promise<DataOperationResult<number>> {
-    try {
-      const cutoffDate = DateUtils.subtractDays(DateUtils.getToday(), daysToKeep);
-      const dayRecords = await FertilityStorage.getDayRecords();
-      
-      let deletedCount = 0;
-      const updatedRecords: { [date: string]: DayRecord } = {};
-      
-      Object.entries(dayRecords).forEach(([date, record]) => {
-        if (date >= cutoffDate) {
-          updatedRecords[date] = record;
-        } else {
-          deletedCount++;
-        }
-      });
-
-      await FertilityStorage.saveDayRecords(updatedRecords);
-      
-      // 清除所有缓存
-      this.clearCache();
-
-      return {
-        success: true,
-        data: deletedCount,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: {
-          code: 'CLEANUP_ERROR',
-          message: '清理历史数据失败',
-          details: error,
-        },
-      };
-    }
   }
 }
 
