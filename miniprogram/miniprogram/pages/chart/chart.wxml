@@ -10,23 +10,21 @@
   <view wx:else>
     <!-- 周期信息头部 -->
     <view class="chart-header">
-      <!-- 顶部操作区 -->
-      <view class="header-top-section">
-        <!-- 周期导航区域 -->
-        <view class="cycle-navigation-section">
-          <button class="nav-btn prev-btn" bindtap="onPreviousCycle">
-            <text class="nav-icon">‹</text>
-          </button>
-          <view class="period-display">
-            <text class="period-text">当前周期</text>
-            <text class="period-day">第 {{cycleStats.cycleDay}} 天</text>
-          </view>
-          <button class="nav-btn next-btn" bindtap="onNextCycle">
-            <text class="nav-icon">›</text>
-          </button>
+      <!-- 周期导航单独一行 -->
+      <view class="cycle-navigation-section">
+        <button class="nav-btn prev-btn" bindtap="onPreviousCycle">
+          <text class="nav-icon">‹</text>
+        </button>
+        <view class="period-display">
+          <text class="period-label">当前周期</text>
+          <text class="period-day">第{{cycleStats.cycleDay}}天</text>
         </view>
-        
-        <!-- 今日按钮 -->
+        <button class="nav-btn next-btn" bindtap="onNextCycle">
+          <text class="nav-icon">›</text>
+        </button>
+      </view>
+      <!-- 今日按钮单独一行 -->
+      <view class="today-btn-row">
         <button class="today-button" bindtap="goToCurrentCycle">
           <text class="today-icon">📅</text>
           <text class="today-text">今日</text>
@@ -63,14 +61,9 @@
     <view class="chart-container">
       <!-- 图表头部控制区 -->
       <view class="chart-header-controls">
-        <view class="chart-title-section">
-          <view class="title-wrapper">
-            <text class="title-icon">📊</text>
-            <view class="title-content">
-              <text class="chart-title">数据可视化</text>
-              <text class="chart-subtitle">体温、经期、同房记录分析</text>
-            </view>
-          </view>
+        <view class="chart-title-row">
+          <text class="title-icon">📊</text>
+          <text class="chart-subtitle">体温、经期、同房记录分析</text>
         </view>
         
         <!-- 视图模式切换 -->
