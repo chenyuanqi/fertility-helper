@@ -21,7 +21,8 @@ Page({
       menstrualDays: 0,
       intercourseCount: 0
     },
-    isLoading: true
+    isLoading: true,
+    showFabMenu: false
   },
 
   /**
@@ -321,6 +322,15 @@ Page({
   viewCalendar() {
     wx.switchTab({
       url: '/pages/calendar/calendar'
+    });
+  },
+
+  /**
+   * 切换FAB菜单显示状态
+   */
+  toggleFabMenu() {
+    this.setData({
+      showFabMenu: !this.data.showFabMenu
     });
   },
 

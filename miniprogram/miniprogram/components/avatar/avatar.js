@@ -22,7 +22,7 @@ Component({
     // 默认头像
     defaultSrc: {
       type: String,
-      value: '/assets/images/default-avatar.png'
+      value: ''
     },
     // 显示模式：aspectFill(裁剪) | aspectFit(适应)
     mode: {
@@ -213,8 +213,8 @@ Component({
      * 初始化头像
      */
     initAvatar() {
-      const { src, defaultSrc } = this.properties;
-      this.updateAvatarSrc(src || defaultSrc);
+      const { src } = this.properties;
+      this.updateAvatarSrc(src);
     },
 
     /**
@@ -222,8 +222,9 @@ Component({
      */
     updateAvatarSrc(src) {
       if (!src) {
+        // 没有头像源时，显示默认占位符
         this.setData({
-          currentSrc: this.properties.defaultSrc,
+          currentSrc: '',
           isLoading: false,
           loadError: false
         });
@@ -261,8 +262,9 @@ Component({
         },
         fail: (error) => {
           console.error('预加载图片失败:', error);
+          // 预加载失败时，清空currentSrc，显示默认占位符
           this.setData({
-            currentSrc: this.properties.defaultSrc,
+            currentSrc: '',
             isLoading: false,
             loadError: true
           });
@@ -298,8 +300,9 @@ Component({
     onImageError(e) {
       console.error('头像加载失败:', e);
       
+      // 图片加载失败时，清空currentSrc，显示默认占位符
       this.setData({
-        currentSrc: this.properties.defaultSrc,
+        currentSrc: '',
         isLoading: false,
         loadError: true
       });
@@ -312,7 +315,7 @@ Component({
 
       // 触发加载失败事件
       this.triggerEvent('error', {
-        src: this.data.currentSrc,
+        src: e.currentTarget.src,
         error: e.detail
       });
     },

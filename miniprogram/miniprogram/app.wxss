@@ -1,11 +1,11 @@
-/* 全局样式 - 使用具体数值替代CSS变量 */
+/* 全局样式 - 兼容微信小程序 */
 
 /* 重置样式 */
 page {
-  background-color: #f5f5f5;
+  background-color: #f8f9fa;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   font-size: 28rpx;
-  color: #262626;
+  color: #2c3e50;
   line-height: 1.5;
   display: flex;
   flex-direction: column;
@@ -23,28 +23,51 @@ page {
 
 .card {
   background-color: #ffffff;
-  border-radius: 8rpx;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
   margin-bottom: 24rpx;
   overflow: hidden;
+  border: 1rpx solid #f0f0f0;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
+  transform: translateY(-2rpx);
 }
 
 .card-header {
-  padding: 24rpx;
-  border-bottom: 1px solid #d9d9d9;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
   font-weight: 600;
   font-size: 32rpx;
+  color: #2c3e50;
+  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
 }
 
 .card-body {
+  padding: 32rpx;
+}
+
+.card-compact {
+  margin-bottom: 16rpx;
+}
+
+.card-compact .card-header {
+  padding: 24rpx;
+  font-size: 28rpx;
+}
+
+.card-compact .card-body {
   padding: 24rpx;
 }
 
-/* 按钮样式 */
+/* 按钮系统 */
 button {
   background: initial;
   border: none;
   outline: none;
+  font-family: inherit;
 }
 
 button:focus {
@@ -60,28 +83,51 @@ button::after {
   align-items: center;
   justify-content: center;
   padding: 16rpx 24rpx;
-  border-radius: 8rpx;
+  border-radius: 12rpx;
   font-size: 28rpx;
   font-weight: 500;
-  border: 1px solid transparent;
+  border: 2rpx solid transparent;
   cursor: pointer;
   transition: all 0.3s ease;
-  min-height: 80rpx;
+  min-height: 88rpx;
   box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.2);
+  opacity: 0;
+  transition: all 0.15s ease;
+}
+
+.btn:active::before {
+  opacity: 1;
 }
 
 .btn-primary {
-  background-color: #ff6b9d;
+  background: linear-gradient(135deg, #ff6b9d, #e55a89);
   color: white;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
 }
 
-.btn-primary:hover {
-  opacity: 0.8;
+.btn-primary:active {
+  transform: translateY(1rpx);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
 }
 
 .btn-secondary {
-  background-color: #4ecdc4;
+  background: linear-gradient(135deg, #4ecdc4, #45b7aa);
   color: white;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
 }
 
 .btn-outline {
@@ -90,21 +136,49 @@ button::after {
   color: #ff6b9d;
 }
 
+.btn-outline:active {
+  background-color: #fef7f0;
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: #7f8c8d;
+  border: none;
+}
+
+.btn-ghost:active {
+  background-color: #f5f5f5;
+}
+
+/* 按钮尺寸 */
 .btn-large {
   padding: 24rpx 32rpx;
   font-size: 32rpx;
-  min-height: 88rpx;
+  min-height: 104rpx;
+  border-radius: 16rpx;
 }
 
 .btn-small {
   padding: 8rpx 16rpx;
   font-size: 24rpx;
-  min-height: 60rpx;
+  min-height: 64rpx;
+  border-radius: 8rpx;
 }
 
 .btn-block {
   width: 100%;
   display: flex;
+}
+
+/* 按钮状态 */
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn[disabled]::before {
+  display: none;
 }
 
 /* 文本样式 */
