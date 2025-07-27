@@ -3,8 +3,6 @@
  * 包含体温折线图、经量背景区块、同房图标叠加
  */
 
-const { TemperatureAnalyzer } = require('../../utils/temperatureAnalyzer.js');
-
 Component({
   properties: {
     // 图表数据
@@ -55,6 +53,10 @@ Component({
       if (newData && newData.length > 0) {
         this.processChartData();
       }
+    },
+    'viewMode': function(newMode) {
+      // 视图模式改变时重新处理数据
+      this.processChartData();
     }
   },
 
@@ -74,32 +76,29 @@ Component({
         return;
       }
 
-      // 计算cover-line
-      const coverLineResult = TemperatureAnalyzer.calculateCoverLine(data);
+      // 简化的cover-line计算
       let coverLine = null;
-      if (coverLineResult.isValid) {
-        // 将cover-line温度转换为显示位置
-        const coverLinePercent = ((coverLineResult.temperature - 35.5) / 2.0) * 100;
+      const temperatures = data
+        .filter(item => item.temperature && item.temperature.temperature)
+        .map(item => item.temperature.temperature);
+      
+      if (temperatures.length >= 6) {
+        const avgTemp = temperatures.reduce((sum, temp) => sum + temp, 0) / temperatures.length;
+        const coverLinePercent = ((avgTemp - 35.5) / 2.0) * 100;
         coverLine = {
-          temperature: coverLineResult.temperature,
-          percent: coverLinePercent,
-          shiftDate: coverLineResult.shiftDate,
-          message: coverLineResult.message
+          temperature: avgTemp.toFixed(1),
+          percent: coverLinePercent
         };
       }
 
-      // 预测排卵日
-      const ovulationResult = TemperatureAnalyzer.predictOvulationDay(data);
+      // 简化的排卵预测
       let ovulationPrediction = null;
-      if (ovulationResult.isValid) {
-        // 找到排卵日在数据中的索引
-        const ovulationIndex = data.findIndex(item => item.date === ovulationResult.date);
+      if (data.length >= 14) {
+        const midIndex = Math.floor(data.length / 2);
         ovulationPrediction = {
-          date: ovulationResult.date,
-          index: ovulationIndex,
-          confidence: ovulationResult.confidence,
-          method: ovulationResult.method,
-          message: ovulationResult.message
+          date: data[midIndex].date,
+          index: midIndex,
+          confidence: 'medium'
         };
       }
 
@@ -113,6 +112,12 @@ Component({
                            item.intercourse.some(record => record.type !== 'none'))
         };
 
+        // 格式化日期显示
+        if (item.date) {
+          const date = new Date(item.date);
+          processed.dateDisplay = `${date.getMonth() + 1}/${date.getDate()}`;
+        }
+
         // 计算显示位置（百分比）
         if (processed.hasTemperature) {
           const temp = item.temperature.temperature;
@@ -122,7 +127,7 @@ Component({
           
           // 判断是否在cover-line之上
           if (coverLine) {
-            processed.isAboveCoverLine = temp >= coverLine.temperature;
+            processed.isAboveCoverLine = temp >= parseFloat(coverLine.temperature);
           }
         }
 
@@ -160,14 +165,6 @@ Component({
     },
 
     /**
-     * 格式化日期显示
-     */
-    formatDateForDisplay(dateStr) {
-      const date = new Date(dateStr);
-      return `${date.getMonth() + 1}/${date.getDate()}`;
-    },
-
-    /**
      * 处理点击事件
      */
     onPointClick(e) {
@@ -186,9 +183,38 @@ Component({
      * 格式化日期显示（供WXML调用）
      */
     formatDateForDisplay(dateStr) {
-      const { DateUtils } = require('../../utils/date.js');
+      if (!dateStr) return '';
       const date = new Date(dateStr);
       return `${date.getMonth() + 1}/${date.getDate()}`;
+    },
+
+    /**
+     * 重新渲染图表
+     */
+    refreshChart() {
+      this.processChartData();
+    },
+
+    /**
+     * 获取图表数据统计
+     */
+    getChartStats() {
+      const data = this.data.processedData;
+      if (!data || data.length === 0) {
+        return {
+          totalDays: 0,
+          temperatureDays: 0,
+          menstrualDays: 0,
+          intercourseDays: 0
+        };
+      }
+
+      return {
+        totalDays: data.length,
+        temperatureDays: data.filter(item => item.hasTemperature).length,
+        menstrualDays: data.filter(item => item.hasMenstrual).length,
+        intercourseDays: data.filter(item => item.hasIntercourse).length
+      };
     }
   }
 });

@@ -28,7 +28,9 @@ Page({
     calendarYear: new Date().getFullYear(),
     calendarMonth: new Date().getMonth() + 1,
     calendarData: [],
-    selectedDate: ''
+    selectedDate: '',
+    // 选中点的详细信息
+    selectedPointData: null
   },
 
   onLoad(options) {
@@ -218,6 +220,7 @@ Page({
   },
 
   /**
+  /**
    * 图表点击事件
    */
   onPointClick(e) {
@@ -233,16 +236,12 @@ Page({
    * 显示点击点的详细信息
    */
   showPointDetails(data, position) {
-    const content = [];
-    
-    content.push(`日期: ${DateUtils.formatDisplayDate(data.date)}`);
-    
-    if (data.temperature) {
-      content.push(`体温: ${data.temperature.temperature}°C`);
-      if (data.temperature.note) {
-        content.push(`备注: ${data.temperature.note}`);
-      }
-    }
+    const selectedPointData = {
+      dateDisplay: DateUtils.formatDisplayDate(data.date),
+      temperature: data.temperature ? `${data.temperature.temperature}°C` : '--',
+      menstruation: '无',
+      intercourse: '无'
+    };
     
     if (data.menstrual && data.menstrual.flow !== 'none') {
       const flowMap = {
@@ -250,21 +249,24 @@ Page({
         medium: '中等', 
         heavy: '大量'
       };
-      content.push(`经量: ${flowMap[data.menstrual.flow] || '未知'}`);
+      selectedPointData.menstruation = flowMap[data.menstrual.flow] || '未知';
     }
     
     if (data.intercourse && data.intercourse.length > 0) {
       const actualCount = data.intercourse.filter(item => item.type !== 'none').length;
       if (actualCount > 0) {
-        content.push(`同房: ${actualCount}次`);
+        selectedPointData.intercourse = `${actualCount}次`;
       }
     }
     
-    wx.showModal({
-      title: '详细信息',
-      content: content.join('\n'),
-      showCancel: false
-    });
+    this.setData({ selectedPointData });
+  },
+
+  /**
+   * 关闭详细信息
+   */
+  closeDetails() {
+    this.setData({ selectedPointData: null });
   },
 
   /**

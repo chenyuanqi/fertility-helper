@@ -1,10 +1,10 @@
 /* components/chart/chart.wxss */
 .chart-container {
   position: relative;
-  background: #ffffff;
-  border-radius: 12rpx;
+  background: linear-gradient(to bottom, #f8f9fa 0%, #f8f9fa 100%);
+  border: 2rpx solid #e6e6e6;
+  border-radius: 16rpx;
   overflow: hidden;
-  border: 1rpx solid #f0f0f0;
 }
 
 .chart-empty {
@@ -25,51 +25,62 @@
 }
 
 .chart-content {
-  display: flex;
-  height: 100%;
   position: relative;
+  height: 100%;
 }
 
 /* Y轴样式 */
 .y-axis {
+  position: absolute;
+  left: 0;
+  top: 0;
   width: 80rpx;
+  height: calc(100% - 60rpx);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 40rpx 0 60rpx 0;
-  background: #fafafa;
-  border-right: 1rpx solid #e0e0e0;
+  padding: 40rpx 0;
+  background: white;
+  border-right: 2rpx solid #e6e6e6;
 }
 
 .y-label {
   font-size: 20rpx;
-  color: #666666;
+  color: #8c8c8c;
   text-align: center;
   line-height: 1;
 }
 
-/* 图表区域 */
-.chart-area {
-  flex: 1;
-  position: relative;
-  margin: 40rpx 20rpx 60rpx 20rpx;
-}
-
-/* 网格线 */
-.grid-lines {
+/* X轴标签 */
+.x-axis {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
   bottom: 0;
+  left: 80rpx;
+  right: 0;
+  height: 60rpx;
+  background: white;
+  border-top: 2rpx solid #e6e6e6;
+  display: flex;
+  align-items: center;
+  padding: 0 20rpx;
 }
 
-.grid-line.horizontal {
+.x-label {
   position: absolute;
-  left: 0;
+  font-size: 20rpx;
+  color: #8c8c8c;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+/* 图表内容区域 */
+.chart-content-area {
+  position: absolute;
+  left: 80rpx;
+  top: 0;
   right: 0;
-  height: 1rpx;
-  background: #e8e8e8;
+  bottom: 60rpx;
+  overflow: hidden;
 }
 
 /* 经量背景 */
@@ -89,15 +100,15 @@
 }
 
 .menstrual-level-1 {
-  background: rgba(255, 182, 193, 0.4);
+  background: #ffe6e6;
 }
 
 .menstrual-level-2 {
-  background: rgba(255, 160, 160, 0.5);
+  background: #ffcccc;
 }
 
 .menstrual-level-3 {
-  background: rgba(255, 102, 102, 0.6);
+  background: #ff9999;
 }
 
 /* Cover-line 覆盖线样式 */
@@ -107,20 +118,8 @@
   right: 0;
   height: 2rpx;
   background: #666666;
-  border-top: 2rpx dashed #666666;
+  border-top: 4rpx dashed #666666;
   z-index: 8;
-}
-
-.cover-line-label {
-  position: absolute;
-  right: 10rpx;
-  top: -12rpx;
-  font-size: 18rpx;
-  color: #666666;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 2rpx 6rpx;
-  border-radius: 4rpx;
-  border: 1rpx solid #e0e0e0;
 }
 
 /* 体温层 */
@@ -137,12 +136,12 @@
   width: 16rpx;
   height: 16rpx;
   background: #ff6b9d;
-  border: 3rpx solid #ffffff;
+  border: 4rpx solid white;
   border-radius: 50%;
   transform: translate(-50%, 50%);
   cursor: pointer;
   z-index: 10;
-  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 157, 0.3);
 }
 
 .temperature-point.high-temp {
@@ -151,68 +150,17 @@
 
 .temperature-point.above-coverline {
   border-color: #4ecdc4;
-  border-width: 4rpx;
+  border-width: 6rpx;
 }
 
 .temperature-point:active {
-  transform: translate(-50%, 50%) scale(1.2);
-}
-
-/* 排卵日标记样式 */
-.ovulation-markers {
-  position: absolute;
-  top: -50rpx;
-  left: 0;
-  right: 0;
-  height: 50rpx;
-}
-
-.ovulation-marker {
-  position: absolute;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  z-index: 9;
-}
-
-.ovulation-icon {
-  font-size: 28rpx;
-  line-height: 1;
-  margin-bottom: 2rpx;
-}
-
-.ovulation-label {
-  font-size: 16rpx;
-  color: #ff6b9d;
-  background: rgba(255, 255, 255, 0.95);
-  padding: 2rpx 6rpx;
-  border-radius: 6rpx;
-  border: 1rpx solid #ff6b9d;
-  font-weight: bold;
-}
-
-/* 不同置信度的排卵标记 */
-.ovulation-marker.confidence-high .ovulation-label {
-  background: #ff6b9d;
-  color: white;
-}
-
-.ovulation-marker.confidence-medium .ovulation-label {
-  background: rgba(255, 107, 157, 0.2);
-  color: #ff6b9d;
-}
-
-.ovulation-marker.confidence-low .ovulation-label {
-  background: rgba(255, 107, 157, 0.1);
-  color: #ff6b9d;
-  border-style: dashed;
+  transform: translate(-50%, 50%) scale(1.3);
 }
 
 /* 同房标记 */
 .intercourse-markers {
   position: absolute;
-  bottom: -40rpx;
+  bottom: 20rpx;
   left: 0;
   right: 0;
   height: 40rpx;
@@ -228,7 +176,7 @@
 }
 
 .marker-icon {
-  font-size: 24rpx;
+  font-size: 32rpx;
   line-height: 1;
 }
 
@@ -237,62 +185,40 @@
   color: #666666;
   background: rgba(255, 255, 255, 0.9);
   border-radius: 50%;
-  width: 20rpx;
-  height: 20rpx;
+  width: 24rpx;
+  height: 24rpx;
   text-align: center;
-  line-height: 20rpx;
-  margin-top: 2rpx;
+  line-height: 24rpx;
+  margin-top: 4rpx;
   border: 1rpx solid #e0e0e0;
 }
 
-/* X轴标签 */
-.x-axis {
+/* 排卵日标记样式 */
+.ovulation-markers {
   position: absolute;
-  bottom: 0;
-  left: 100rpx;
-  right: 20rpx;
-  height: 60rpx;
-  background: #fafafa;
-  border-top: 1rpx solid #e0e0e0;
+  top: 20rpx;
+  left: 0;
+  right: 0;
+  height: 40rpx;
 }
 
-.x-label {
+.ovulation-marker {
   position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40rpx;
+  height: 40rpx;
+  background: #faad14;
+  border-radius: 50%;
+  z-index: 9;
+}
+
+.ovulation-icon {
   font-size: 20rpx;
-  color: #666666;
-  white-space: nowrap;
-}
-
-/* 响应式适配 */
-@media (max-width: 375px) {
-  .y-axis {
-    width: 60rpx;
-    padding: 30rpx 0 50rpx 0;
-  }
-  
-  .y-label {
-    font-size: 18rpx;
-  }
-  
-  .chart-area {
-    margin: 30rpx 15rpx 50rpx 15rpx;
-  }
-  
-  .temperature-point {
-    width: 12rpx;
-    height: 12rpx;
-    border: 2rpx solid #ffffff;
-  }
-  
-  .marker-icon {
-    font-size: 20rpx;
-  }
-  
-  .x-label {
-    font-size: 18rpx;
-  }
+  color: white;
+  font-weight: bold;
 }
 
 /* 动画效果 */
@@ -310,5 +236,38 @@
   }
   to {
     opacity: 1;
+  }
+}
+
+/* 响应式适配 */
+@media (max-width: 375px) {
+  .y-axis {
+    width: 60rpx;
+  }
+  
+  .y-label {
+    font-size: 18rpx;
+  }
+  
+  .x-axis {
+    left: 60rpx;
+  }
+  
+  .chart-content-area {
+    left: 60rpx;
+  }
+  
+  .temperature-point {
+    width: 12rpx;
+    height: 12rpx;
+    border: 3rpx solid white;
+  }
+  
+  .marker-icon {
+    font-size: 28rpx;
+  }
+  
+  .x-label {
+    font-size: 18rpx;
   }
 }
