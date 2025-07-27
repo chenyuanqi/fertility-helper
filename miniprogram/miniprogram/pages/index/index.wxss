@@ -61,20 +61,25 @@
   50% { transform: translateY(-20px) rotate(180deg); }
 }
 
-.current-date {
-  display: block;
-  font-size: 56rpx;
-  font-weight: 700;
-  margin-bottom: 8rpx;
+.greeting-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   position: relative;
   z-index: 1;
 }
 
-.day-of-week {
-  font-size: 24rpx;
-  opacity: 0.9;
-  position: relative;
-  z-index: 1;
+.greeting {
+  font-size: 40rpx;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+  opacity: 0.95;
+}
+
+.date-info {
+  font-size: 28rpx;
+  opacity: 0.8;
+  font-weight: 400;
 }
 
 /* 卡片样式优化 */
@@ -172,6 +177,35 @@
 .phase-luteal { 
   color: #722ed1;
   background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+}
+.phase-unknown {
+  color: #ff6b9d;
+  background: linear-gradient(135deg, #fef7f0, #fde8e8);
+}
+
+/* 可点击的周期项 */
+.cycle-item-clickable {
+  cursor: pointer;
+  position: relative;
+}
+
+.cycle-item-clickable::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 16rpx;
+  width: 12rpx;
+  height: 12rpx;
+  border-top: 2rpx solid #ff6b9d;
+  border-right: 2rpx solid #ff6b9d;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.cycle-hint {
+  font-size: 20rpx;
+  color: #999;
+  margin-top: 4rpx;
+  display: block;
 }
 
 .predictions {
@@ -573,4 +607,121 @@
 
 .fab-intercourse {
   border-left: 6rpx solid #722ed1;
+}
+
+/* 周期设置模态框 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cycle-modal {
+  background: #ffffff;
+  border-radius: 20rpx;
+  width: 85%;
+  max-width: 640rpx;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  padding: 32rpx;
+  text-align: center;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.modal-body {
+  padding: 24rpx;
+}
+
+.phase-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.phase-option {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  border: 2rpx solid #f0f0f0;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.phase-option.active {
+  border-color: #ff6b9d;
+  background: linear-gradient(135deg, #fef7f0, #ffffff);
+}
+
+.phase-icon {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  margin-right: 24rpx;
+}
+
+.menstrual-icon {
+  background: linear-gradient(135deg, #ff6b6b, #ff5252);
+}
+
+.follicular-icon {
+  background: linear-gradient(135deg, #6bcf7f, #4caf50);
+}
+
+.ovulation-icon {
+  background: linear-gradient(135deg, #ffb74d, #ff9800);
+}
+
+.luteal-icon {
+  background: linear-gradient(135deg, #722ed1, #9c27b0);
+}
+
+.phase-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.phase-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 4rpx;
+}
+
+.phase-desc {
+  font-size: 24rpx;
+  color: #7f8c8d;
+}
+
+.modal-footer {
+  padding: 24rpx 32rpx;
+  border-top: 1rpx solid #f0f0f0;
+  display: flex;
+  gap: 16rpx;
+}
+
+.modal-footer .btn {
+  flex: 1;
 }

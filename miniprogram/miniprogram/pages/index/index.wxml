@@ -10,8 +10,10 @@
   <view wx:else>
     <!-- 日期头部 -->
     <view class="date-header">
-      <text class="current-date">{{currentDate}}</text>
-      <text class="day-of-week">{{currentDate}}</text>
+      <view class="greeting-section">
+        <text class="greeting">你好，{{userSettings.nickname || '小明'}}</text>
+        <text class="date-info">{{formatDate(currentDate)}} {{getDayOfWeek(currentDate)}}</text>
+      </view>
     </view>
 
     <!-- 周期信息卡片 -->
@@ -26,14 +28,16 @@
             <text class="cycle-value">{{cycleInfo.cycleDay}}</text>
             <text class="cycle-label">天</text>
           </view>
-          <view class="cycle-item">
+          <view class="cycle-item {{cycleInfo.phase === 'unknown' ? 'cycle-item-clickable' : ''}}" 
+                bindtap="{{cycleInfo.phase === 'unknown' ? 'onSetCyclePhase' : ''}}">
             <text class="cycle-label">当前阶段</text>
             <text class="cycle-value phase-{{cycleInfo.phase}}">
               {{cycleInfo.phase === 'menstrual' ? '月经期' : 
                 cycleInfo.phase === 'follicular' ? '卵泡期' : 
                 cycleInfo.phase === 'ovulation' ? '排卵期' : 
-                cycleInfo.phase === 'luteal' ? '黄体期' : '未知'}}
+                cycleInfo.phase === 'luteal' ? '黄体期' : '点击设置'}}
             </text>
+            <text wx:if="{{cycleInfo.phase === 'unknown'}}" class="cycle-hint">点击设置周期阶段</text>
           </view>
         </view>
         <view class="predictions">
@@ -159,6 +163,58 @@
         <text class="fab-item-icon">💕</text>
         <text class="fab-item-label">同房</text>
       </view>
+    </view>
+  </view>
+</view>
+
+<!-- 周期阶段设置模态框 -->
+<view class="modal-mask" wx:if="{{showCycleModal}}" catchtap="closeCycleModal">
+  <view class="modal cycle-modal" catchtap="stopPropagation">
+    <view class="modal-header">
+      <text class="modal-title">设置当前周期阶段</text>
+    </view>
+    <view class="modal-body">
+      <view class="phase-options">
+        <view class="phase-option {{selectedPhase === 'menstrual' ? 'active' : ''}}" 
+              bindtap="selectPhase" data-phase="menstrual">
+          <view class="phase-icon menstrual-icon">🩸</view>
+          <view class="phase-info">
+            <text class="phase-name">月经期</text>
+            <text class="phase-desc">月经来潮期间</text>
+          </view>
+        </view>
+        
+        <view class="phase-option {{selectedPhase === 'follicular' ? 'active' : ''}}" 
+              bindtap="selectPhase" data-phase="follicular">
+          <view class="phase-icon follicular-icon">🌱</view>
+          <view class="phase-info">
+            <text class="phase-name">卵泡期</text>
+            <text class="phase-desc">月经结束到排卵前</text>
+          </view>
+        </view>
+        
+        <view class="phase-option {{selectedPhase === 'ovulation' ? 'active' : ''}}" 
+              bindtap="selectPhase" data-phase="ovulation">
+          <view class="phase-icon ovulation-icon">🥚</view>
+          <view class="phase-info">
+            <text class="phase-name">排卵期</text>
+            <text class="phase-desc">排卵日前后几天</text>
+          </view>
+        </view>
+        
+        <view class="phase-option {{selectedPhase === 'luteal' ? 'active' : ''}}" 
+              bindtap="selectPhase" data-phase="luteal">
+          <view class="phase-icon luteal-icon">🌙</view>
+          <view class="phase-info">
+            <text class="phase-name">黄体期</text>
+            <text class="phase-desc">排卵后到下次月经前</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="modal-footer">
+      <button class="btn btn-outline" bindtap="closeCycleModal">取消</button>
+      <button class="btn btn-primary" bindtap="confirmCyclePhase">确定</button>
     </view>
   </view>
 </view>

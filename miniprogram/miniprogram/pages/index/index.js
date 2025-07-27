@@ -22,7 +22,9 @@ Page({
       intercourseCount: 0
     },
     isLoading: true,
-    showFabMenu: false
+    showFabMenu: false,
+    showCycleModal: false,
+    selectedPhase: 'unknown'
   },
 
   /**
@@ -323,6 +325,102 @@ Page({
     wx.switchTab({
       url: '/pages/calendar/calendar'
     });
+  },
+
+  /**
+   * 格式化日期显示
+   */
+  formatDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    return `${month}月${day}日`;
+  },
+
+  /**
+   * 获取星期几
+   */
+  getDayOfWeek(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const weekDays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+    return weekDays[date.getDay()];
+  },
+
+  /**
+   * 设置周期阶段
+   */
+  onSetCyclePhase() {
+    this.setData({
+      showCycleModal: true,
+      selectedPhase: this.data.cycleInfo.phase || 'unknown'
+    });
+  },
+
+  /**
+   * 选择周期阶段
+   */
+  selectPhase(e) {
+    const phase = e.currentTarget.dataset.phase;
+    this.setData({
+      selectedPhase: phase
+    });
+  },
+
+  /**
+   * 确认周期阶段设置
+   */
+  confirmCyclePhase() {
+    if (this.data.selectedPhase === 'unknown') {
+      wx.showToast({
+        title: '请选择周期阶段',
+        icon: 'none'
+      });
+      return;
+    }
+
+    // 更新周期信息
+    this.setData({
+      'cycleInfo.phase': this.data.selectedPhase,
+      showCycleModal: false
+    });
+    
+    // 保存到本地存储
+    this.saveCyclePhase(this.data.selectedPhase);
+    
+    wx.showToast({
+      title: '设置成功',
+      icon: 'success'
+    });
+  },
+
+  /**
+   * 关闭周期设置模态框
+   */
+  closeCycleModal() {
+    this.setData({
+      showCycleModal: false
+    });
+  },
+
+  /**
+   * 阻止事件冒泡
+   */
+  stopPropagation() {
+    // 阻止点击模态框内容时关闭模态框
+  },
+
+  /**
+   * 保存周期阶段到本地存储
+   */
+  async saveCyclePhase(phase) {
+    try {
+      // 这里可以调用存储API保存用户设置的周期阶段
+      console.log('保存周期阶段:', phase);
+    } catch (error) {
+      console.error('保存周期阶段失败:', error);
+    }
   },
 
   /**
