@@ -11,13 +11,13 @@
     <!-- 日历头部信息 -->
     <view class="calendar-header">
       <view class="month-navigation">
-        <button class="month-nav-btn prev-btn" bindtap="onPrevMonth">
+        <view class="month-nav-btn prev-btn" bindtap="onPrevMonth">
           <text class="nav-icon">‹</text>
-        </button>
-        <view class="month-year">{{currentYear}}.{{currentMonth < 10 ? '0' + currentMonth : currentMonth}}</view>
-        <button class="month-nav-btn next-btn" bindtap="onNextMonth">
+        </view>
+        <view class="month-year">{{currentYear}}年{{currentMonth}}月</view>
+        <view class="month-nav-btn next-btn" bindtap="onNextMonth">
           <text class="nav-icon">›</text>
-        </button>
+        </view>
       </view>
       
       <view class="calendar-info">
@@ -66,78 +66,86 @@
           <view wx:if="{{item.hasData}}" class="day-indicators">
             <!-- 体温指示器 -->
             <view wx:if="{{item.hasTemperature}}" 
-                  class="indicator temperature {{item.temperatureValue >= 36.8 ? 'high-temp' : ''}}">
+                  class="indicator-icon temperature {{item.temperatureValue >= 36.8 ? 'high-temp' : ''}}">
+              🌡️
             </view>
             
             <!-- 经期指示器 -->
             <view wx:if="{{item.hasMenstrual}}" 
-                  class="indicator menstruation">
+                  class="indicator-icon menstruation">
+              🩸
             </view>
             
             <!-- 同房指示器 -->
             <view wx:if="{{item.hasIntercourse}}" 
-                  class="indicator intimacy">
+                  class="indicator-icon intimacy">
+              💕
             </view>
             
             <!-- 症状指示器 -->
             <view wx:if="{{item.hasSymptoms}}" 
-                  class="indicator symptoms">
+                  class="indicator-icon symptoms">
+              📝
             </view>
           </view>
         </view>
       </view>
     </view>
 
-    <!-- 选中日期详情 -->
-    <view wx:if="{{showDetails}}" class="selected-day-details">
-      <view class="details-header">
-        <view class="selected-date">
-          {{formatDisplayDate(selectedDate)}} {{getDayOfWeekName(selectedDate)}}
+    <!-- 日期详情弹框 -->
+    <view wx:if="{{showDetails}}" class="date-details-modal">
+      <view class="date-details-overlay" bindtap="onHideDetails"></view>
+      <view class="date-details-content">
+        <view class="details-header">
+          <view class="selected-date">
+            {{currentYear}}年{{currentMonth}}月{{selectedData.day}}日记录
+          </view>
+          <view class="close-text" bindtap="onHideDetails">关闭</view>
         </view>
-        <button class="edit-btn" bindtap="onEditDate">编辑</button>
+        
+        <view class="details-grid">
+          <view class="detail-card">
+            <view class="detail-icon">🌡️</view>
+            <view class="detail-title">基础体温</view>
+            <view class="detail-value {{selectedData.hasTemperature ? '' : 'empty'}}">
+              {{selectedData.hasTemperature ? selectedData.temperatureValue + '°C' : '未记录'}}
+            </view>
+          </view>
+          
+          <view class="detail-card">
+            <view class="detail-icon">🩸</view>
+            <view class="detail-title">月经经量</view>
+            <view class="detail-value {{selectedData.hasMenstrual ? '' : 'empty'}}">
+              {{selectedData.hasMenstrual ? (selectedData.menstrualFlow === 'light' ? '少量' : selectedData.menstrualFlow === 'medium' ? '中量' : '大量') : '无'}}
+            </view>
+          </view>
+          
+          <view class="detail-card">
+            <view class="detail-icon">💕</view>
+            <view class="detail-title">同房记录</view>
+            <view class="detail-value {{selectedData.hasIntercourse ? '' : 'empty'}}">
+              {{selectedData.hasIntercourse ? selectedData.intercourseCount + '次' : '无'}}
+            </view>
+          </view>
+          
+          <view class="detail-card">
+            <view class="detail-icon">📝</view>
+            <view class="detail-title">症状备注</view>
+            <view class="detail-value {{selectedData.hasSymptoms ? '' : 'empty'}}">
+              {{selectedData.hasSymptoms ? '有备注' : '无'}}
+            </view>
+          </view>
+          
+          <view wx:if="{{selectedData.hasSymptoms}}" class="detail-notes">
+            <view class="detail-title">详细备注</view>
+            <view class="notes-content">{{selectedData.symptoms}}</view>
+          </view>
+        </view>
+        
+        <view class="details-actions">
+          <button class="action-btn" bindtap="onEditDate">编辑记录</button>
+        </view>
       </view>
-      
-      <view class="details-grid">
-        <view class="detail-card">
-          <view class="detail-icon">🌡️</view>
-          <view class="detail-title">基础体温</view>
-          <view class="detail-value {{selectedData.hasTemperature ? '' : 'empty'}}">
-            {{selectedData.hasTemperature ? selectedData.temperatureValue + '°C' : '未记录'}}
-          </view>
-        </view>
-        
-        <view class="detail-card">
-          <view class="detail-icon">🩸</view>
-          <view class="detail-title">月经经量</view>
-          <view class="detail-value {{selectedData.hasMenstrual ? '' : 'empty'}}">
-            {{selectedData.hasMenstrual ? (selectedData.menstrualFlow === 'light' ? '少量' : selectedData.menstrualFlow === 'medium' ? '中量' : '大量') : '无'}}
-          </view>
-        </view>
-        
-        <view class="detail-card">
-          <view class="detail-icon">💕</view>
-          <view class="detail-title">同房记录</view>
-          <view class="detail-value {{selectedData.hasIntercourse ? '' : 'empty'}}">
-            {{selectedData.hasIntercourse ? selectedData.intercourseCount + '次' : '无'}}
-          </view>
-        </view>
-        
-        <view class="detail-card">
-          <view class="detail-icon">📝</view>
-          <view class="detail-title">症状备注</view>
-          <view class="detail-value {{selectedData.hasSymptoms ? '' : 'empty'}}">
-            {{selectedData.hasSymptoms ? '有备注' : '无'}}
-          </view>
-        </view>
-        
-        <view wx:if="{{selectedData.hasSymptoms}}" class="detail-notes">
-          <view class="detail-title">详细备注</view>
-          <view class="notes-content">{{selectedData.symptoms}}</view>
-        </view>
-      </view>
-      
-      <!-- 关闭按钮 -->
-      <view class="close-details" bindtap="onHideDetails">收起</view>
     </view>
 
     <!-- 图例说明 -->
@@ -145,19 +153,19 @@
       <view class="legend-title">图例说明</view>
       <view class="legend-grid">
         <view class="legend-item">
-          <view class="legend-dot temperature"></view>
+          <text class="legend-icon">🌡️</text>
           <text>基础体温</text>
         </view>
         <view class="legend-item">
-          <view class="legend-dot menstruation"></view>
+          <text class="legend-icon">🩸</text>
           <text>月经记录</text>
         </view>
         <view class="legend-item">
-          <view class="legend-dot intimacy"></view>
+          <text class="legend-icon">💕</text>
           <text>同房记录</text>
         </view>
         <view class="legend-item">
-          <view class="legend-dot symptoms"></view>
+          <text class="legend-icon">📝</text>
           <text>症状备注</text>
         </view>
         <view class="legend-item">

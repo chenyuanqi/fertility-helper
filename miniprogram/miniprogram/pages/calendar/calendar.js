@@ -48,7 +48,13 @@ Page({
 
   onShow() {
     // 页面显示时刷新数据
-    this.loadCalendarData();
+    // 注意：如果是从编辑页面返回，会通过事件通知方式更新数据
+    // 这里只处理其他情况下的数据刷新
+    const pages = getCurrentPages();
+    // 如果是从其他页面返回（不是从编辑页面通过事件返回），则刷新数据
+    if (pages.length === 1 || pages[pages.length - 2].route !== 'pages/record/record') {
+      this.loadCalendarData();
+    }
   },
 
   /**
@@ -244,6 +250,21 @@ Page({
       return;
     }
     
+    // 检查是否是未来日期
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDateObj = new Date(date);
+    selectedDateObj.setHours(0, 0, 0, 0);
+    
+    if (selectedDateObj > today) {
+      wx.showToast({
+        title: '不要着急，这一天还没到来呢',
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+    
     // 选中当前日期
     const dayInfo = this.data.calendarGrid.find(item => item.date === date);
     
@@ -320,8 +341,141 @@ Page({
    */
   onEditDate() {
     if (this.data.selectedDate) {
+      // 保存当前选中的日期
+      const selectedDate = this.data.selectedDate;
+      
+      // 检查是否是未来日期
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const selectedDateObj = new Date(selectedDate);
+      selectedDateObj.setHours(0, 0, 0, 0);
+      
+      if (selectedDateObj > today) {
+        wx.showToast({
+          title: '不能编辑未来日期',
+          icon: 'none',
+          duration: 2000
+        });
+        return;
+      }
+      
+      // 先关闭弹框
+      this.setData({
+        showDetails: false
+      });
+      
+      // 跳转到记录编辑页面
       wx.navigateTo({
-        url: `/pages/record/record?date=${this.data.selectedDate}`
+        url: `/pages/record/record?date=${selectedDate}`,
+        events: {
+          // 监听编辑页面返回事件
+          recordUpdated: () => {
+            console.log('记录已更新，重新加载数据');
+            // 重新加载日历数据
+            this.loadCalendarData().then(() => {
+              // 更新日历网格中的数据
+              const calendarGrid = [...this.data.calendarGrid];
+              const index = calendarGrid.findIndex(item => item.date === selectedDate);
+              
+              if (index !== -1) {
+                // 直接从数据库获取最新的日期数据
+                const dataManager = DataManager.getInstance();
+                dataManager.getDayRecord(selectedDate).then(result => {
+                  if (result.success && result.data) {
+                    // 构建更新后的日期信息对象
+                    const dayData = result.data;
+                    const updatedDayInfo = {
+                      ...calendarGrid[index],
+                      hasData: true,
+                      
+                      // 数据摘要
+                      hasTemperature: !!(dayData && dayData.temperature && dayData.temperature.temperature),
+                      temperatureValue: dayData && dayData.temperature ? dayData.temperature.temperature : null,
+                      
+                      hasMenstrual: !!(dayData && dayData.menstrual && dayData.menstrual.flow !== 'none'),
+                      menstrualFlow: dayData && dayData.menstrual ? dayData.menstrual.flow : 'none',
+                      
+                      hasIntercourse: !!(dayData && dayData.intercourse && dayData.intercourse.length > 0 && 
+                                      dayData.intercourse.some(record => record.type !== 'none')),
+                      intercourseCount: dayData && dayData.intercourse ? 
+                        dayData.intercourse.filter(record => record.type !== 'none').length : 0,
+                      
+                      // 症状备注
+                      hasSymptoms: !!(dayData && dayData.temperature && dayData.temperature.note),
+                      symptoms: dayData && dayData.temperature ? dayData.temperature.note : '',
+                      
+                      // 原始数据
+                      rawData: dayData
+                    };
+                    
+                    // 更新日历网格中的数据
+                    calendarGrid[index] = updatedDayInfo;
+                    this.setData({
+                      calendarGrid
+                    });
+                    
+                    console.log('日历数据已更新:', updatedDayInfo);
+                  }
+                });
+              }
+            });
+          }
+        },
+        success: (res) => {
+          // 设置编辑页面返回时的回调
+          const eventChannel = res.eventChannel;
+          eventChannel.on('recordSaved', () => {
+            console.log('记录已保存，重新加载数据');
+            // 重新加载日历数据
+            this.loadCalendarData().then(() => {
+              // 更新日历网格中的数据
+              const calendarGrid = [...this.data.calendarGrid];
+              const index = calendarGrid.findIndex(item => item.date === selectedDate);
+              
+              if (index !== -1) {
+                // 直接从数据库获取最新的日期数据
+                const dataManager = DataManager.getInstance();
+                dataManager.getDayRecord(selectedDate).then(result => {
+                  if (result.success && result.data) {
+                    // 构建更新后的日期信息对象
+                    const dayData = result.data;
+                    const updatedDayInfo = {
+                      ...calendarGrid[index],
+                      hasData: true,
+                      
+                      // 数据摘要
+                      hasTemperature: !!(dayData && dayData.temperature && dayData.temperature.temperature),
+                      temperatureValue: dayData && dayData.temperature ? dayData.temperature.temperature : null,
+                      
+                      hasMenstrual: !!(dayData && dayData.menstrual && dayData.menstrual.flow !== 'none'),
+                      menstrualFlow: dayData && dayData.menstrual ? dayData.menstrual.flow : 'none',
+                      
+                      hasIntercourse: !!(dayData && dayData.intercourse && dayData.intercourse.length > 0 && 
+                                      dayData.intercourse.some(record => record.type !== 'none')),
+                      intercourseCount: dayData && dayData.intercourse ? 
+                        dayData.intercourse.filter(record => record.type !== 'none').length : 0,
+                      
+                      // 症状备注
+                      hasSymptoms: !!(dayData && dayData.temperature && dayData.temperature.note),
+                      symptoms: dayData && dayData.temperature ? dayData.temperature.note : '',
+                      
+                      // 原始数据
+                      rawData: dayData
+                    };
+                    
+                    // 更新日历网格中的数据
+                    calendarGrid[index] = updatedDayInfo;
+                    this.setData({
+                      calendarGrid
+                    });
+                    
+                    console.log('日历数据已更新:', updatedDayInfo);
+                  }
+                });
+              }
+            });
+          });
+        }
       });
     }
   },
