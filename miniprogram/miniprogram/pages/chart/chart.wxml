@@ -72,13 +72,44 @@
       
       <!-- 三合一图表 -->
       <view class="chart-mock" id="chartArea" bindtap="onChartTap">
-        <chart 
-          chartData="{{chartData}}"
-          width="{{chartWidth}}"
-          height="300"
-          viewMode="{{viewMode}}"
-          bind:pointClick="onPointClick">
-        </chart>
+        <!-- 日期轴 -->
+        <view class="chart-date-axis">
+          <view class="date-item" wx:for="{{['6/29', '7/6', '7/11', '7/17', '7/23']}}" wx:key="*this">
+            <text>{{item}}</text>
+          </view>
+        </view>
+        
+        <!-- 温度轴 -->
+        <view class="chart-temp-axis">
+          <view class="temp-item" wx:for="{{['37.5', '37.0', '36.5', '36.0']}}" wx:key="*this">
+            <text>{{item}}</text>
+          </view>
+        </view>
+        
+        <!-- 图表数据区域 -->
+        <view class="chart-data-area">
+          <!-- 模拟数据点 -->
+          <view class="data-point temp-point" style="left: 15%; top: 30%;">
+            <view class="point-circle"></view>
+            <text class="point-label">36.8°C</text>
+          </view>
+          <view class="data-point temp-point" style="left: 35%; top: 45%;">
+            <view class="point-circle"></view>
+            <text class="point-label">36.6°C</text>
+          </view>
+          <view class="data-point temp-point" style="left: 55%; top: 25%;">
+            <view class="point-circle"></view>
+            <text class="point-label">37.0°C</text>
+          </view>
+          <view class="data-point temp-point" style="left: 75%; top: 35%;">
+            <view class="point-circle"></view>
+            <text class="point-label">36.9°C</text>
+          </view>
+          
+          <!-- 连接线 -->
+          <view class="connect-line"></view>
+        </view>
+        
         <view class="chart-hint">
           <text class="chart-hint-icon">🔍</text>
           <text>点击放大查看</text>
