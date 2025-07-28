@@ -18,13 +18,10 @@
 
     <!-- 周期信息卡片 -->
     <view class="card cycle-card">
-      <view class="card-header">
-        <text class="card-title">周期信息</text>
-      </view>
       <view class="card-body">
         <!-- 周期天数单独一行 -->
         <view class="cycle-day-info">
-          <text class="cycle-day-text">周期第 {{cycleInfo.cycleDay || 0}} 天</text>
+          <text class="cycle-day-text">当前周期第 {{cycleInfo.cycleDay || 0}} 天</text>
         </view>
         
         <!-- 移除当前阶段部分 -->

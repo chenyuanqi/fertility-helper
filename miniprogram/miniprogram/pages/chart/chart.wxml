@@ -9,28 +9,24 @@
   <view wx:else>
     <!-- 周期信息头部 -->
     <view class="chart-header">
-      <view class="cycle-title">
-        <text>当前周期</text>
-      </view>
-      
-      <!-- 将周期天数单独放一行 -->
-      <view class="cycle-day-row">
+      <!-- 导航按钮和周期天数放在同一行 -->
+      <view class="cycle-nav-row">
+        <button class="nav-btn" bindtap="onPreviousCycle">
+          <text class="nav-icon">‹</text>
+        </button>
+        
         <view class="cycle-day-container">
-          <text class="cycle-day">周期第</text>
-          <text class="cycle-day-number">{{cycleStats.cycleDay || 0}}</text>
-          <text class="cycle-day">天</text>
+          <text class="cycle-day">周期统计</text>
         </view>
+        
+        <button class="nav-btn" bindtap="onNextCycle">
+          <text class="nav-icon">›</text>
+        </button>
       </view>
       
       <!-- 日期范围单独放一行 -->
       <view class="cycle-date-row">
-        <button class="nav-btn" bindtap="onPreviousCycle">
-          <text class="nav-icon">‹</text>
-        </button>
         <text class="cycle-date-range">{{dateRange.start}} 至 {{dateRange.end}}</text>
-        <button class="nav-btn" bindtap="onNextCycle">
-          <text class="nav-icon">›</text>
-        </button>
       </view>
       
       <view class="cycle-stats">
@@ -92,7 +88,6 @@
 
     <!-- 图例说明 -->
     <view class="chart-legend">
-      <view class="legend-title">📋 图例说明</view>
       <view class="legend-items">
         <view class="legend-item">
           <view class="legend-icon temperature"></view>
@@ -159,10 +154,8 @@
         </view>
       </scroll-view>
       <view class="chart-fullscreen-tips">
-        <text>👆 左右滑动查看更多数据</text>
-      </view>
-      <view class="chart-fullscreen-description">
-        <text>此图表展示了您的基础体温变化、月经周期和同房记录，帮助您更好地了解自己的生育健康状况。</text>
+        <text class="tips-icon">👆</text>
+        <text class="tips-text">左右滑动查看更多数据</text>
       </view>
       <view class="chart-fullscreen-description">
         <text>此图表展示了您的基础体温变化、月经周期和同房记录，帮助您更好地了解自己的生育健康状况。</text>
