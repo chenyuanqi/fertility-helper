@@ -24,12 +24,24 @@
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
 }
 
-/* 周期导航 */
-.cycle-nav {
+/* 周期标题 */
+.cycle-title {
+  text-align: center;
+  padding: 20rpx 0 10rpx;
+}
+
+.cycle-title text {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+}
+
+/* 周期天数行 */
+.cycle-day-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  padding: 32rpx 40rpx;
+  padding: 10rpx 40rpx;
 }
 
 .nav-btn {
@@ -55,23 +67,29 @@
   font-weight: bold;
 }
 
-.cycle-info {
-  text-align: center;
-  flex: 1;
-  padding: 0 40rpx;
-}
-
-.cycle-main-title {
-  font-size: 28rpx;
-  color: #333;
-  margin-bottom: 8rpx;
+.cycle-day-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cycle-day {
   font-size: 32rpx;
   font-weight: bold;
   color: #e74c3c;
-  margin-bottom: 8rpx;
+}
+
+.cycle-day-number {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #e74c3c;
+  margin: 0 8rpx;
+}
+
+/* 日期范围行 */
+.cycle-date-row {
+  text-align: center;
+  padding: 10rpx 0 20rpx;
 }
 
 .cycle-date-range {
@@ -385,8 +403,8 @@
   font-size: 32rpx;
   font-weight: bold;
   color: white;
-  flex: 1;
-  text-align: center;
+  text-align: left;
+  margin-left: 20rpx;
 }
 
 .chart-fullscreen-close {
@@ -432,4 +450,15 @@
   color: rgba(255, 255, 255, 0.7);
   font-size: 24rpx;
   padding: 20rpx;
+}
+
+.chart-fullscreen-description {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 26rpx;
+  padding: 20rpx 40rpx;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 16rpx;
+  margin: 0 20rpx 20rpx;
+  line-height: 1.5;
 }

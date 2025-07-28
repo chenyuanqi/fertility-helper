@@ -9,18 +9,26 @@
   <view wx:else>
     <!-- 周期信息头部 -->
     <view class="chart-header">
-      <view class="cycle-nav">
+      <view class="cycle-title">
+        <text>当前周期</text>
+      </view>
+      
+      <view class="cycle-day-row">
         <button class="nav-btn" bindtap="onPreviousCycle">
           <text class="nav-icon">‹</text>
         </button>
-        <view class="cycle-info">
-          <text class="cycle-main-title">周期</text>
-          <text class="cycle-day">第{{cycleStats.cycleDay || 0}}天</text>
-          <text class="cycle-date-range">{{dateRange.start}} 至 {{dateRange.end}}</text>
+        <view class="cycle-day-container">
+          <text class="cycle-day">第</text>
+          <text class="cycle-day-number">{{cycleStats.cycleDay || 0}}</text>
+          <text class="cycle-day">天</text>
         </view>
         <button class="nav-btn" bindtap="onNextCycle">
           <text class="nav-icon">›</text>
         </button>
+      </view>
+      
+      <view class="cycle-date-row">
+        <text class="cycle-date-range">{{dateRange.start}} 至 {{dateRange.end}}</text>
       </view>
       
       <view class="cycle-stats">
@@ -133,7 +141,7 @@
   <!-- 全屏图表模态框 -->
   <view class="chart-fullscreen" wx:if="{{showFullscreenChart}}">
     <view class="chart-fullscreen-header">
-      <text class="chart-fullscreen-title">📈 详细图表</text>
+      <text class="chart-fullscreen-title">详细图表</text>
       <button class="chart-fullscreen-close" bindtap="closeFullscreenChart">关闭</button>
     </view>
     <view class="chart-fullscreen-content">
@@ -150,6 +158,9 @@
       </scroll-view>
       <view class="chart-fullscreen-tips">
         <text>👆 左右滑动查看更多数据</text>
+      </view>
+      <view class="chart-fullscreen-description">
+        <text>此图表展示了您的基础体温变化、月经周期和同房记录，帮助您更好地了解自己的生育健康状况。</text>
       </view>
     </view>
   </view>
