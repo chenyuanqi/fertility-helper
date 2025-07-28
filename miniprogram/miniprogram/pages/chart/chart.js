@@ -30,7 +30,8 @@ Page({
     calendarData: [],
     selectedDate: '',
     // 选中点的详细信息
-    selectedPointData: null
+    selectedPointData: null,
+    showFullscreenChart: false
   },
 
   onLoad(options) {
@@ -500,11 +501,29 @@ Page({
   },
 
   /**
-   * 下拉刷新
+   * 关闭详情
    */
-  onPullDownRefresh() {
-    this.loadChartData().finally(() => {
-      wx.stopPullDownRefresh();
+  closeDetails() {
+    this.setData({
+      selectedPointData: null
+    });
+  },
+
+  /**
+   * 点击图表放大
+   */
+  onChartTap() {
+    this.setData({
+      showFullscreenChart: true
+    });
+  },
+
+  /**
+   * 关闭全屏图表
+   */
+  closeFullscreenChart() {
+    this.setData({
+      showFullscreenChart: false
     });
   }
 });

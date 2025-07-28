@@ -1,118 +1,155 @@
 <!--pages/chart/chart.wxml-->
 <view class="chart-page">
-  <!-- 周期信息头部 -->
-  <view class="chart-header">
-    <view class="cycle-nav">
-      <button class="nav-btn" bindtap="prevCycle">
-        <text class="nav-icon">‹</text>
-      </button>
-      <view class="cycle-info">
-        <text class="cycle-title">第{{cycleStats.cycleDay}}天</text>
-        <text class="cycle-subtitle">{{dateRange.start}} - {{dateRange.end}}</text>
-      </view>
-      <button class="nav-btn" bindtap="nextCycle">
-        <text class="nav-icon">›</text>
-      </button>
-    </view>
-    
-    <view class="cycle-stats">
-      <view class="stat-item">
-        <text class="stat-value">{{cycleStats.averageTemp}}°C</text>
-        <text class="stat-label">平均体温</text>
-      </view>
-      <view class="stat-item">
-        <text class="stat-value">{{cycleStats.predictedOvulation}}</text>
-        <text class="stat-label">预计排卵</text>
-      </view>
-      <view class="stat-item">
-        <text class="stat-value">{{cycleStats.temperatureCount}}</text>
-        <text class="stat-label">体温记录</text>
-      </view>
-    </view>
+  <!-- 加载状态 -->
+  <view wx:if="{{isLoading}}" class="loading">
+    <text>加载图表数据中...</text>
   </view>
 
-  <!-- 图表容器 -->
-  <view class="chart-container">
-    <view class="chart-controls">
-      <view class="view-mode-tabs">
-        <button class="tab-btn {{viewMode === 'all' ? 'active' : ''}}" 
-                bindtap="switchViewMode" data-mode="all">
-          全部
+  <!-- 主要内容 -->
+  <view wx:else>
+    <!-- 周期信息头部 -->
+    <view class="chart-header">
+      <view class="cycle-nav">
+        <button class="nav-btn" bindtap="onPreviousCycle">
+          <text class="nav-icon">‹</text>
         </button>
-        <button class="tab-btn {{viewMode === 'temperature' ? 'active' : ''}}" 
-                bindtap="switchViewMode" data-mode="temperature">
-          体温
+        <view class="cycle-info">
+          <text class="cycle-main-title">周期</text>
+          <text class="cycle-day">第{{cycleStats.cycleDay || 0}}天</text>
+          <text class="cycle-date-range">{{dateRange.start}} 至 {{dateRange.end}}</text>
+        </view>
+        <button class="nav-btn" bindtap="onNextCycle">
+          <text class="nav-icon">›</text>
         </button>
       </view>
       
-      <view class="chart-actions">
-        <button class="chart-btn {{isZoomed ? 'active' : ''}}" bindtap="toggleZoom">
-          <text class="btn-icon">🔍</text>
-        </button>
+      <view class="cycle-stats">
+        <view class="stat-item">
+          <text class="stat-value">{{cycleStats.averageTemp || '0.0'}}°C</text>
+          <text class="stat-label">平均体温</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{cycleStats.predictedOvulation || '--'}}</text>
+          <text class="stat-label">预计排卵</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{cycleStats.temperatureRecords || 0}}</text>
+          <text class="stat-label">体温记录</text>
+        </view>
       </view>
     </view>
-    
-    <view class="chart-title">
-      <text>三合一图表</text>
+
+    <!-- 图表容器 -->
+    <view class="chart-container">
+      <view class="chart-controls">
+        <view class="view-mode-tabs">
+          <button class="tab-btn {{viewMode === 'all' ? 'active' : ''}}" 
+                  bindtap="onViewModeChange" data-mode="all">
+            📊 全部数据
+          </button>
+          <button class="tab-btn {{viewMode === 'temperature' ? 'active' : ''}}" 
+                  bindtap="onViewModeChange" data-mode="temperature">
+            🌡️ 仅体温
+          </button>
+        </view>
+        
+        <view class="chart-actions">
+          <button class="chart-btn {{isZoomed ? 'active' : ''}}" bindtap="onZoomToggle">
+            <text class="btn-icon">{{isZoomed ? '🔍' : '🔍'}}</text>
+          </button>
+        </view>
+      </view>
+      
+      <view class="chart-title">
+        <text>📈 备孕数据图表</text>
+      </view>
+      
+      <!-- 三合一图表 -->
+      <view class="chart-mock" id="chartArea" bindtap="onChartTap">
+        <chart 
+          chartData="{{chartData}}"
+          width="{{chartWidth}}"
+          height="300"
+          viewMode="{{viewMode}}"
+          bind:pointClick="onPointClick">
+        </chart>
+        <view class="chart-hint">
+          <text class="chart-hint-icon">🔍</text>
+          <text>点击放大查看</text>
+        </view>
+      </view>
     </view>
-    
-    <!-- 三合一图表 -->
-    <view class="chart-mock" id="chartArea">
-      <chart 
-        chartData="{{chartData}}"
-        width="{{chartWidth}}"
-        height="300"
-        viewMode="{{viewMode}}"
-        bind:pointClick="onPointClick">
-      </chart>
+
+    <!-- 图例说明 -->
+    <view class="chart-legend">
+      <view class="legend-title">📋 图例说明</view>
+      <view class="legend-items">
+        <view class="legend-item">
+          <view class="legend-icon temperature"></view>
+          <text>基础体温</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-icon menstruation"></view>
+          <text>月经记录</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-icon intimacy"></view>
+          <text>同房记录</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-icon ovulation"></view>
+          <text>排卵预测</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-icon coverline"></view>
+          <text>覆盖线</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 数据详情弹窗 -->
+    <view class="data-details" wx:if="{{selectedPointData}}">
+      <view class="details-header">
+        <text class="selected-date">📅 {{selectedPointData.dateDisplay}}</text>
+        <button class="close-btn" bindtap="closeDetails">✕</button>
+      </view>
+      <view class="details-content">
+        <view class="detail-item">
+          <text class="detail-value">🌡️ {{selectedPointData.temperature}}</text>
+          <text class="detail-label">基础体温</text>
+        </view>
+        <view class="detail-item">
+          <text class="detail-value">🩸 {{selectedPointData.menstruation}}</text>
+          <text class="detail-label">月经情况</text>
+        </view>
+        <view class="detail-item">
+          <text class="detail-value">💕 {{selectedPointData.intercourse}}</text>
+          <text class="detail-label">同房记录</text>
+        </view>
+      </view>
     </view>
   </view>
 
-  <!-- 图例说明 -->
-  <view class="chart-legend">
-    <view class="legend-title">图例说明</view>
-    <view class="legend-items">
-      <view class="legend-item">
-        <view class="legend-icon temperature"></view>
-        <text>体温</text>
-      </view>
-      <view class="legend-item">
-        <view class="legend-icon menstruation"></view>
-        <text>月经</text>
-      </view>
-      <view class="legend-item">
-        <view class="legend-icon intimacy"></view>
-        <text>同房</text>
-      </view>
-      <view class="legend-item">
-        <view class="legend-icon ovulation"></view>
-        <text>排卵</text>
-      </view>
-      <view class="legend-item">
-        <view class="legend-icon coverline"></view>
-        <text>覆盖线</text>
-      </view>
+  <!-- 全屏图表模态框 -->
+  <view class="chart-fullscreen" wx:if="{{showFullscreenChart}}">
+    <view class="chart-fullscreen-header">
+      <text class="chart-fullscreen-title">📈 详细图表</text>
+      <button class="chart-fullscreen-close" bindtap="closeFullscreenChart">关闭</button>
     </view>
-  </view>
-
-  <!-- 数据详情 -->
-  <view class="data-details" wx:if="{{selectedPointData}}">
-    <view class="details-header">
-      <text class="selected-date">{{selectedPointData.dateDisplay}}</text>
-      <button class="close-btn" bindtap="closeDetails">×</button>
-    </view>
-    <view class="details-content">
-      <view class="detail-item">
-        <text class="detail-value">{{selectedPointData.temperature}}</text>
-        <text class="detail-label">体温</text>
-      </view>
-      <view class="detail-item">
-        <text class="detail-value">{{selectedPointData.menstruation}}</text>
-        <text class="detail-label">月经</text>
-      </view>
-      <view class="detail-item">
-        <text class="detail-value">{{selectedPointData.intercourse}}</text>
-        <text class="detail-label">同房</text>
+    <view class="chart-fullscreen-content">
+      <scroll-view class="chart-scroll-container" scroll-x="true" enhanced="true" show-scrollbar="false">
+        <view class="chart-expanded">
+          <chart 
+            chartData="{{chartData}}"
+            width="1200"
+            height="600"
+            viewMode="{{viewMode}}"
+            bind:pointClick="onPointClick">
+          </chart>
+        </view>
+      </scroll-view>
+      <view class="chart-fullscreen-tips">
+        <text>👆 左右滑动查看更多数据</text>
       </view>
     </view>
   </view>

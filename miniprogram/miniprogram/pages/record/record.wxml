@@ -6,31 +6,48 @@
   <!-- 顶部标题和日期 -->
   <view class="header">
     <view class="title">数据记录</view>
-    <view class="date">{{selectedDate}}</view>
+    <picker mode="date" 
+            value="{{selectedDate}}" 
+            end="{{todayDate}}"
+            bindchange="onDateChange">
+      <view class="date-picker">
+        <text class="date-text">{{formatSelectedDate(selectedDate)}}</text>
+        <text class="date-icon">📅</text>
+      </view>
+    </picker>
+    
+    <!-- 当前选中日期显示 -->
+    <view class="current-date-display">
+      <text class="current-date-label">记录日期</text>
+      <text class="current-date-value">{{selectedDate}}</text>
+    </view>
   </view>
   
-  <!-- 记录类型切换 -->
+  <!-- 记录类型切换 - 横向Tab -->
   <view class="record-types">
     <view class="type-item {{recordType === 'temperature' ? 'active' : ''}}" 
           bindtap="onRecordTypeChange" data-type="temperature">
-      <view class="type-icon">🌡️</view>
-      <view class="type-label">体温</view>
+      <text class="type-icon">🌡️</text>
+      <text class="type-label">体温</text>
     </view>
     <view class="type-item {{recordType === 'menstrual' ? 'active' : ''}}" 
           bindtap="onRecordTypeChange" data-type="menstrual">
-      <view class="type-icon">🩸</view>
-      <view class="type-label">经量</view>
+      <text class="type-icon">🩸</text>
+      <text class="type-label">经量</text>
     </view>
     <view class="type-item {{recordType === 'intercourse' ? 'active' : ''}}" 
           bindtap="onRecordTypeChange" data-type="intercourse">
-      <view class="type-icon">💕</view>
-      <view class="type-label">同房</view>
+      <text class="type-icon">💕</text>
+      <text class="type-label">同房</text>
     </view>
   </view>
   
   <!-- 体温记录表单 -->
   <view class="record-form" wx:if="{{recordType === 'temperature'}}">
-    <view class="form-title">基础体温记录</view>
+    <view class="form-title">
+      <text class="form-icon">🌡️</text>
+      基础体温记录
+    </view>
     
     <!-- 体温输入 -->
     <view class="form-item">
@@ -78,7 +95,10 @@
   
   <!-- 经量记录表单 -->
   <view class="record-form" wx:if="{{recordType === 'menstrual'}}">
-    <view class="form-title">月经经量记录</view>
+    <view class="form-title">
+      <text class="form-icon">🩸</text>
+      月经经量记录
+    </view>
     
     <!-- 经量选择滑条 -->
     <view class="form-item">
@@ -132,7 +152,10 @@
   
   <!-- 同房记录表单 -->
   <view class="record-form" wx:if="{{recordType === 'intercourse'}}">
-    <view class="form-title">同房记录</view>
+    <view class="form-title">
+      <text class="form-icon">💕</text>
+      同房记录
+    </view>
     
     <!-- 今日无同房选项 -->
     <view class="form-item">

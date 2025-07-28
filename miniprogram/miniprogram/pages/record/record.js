@@ -33,6 +33,7 @@ Page({
     
     // 通用
     selectedDate: '',
+    todayDate: '',
     isLoading: false,
     todayRecord: null
   },
@@ -48,6 +49,7 @@ Page({
     this.setData({
       recordType,
       selectedDate: options.date || today,
+      todayDate: today,
       temperatureTime: DateUtils.getCurrentTime(),
       intercourseTime: DateUtils.getCurrentTime()
     });
@@ -56,7 +58,8 @@ Page({
   },
 
   /**
-   * 加载当天已有记录
+  /**
+   * 加载选中日期的已有记录
    */
   async loadTodayRecord() {
     try {
@@ -132,11 +135,49 @@ Page({
   },
 
   /**
+  /**
    * 切换记录类型
    */
   onRecordTypeChange(e) {
     const type = e.currentTarget.dataset.type;
     this.setData({ recordType: type });
+  },
+
+  /**
+   * 日期选择变化
+   */
+  onDateChange(e) {
+    const selectedDate = e.detail.value;
+    this.setData({ selectedDate });
+    this.loadTodayRecord();
+  },
+
+  /**
+   * 格式化选中的日期显示
+   */
+  formatSelectedDate(dateStr) {
+    if (!dateStr) return '';
+    
+    const date = new Date(dateStr);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    // 判断是否是今天
+    if (DateUtils.formatDate(date) === DateUtils.formatDate(today)) {
+      return '今天 ' + DateUtils.formatDate(date);
+    }
+    
+    // 判断是否是昨天
+    if (DateUtils.formatDate(date) === DateUtils.formatDate(yesterday)) {
+      return '昨天 ' + DateUtils.formatDate(date);
+    }
+    
+    // 其他日期显示星期几
+    const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    const weekDay = weekDays[date.getDay()];
+    
+    return `${weekDay} ${DateUtils.formatDate(date)}`;
   },
 
   // ==================== 体温记录相关方法 ====================

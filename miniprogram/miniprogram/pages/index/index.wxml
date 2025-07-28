@@ -22,12 +22,12 @@
         <text class="card-title">周期信息</text>
       </view>
       <view class="card-body">
+        <!-- 周期天数单独一行 -->
+        <view class="cycle-day-info">
+          <text class="cycle-day-text">周期第 {{cycleInfo.cycleDay || 0}} 天</text>
+        </view>
+        
         <view class="cycle-info">
-          <view class="cycle-item">
-            <text class="cycle-label">周期第</text>
-            <text class="cycle-value">{{cycleInfo.cycleDay}}</text>
-            <text class="cycle-label">天</text>
-          </view>
           <view class="cycle-item {{cycleInfo.phase === 'unknown' ? 'cycle-item-clickable' : ''}}" 
                 bindtap="{{cycleInfo.phase === 'unknown' ? 'onSetCyclePhase' : ''}}">
             <text class="cycle-label">当前阶段</text>
@@ -61,7 +61,7 @@
       <view class="card-body">
         <view class="today-records">
           <view class="record-item">
-            <view class="record-icon temperature-icon"></view>
+            <text class="record-icon">🌡️</text>
             <view class="record-content">
               <text class="record-label">体温</text>
               <text class="record-value">
@@ -74,7 +74,7 @@
           </view>
           
           <view class="record-item">
-            <view class="record-icon menstrual-icon"></view>
+            <text class="record-icon">🩸</text>
             <view class="record-content">
               <text class="record-label">月经</text>
               <text class="record-value">
@@ -91,7 +91,7 @@
           </view>
           
           <view class="record-item">
-            <view class="record-icon intercourse-icon"></view>
+            <text class="record-icon">💕</text>
             <view class="record-content">
               <text class="record-label">同房</text>
               <text class="record-value">
