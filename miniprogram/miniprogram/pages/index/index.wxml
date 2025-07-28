@@ -27,27 +27,21 @@
           <text class="cycle-day-text">周期第 {{cycleInfo.cycleDay || 0}} 天</text>
         </view>
         
-        <view class="cycle-info">
-          <view class="cycle-item {{cycleInfo.phase === 'unknown' ? 'cycle-item-clickable' : ''}}" 
-                bindtap="{{cycleInfo.phase === 'unknown' ? 'onSetCyclePhase' : ''}}">
-            <text class="cycle-label">当前阶段</text>
-            <text class="cycle-value phase-{{cycleInfo.phase}}">
-              {{cycleInfo.phase === 'menstrual' ? '月经期' : 
-                cycleInfo.phase === 'follicular' ? '卵泡期' : 
-                cycleInfo.phase === 'ovulation' ? '排卵期' : 
-                cycleInfo.phase === 'luteal' ? '黄体期' : '点击设置'}}
-            </text>
-            <text wx:if="{{cycleInfo.phase === 'unknown'}}" class="cycle-hint">点击设置周期阶段</text>
-          </view>
-        </view>
+        <!-- 移除当前阶段部分 -->
         <view class="predictions">
-          <view class="prediction-item" wx:if="{{cycleInfo.nextPeriod}}">
-            <text class="prediction-label">预测下次月经</text>
-            <text class="prediction-value">{{cycleInfo.nextPeriod}}</text>
-          </view>
-          <view class="prediction-item" wx:if="{{cycleInfo.ovulationPrediction}}">
-            <text class="prediction-label">预测排卵日</text>
-            <text class="prediction-value">{{cycleInfo.ovulationPrediction}}</text>
+          <view class="prediction-cards">
+            <view class="prediction-card" wx:if="{{cycleInfo.nextPeriod}}">
+              <view class="prediction-content">
+                <text class="prediction-label">下次月经（预测）</text>
+                <text class="prediction-date">{{cycleInfo.nextPeriod}}</text>
+              </view>
+            </view>
+            <view class="prediction-card" wx:if="{{cycleInfo.ovulationPrediction}}">
+              <view class="prediction-content">
+                <text class="prediction-label">排卵日（预测）</text>
+                <text class="prediction-date">{{cycleInfo.ovulationPrediction}}</text>
+              </view>
+            </view>
           </view>
         </view>
       </view>

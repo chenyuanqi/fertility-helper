@@ -41,7 +41,34 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 10rpx 40rpx;
+  padding: 20rpx 40rpx 10rpx;
+}
+
+.cycle-day-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cycle-day {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #e74c3c;
+}
+
+.cycle-day-number {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #e74c3c;
+  margin: 0 8rpx;
+}
+
+/* 日期范围行 */
+.cycle-date-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10rpx 0 20rpx;
 }
 
 .nav-btn {
@@ -67,35 +94,11 @@
   font-weight: bold;
 }
 
-.cycle-day-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cycle-day {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #e74c3c;
-}
-
-.cycle-day-number {
-  font-size: 40rpx;
-  font-weight: bold;
-  color: #e74c3c;
-  margin: 0 8rpx;
-}
-
-/* 日期范围行 */
-.cycle-date-row {
-  text-align: center;
-  padding: 10rpx 0 20rpx;
-}
-
 .cycle-date-range {
-  font-size: 20rpx;
+  font-size: 24rpx;
   color: #999;
   line-height: 1.4;
+  margin: 0 20rpx;
 }
 
 /* 周期统计 */
@@ -404,14 +407,10 @@
   font-weight: bold;
   color: white;
   text-align: left;
-  margin-left: 20rpx;
+  margin-left: 0;
 }
 
 .chart-fullscreen-close {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
   background: rgba(255, 255, 255, 0.15);
   color: white;
   border: none;
@@ -459,6 +458,6 @@
   padding: 20rpx 40rpx;
   background-color: rgba(0, 0, 0, 0.3);
   border-radius: 16rpx;
-  margin: 0 20rpx 20rpx;
+  margin: 20rpx 20rpx 20rpx;
   line-height: 1.5;
 }
