@@ -74,7 +74,7 @@
       <view class="chart-mock" id="chartArea" bindtap="onChartTap">
         <!-- 日期轴 -->
         <view class="chart-date-axis">
-          <view class="date-item" wx:for="{{['6/29', '7/6', '7/11', '7/17', '7/23']}}" wx:key="*this">
+          <view class="date-item" wx:for="{{chartDateLabels}}" wx:key="*this">
             <text>{{item}}</text>
           </view>
         </view>
@@ -88,26 +88,39 @@
         
         <!-- 图表数据区域 -->
         <view class="chart-data-area">
-          <!-- 模拟数据点 -->
-          <view class="data-point temp-point" style="left: 15%; top: 30%;">
-            <view class="point-circle"></view>
-            <text class="point-label">36.8°C</text>
-          </view>
-          <view class="data-point temp-point" style="left: 35%; top: 45%;">
-            <view class="point-circle"></view>
-            <text class="point-label">36.6°C</text>
-          </view>
-          <view class="data-point temp-point" style="left: 55%; top: 25%;">
-            <view class="point-circle"></view>
-            <text class="point-label">37.0°C</text>
-          </view>
-          <view class="data-point temp-point" style="left: 75%; top: 35%;">
-            <view class="point-circle"></view>
-            <text class="point-label">36.9°C</text>
-          </view>
+          <!-- 体温连接线 - 使用Canvas绘制 -->
+          <canvas class="temperature-line-canvas" 
+                  id="temperatureCanvas"
+                  type="2d"
+                  disable-scroll="true">
+          </canvas>
           
-          <!-- 连接线 -->
-          <view class="connect-line"></view>
+          <!-- 数据点 -->
+          <view wx:for="{{chartDataPoints}}" wx:key="date" class="data-point" 
+                style="left: {{item.x}}%; top: {{item.y}}%;" 
+                bindtap="onPointClick" data-point="{{item}}">
+            
+            <!-- 体温点（基础圆圈） -->
+            <view wx:if="{{item.hasTemperature}}" class="point-circle temperature-point">
+              <!-- 月经标记 -->
+              <view wx:if="{{item.hasMenstrual}}" class="point-marker menstrual-marker"></view>
+              <!-- 同房标记 -->
+              <view wx:if="{{item.hasIntercourse}}" class="point-marker intercourse-marker"></view>
+              <!-- 排卵预测标记 -->
+              <view wx:if="{{item.isOvulationPredicted}}" class="point-marker ovulation-marker"></view>
+            </view>
+            
+            <!-- 无体温但有其他数据的点 -->
+            <view wx:elif="{{item.hasMenstrual || item.hasIntercourse}}" class="point-circle no-temp-point">
+              <!-- 月经标记 -->
+              <view wx:if="{{item.hasMenstrual}}" class="point-marker menstrual-marker"></view>
+              <!-- 同房标记 -->
+              <view wx:if="{{item.hasIntercourse}}" class="point-marker intercourse-marker"></view>
+            </view>
+            
+            <!-- 体温标签 -->
+            <text wx:if="{{item.hasTemperature}}" class="point-label">{{item.temperatureValue}}°C</text>
+          </view>
         </view>
         
         <view class="chart-hint">
@@ -175,13 +188,56 @@
     <view class="chart-fullscreen-content">
       <scroll-view class="chart-scroll-container" scroll-x="true" enhanced="true" show-scrollbar="false">
         <view class="chart-expanded">
-          <chart 
-            chartData="{{chartData}}"
-            width="1200"
-            height="600"
-            viewMode="{{viewMode}}"
-            bind:pointClick="onPointClick">
-          </chart>
+          <!-- 全屏图表的温度轴 -->
+          <view class="fullscreen-temp-axis">
+            <view class="fullscreen-temp-item" wx:for="{{['37.5', '37.0', '36.5', '36.0']}}" wx:key="*this">
+              <text>{{item}}</text>
+            </view>
+          </view>
+          
+          <!-- 全屏图表的日期轴 -->
+          <view class="fullscreen-date-axis">
+            <view class="fullscreen-date-item" wx:for="{{chartDateLabels}}" wx:key="*this">
+              <text>{{item}}</text>
+            </view>
+          </view>
+          
+          <!-- 全屏图表数据区域 -->
+          <view class="fullscreen-chart-data-area">
+            <!-- 体温连接线 -->
+            <canvas class="fullscreen-temperature-line-canvas" 
+                    id="fullscreenTemperatureCanvas"
+                    type="2d"
+                    disable-scroll="true">
+            </canvas>
+            
+            <!-- 数据点 -->
+            <view wx:for="{{chartDataPoints}}" wx:key="date" class="fullscreen-data-point" 
+                  style="left: {{item.x}}%; top: {{item.y}}%;" 
+                  bindtap="onPointClick" data-point="{{item}}">
+              
+              <!-- 体温点（基础圆圈） -->
+              <view wx:if="{{item.hasTemperature}}" class="fullscreen-point-circle fullscreen-temperature-point">
+                <!-- 月经标记 -->
+                <view wx:if="{{item.hasMenstrual}}" class="fullscreen-point-marker fullscreen-menstrual-marker"></view>
+                <!-- 同房标记 -->
+                <view wx:if="{{item.hasIntercourse}}" class="fullscreen-point-marker fullscreen-intercourse-marker"></view>
+                <!-- 排卵预测标记 -->
+                <view wx:if="{{item.isOvulationPredicted}}" class="fullscreen-point-marker fullscreen-ovulation-marker"></view>
+              </view>
+              
+              <!-- 无体温但有其他数据的点 -->
+              <view wx:elif="{{item.hasMenstrual || item.hasIntercourse}}" class="fullscreen-point-circle fullscreen-no-temp-point">
+                <!-- 月经标记 -->
+                <view wx:if="{{item.hasMenstrual}}" class="fullscreen-point-marker fullscreen-menstrual-marker"></view>
+                <!-- 同房标记 -->
+                <view wx:if="{{item.hasIntercourse}}" class="fullscreen-point-marker fullscreen-intercourse-marker"></view>
+              </view>
+              
+              <!-- 体温标签 -->
+              <text wx:if="{{item.hasTemperature}}" class="fullscreen-point-label">{{item.temperatureValue}}°C</text>
+            </view>
+          </view>
         </view>
       </scroll-view>
       <view class="chart-fullscreen-tips">

@@ -1,14 +1,13 @@
 // pages/chart/chart.js
-const { DataManager } = require('../../utils/dataManager.js');
+const { FertilityStorage } = require('../../utils/storage');
 const { DateUtils } = require('../../utils/date.js');
 
 Page({
   data: {
     chartData: [],
-    viewMode: 'all', // all, temperature, minimal
-    displayMode: 'chart', // chart, calendar
+    viewMode: 'all',
+    displayMode: 'chart',
     isLoading: true,
-    currentCycle: null,
     cycleStats: {
       cycleDay: 0,
       averageTemp: 0,
@@ -24,18 +23,70 @@ Page({
     isZoomed: false,
     chartWidth: 350,
     chartScrollLeft: 0,
-    // 日历相关数据
-    calendarYear: new Date().getFullYear(),
-    calendarMonth: new Date().getMonth() + 1,
-    calendarData: [],
-    selectedDate: '',
-    // 选中点的详细信息
     selectedPointData: null,
-    showFullscreenChart: false
+    showFullscreenChart: false,
+    chartDateLabels: [],
+    chartDataPoints: [],
+    temperatureLinePoints: ''
   },
 
-  onLoad(options) {
-    // 设置默认日期范围（最近30天）
+  async onLoad(options) {
+    await this.initializeDateRange();
+    this.loadChartData();
+  },
+
+  onShow() {
+    this.loadChartData();
+  },
+
+  onReady() {
+    setTimeout(() => {
+      this.drawTemperatureLine();
+    }, 500);
+  },
+
+  async initializeDateRange() {
+    try {
+      const cycles = await FertilityStorage.getCycles();
+      const today = DateUtils.formatDate(new Date());
+      
+      if (cycles && cycles.length > 0) {
+        const latestCycle = cycles[cycles.length - 1];
+        
+        if (latestCycle && latestCycle.startDate) {
+          const userSettings = await FertilityStorage.getUserSettings();
+          const averageCycleLength = userSettings?.personalInfo?.averageCycleLength || 28;
+          const cycleEndDate = DateUtils.addDays(latestCycle.startDate, averageCycleLength - 1);
+          
+          if (today <= cycleEndDate) {
+            this.setData({
+              dateRange: {
+                start: latestCycle.startDate,
+                end: today
+              }
+            });
+          } else {
+            const thirtyDaysAgo = DateUtils.subtractDays(today, 29);
+            this.setData({
+              dateRange: {
+                start: thirtyDaysAgo,
+                end: today
+              }
+            });
+          }
+        } else {
+          this.setDefaultDateRange();
+        }
+      } else {
+        this.setDefaultDateRange();
+      }
+    } catch (error) {
+      console.error('初始化日期范围失败:', error);
+      this.setDefaultDateRange();
+    }
+  },
+
+  setDefaultDateRange() {
     const today = DateUtils.formatDate(new Date());
     const thirtyDaysAgo = DateUtils.subtractDays(today, 29);
     
@@ -45,89 +96,80 @@ Page({
         end: today
       }
     });
-    
-    this.loadChartData();
   },
 
-  /**
-   * 加载日历数据
-   */
-  async loadCalendarData() {
-    try {
-      this.setData({ isLoading: true });
-      
-      const dataManager = DataManager.getInstance();
-      const { calendarYear, calendarMonth } = this.data;
-      
-      // 获取当前月的第一天和最后一天
-      const firstDay = DateUtils.formatDate(new Date(calendarYear, calendarMonth - 1, 1));
-      const lastDay = DateUtils.formatDate(new Date(calendarYear, calendarMonth, 0));
-      
-      // 获取月份数据
-      const result = await dataManager.getDayRecordsInRange(firstDay, lastDay);
-      
-      if (result.success) {
-        const calendarData = result.data || [];
-        this.setData({ calendarData });
-      } else {
-        console.error('加载日历数据失败:', result.error);
-        wx.showToast({
-          title: '加载数据失败',
-          icon: 'none'
+  drawTemperatureLine() {
+    const query = wx.createSelectorQuery();
+    query.select('#temperatureCanvas').fields({ node: true, size: true }).exec((res) => {
+      if (res[0] && res[0].node) {
+        const canvas = res[0].node;
+        const ctx = canvas.getContext('2d');
+        
+        const dpr = wx.getSystemInfoSync().pixelRatio;
+        canvas.width = res[0].width * dpr;
+        canvas.height = res[0].height * dpr;
+        ctx.scale(dpr, dpr);
+        
+        ctx.clearRect(0, 0, res[0].width, res[0].height);
+        
+        // 获取有体温数据的点，按日期排序
+        const temperaturePoints = this.data.chartDataPoints
+          .filter(point => point.hasTemperature && point.temperatureValue)
+          .sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        console.log('找到体温数据点:', temperaturePoints.length, '个');
+        
+        if (temperaturePoints.length < 2) {
+          console.log('体温数据点不足2个，无法绘制连线');
+          return;
+        }
+        
+        ctx.beginPath();
+        ctx.strokeStyle = '#ff6b9d';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        const canvasWidth = res[0].width;
+        const canvasHeight = res[0].height;
+        
+        temperaturePoints.forEach((point, index) => {
+          const x = (point.x / 100) * canvasWidth;
+          const y = (point.y / 100) * canvasHeight;
+          
+          if (index === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
         });
+        
+        ctx.stroke();
+        console.log('体温连接线绘制完成');
       }
-    } catch (error) {
-      console.error('加载日历数据异常:', error);
-      wx.showToast({
-        title: '加载数据异常',
-        icon: 'none'
-      });
-    } finally {
-      this.setData({ isLoading: false });
-    }
+    });
   },
 
-  onShow() {
-    // 页面显示时刷新数据
-    this.loadChartData();
-    if (this.data.displayMode === 'calendar') {
-      this.loadCalendarData();
-    }
-  },
-
-  /**
-   * 加载图表数据
-   */
   async loadChartData() {
     try {
       this.setData({ isLoading: true });
       
-      const dataManager = DataManager.getInstance();
       const { start, end } = this.data.dateRange;
+      const dayRecords = await FertilityStorage.getDayRecords();
+      const chartData = this.buildChartData(start, end, dayRecords);
+      const cycleStats = this.calculateCycleStats(chartData);
+      const chartDateLabels = this.generateChartDateLabels(start, end);
+      const { chartDataPoints, temperatureLinePoints } = this.generateChartPoints(chartData);
       
-      // 获取日期范围内的数据
-      const result = await dataManager.getDayRecordsInRange(start, end);
-      
-      if (result.success) {
-        const rawData = result.data || [];
-        
-        // 构建完整的日期数据数组
-        const chartData = this.buildChartData(start, end, rawData);
-        
-        // 计算周期统计
-        const cycleStats = this.calculateCycleStats(chartData);
-        
-        this.setData({
-          chartData,
-          cycleStats
-        });
-      } else {
-        console.error('加载图表数据失败:', result.error);
-        wx.showToast({
-          title: '加载数据失败',
-          icon: 'none'
-        });
-      }
+      this.setData({
+        chartData,
+        cycleStats,
+        chartDateLabels,
+        chartDataPoints,
+        temperatureLinePoints
+      }, () => {
+        this.drawTemperatureLine();
+      });
     } catch (error) {
       console.error('加载图表数据异常:', error);
       wx.showToast({
@@ -139,32 +181,33 @@ Page({
     }
   },
 
-  /**
-   * 构建图表数据
-   */
-  buildChartData(startDate, endDate, rawData) {
+  buildChartData(startDate, endDate, dayRecords) {
     const chartData = [];
-    const dataMap = {};
-    
-    // 将原始数据按日期建立索引
-    rawData.forEach(item => {
-      dataMap[item.date] = item;
-    });
-    
-    // 生成连续的日期数据
     const dates = DateUtils.getDateRange(startDate, endDate);
     
     dates.forEach(date => {
-      const dayData = dataMap[date] || { date };
+      const dayData = { date };
+      
+      if (dayRecords && dayRecords[date]) {
+        const record = dayRecords[date];
+        
+        if (record.temperature) {
+          dayData.temperature = record.temperature;
+        }
+        if (record.menstrual) {
+          dayData.menstrual = record.menstrual;
+        }
+        if (record.intercourse) {
+          dayData.intercourse = record.intercourse;
+        }
+      }
+      
       chartData.push(dayData);
     });
     
     return chartData;
   },
 
-  /**
-   * 计算周期统计
-   */
   calculateCycleStats(chartData) {
     const stats = {
       cycleDay: 0,
@@ -175,13 +218,11 @@ Page({
       intercourseCount: 0
     };
     
-    // 计算体温记录数
     const tempData = chartData.filter(item => 
       item.temperature && item.temperature.temperature
     );
     stats.temperatureCount = tempData.length;
     
-    // 计算平均体温
     if (tempData.length > 0) {
       const totalTemp = tempData.reduce((sum, item) => 
         sum + item.temperature.temperature, 0
@@ -189,207 +230,248 @@ Page({
       stats.averageTemp = (totalTemp / tempData.length).toFixed(1);
     }
     
-    // 计算经期天数（排除"无月经"）
-    stats.menstrualDays = chartData.filter(item => 
-      item.menstrual && item.menstrual.flow !== 'none'
-    ).length;
-    
-    // 计算同房次数（排除"无同房"）
-    stats.intercourseCount = chartData.reduce((sum, item) => {
-      if (item.intercourse && item.intercourse.length > 0) {
-        const actualCount = item.intercourse.filter(record => record.type !== 'none').length;
-        return sum + actualCount;
-      }
-      return sum;
-    }, 0);
-    
-    // 查找最近的经期开始日期
-    const menstrualStart = chartData.find(item => 
-      item.menstrual && item.menstrual.isStart
-    );
-    
-    if (menstrualStart) {
-      const today = DateUtils.formatDate(new Date());
-      stats.cycleDay = DateUtils.getDaysDifference(menstrualStart.date, today) + 1;
-      
-      // 简单的排卵预测（周期第14天）
-      const predictedDate = DateUtils.addDays(menstrualStart.date, 13);
-      stats.predictedOvulation = DateUtils.formatDisplayDate(predictedDate);
-    }
-    
     return stats;
   },
 
-  /**
-  /**
-   * 图表点击事件
-   */
-  onPointClick(e) {
-    const { data, position } = e.detail;
+  generateChartDateLabels(startDate, endDate) {
+    const labels = [];
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
     
-    console.log('点击了数据点:', data);
+    const labelCount = Math.min(5, daysDiff);
+    const interval = Math.floor(daysDiff / (labelCount - 1));
     
-    // 显示详细信息
-    this.showPointDetails(data, position);
+    for (let i = 0; i < labelCount; i++) {
+      let labelDate;
+      if (i === labelCount - 1) {
+        labelDate = new Date(endDate);
+      } else {
+        labelDate = new Date(start);
+        labelDate.setDate(start.getDate() + (i * interval));
+      }
+      
+      const month = labelDate.getMonth() + 1;
+      const day = labelDate.getDate();
+      labels.push(`${month}/${day}`);
+    }
+    
+    return labels;
   },
 
-  /**
-   * 显示点击点的详细信息
-   */
-  showPointDetails(data, position) {
-    const selectedPointData = {
-      dateDisplay: DateUtils.formatDisplayDate(data.date),
-      temperature: data.temperature ? `${data.temperature.temperature}°C` : '--',
-      menstruation: '无',
-      intercourse: '无'
-    };
+  generateChartPoints(chartData) {
+    const chartDataPoints = [];
+    const temperaturePoints = [];
+    const totalDays = chartData.length;
     
-    if (data.menstrual && data.menstrual.flow !== 'none') {
-      const flowMap = {
-        light: '少量',
-        medium: '中等', 
-        heavy: '大量'
-      };
-      selectedPointData.menstruation = flowMap[data.menstrual.flow] || '未知';
+    console.log('生成图表点，总天数:', totalDays);
+    
+    const temperatureData = chartData.filter(item => item.temperature && item.temperature.temperature);
+    let minTemp = 36.0;
+    let maxTemp = 37.5;
+    
+    if (temperatureData.length > 0) {
+      const temps = temperatureData.map(item => item.temperature.temperature);
+      minTemp = Math.min(...temps) - 0.2;
+      maxTemp = Math.max(...temps) + 0.2;
+      console.log('体温范围:', minTemp, '到', maxTemp);
     }
     
-    if (data.intercourse && data.intercourse.length > 0) {
-      const actualCount = data.intercourse.filter(item => item.type !== 'none').length;
-      if (actualCount > 0) {
-        selectedPointData.intercourse = `${actualCount}次`;
+    chartData.forEach((dayData, index) => {
+      const xPercent = totalDays > 1 ? (index / (totalDays - 1)) * 80 + 10 : 50;
+      
+      const hasTemperature = dayData.temperature && dayData.temperature.temperature;
+      const hasMenstrual = dayData.menstrual && dayData.menstrual.flow !== 'none';
+      const hasIntercourse = dayData.intercourse && dayData.intercourse.length > 0;
+      
+      let yPercent = 50;
+      let temperatureValue = null;
+      
+      if (hasTemperature) {
+        const tempValue = dayData.temperature.temperature;
+        temperatureValue = tempValue.toFixed(1);
+        yPercent = 80 - ((tempValue - minTemp) / (maxTemp - minTemp)) * 60;
+        temperaturePoints.push(`${xPercent},${yPercent}`);
+        
+        console.log(`${dayData.date}: 体温${tempValue}°C, 坐标(${xPercent}%, ${yPercent}%)`);
       }
-    }
+      
+      if (hasTemperature || hasMenstrual || hasIntercourse) {
+        const pointData = {
+          date: dayData.date,
+          x: xPercent,
+          y: yPercent,
+          hasTemperature,
+          hasMenstrual,
+          hasIntercourse,
+          temperatureValue
+        };
+        
+        chartDataPoints.push(pointData);
+      }
+    });
+    
+    const temperatureLinePoints = temperaturePoints.join(' ');
+    
+    console.log('生成的数据点:', chartDataPoints.length, '个');
+    console.log('体温数据点:', chartDataPoints.filter(p => p.hasTemperature).length, '个');
+    
+    return {
+      chartDataPoints,
+      temperatureLinePoints
+    };
+  },
+
+  onPointClick(e) {
+    const { point } = e.currentTarget.dataset;
+    this.showPointDetails(point);
+  },
+
+  showPointDetails(pointData) {
+    const selectedPointData = {
+      dateDisplay: DateUtils.formatDisplayDate(pointData.date),
+      temperature: pointData.hasTemperature ? `${pointData.temperatureValue}°C` : '--'
+    };
     
     this.setData({ selectedPointData });
   },
 
-  /**
-   * 关闭详细信息
-   */
   closeDetails() {
     this.setData({ selectedPointData: null });
   },
 
-  /**
-   * 切换视图模式
-   */
   onViewModeChange(e) {
     const mode = e.currentTarget.dataset.mode;
     this.setData({ viewMode: mode });
   },
 
-  /**
-   * 切换显示模式（图表/日历）
-   */
-  onDisplayModeChange(e) {
-    const mode = e.currentTarget.dataset.mode;
-    this.setData({ displayMode: mode });
-    
-    if (mode === 'calendar') {
-      this.loadCalendarData();
-    }
-    
-    wx.showToast({
-      title: mode === 'calendar' ? '切换到日历视图' : '切换到图表视图',
-      icon: 'none',
-      duration: 1000
+  goToRecord() {
+    wx.navigateTo({
+      url: '/pages/record/record'
     });
   },
 
-  /**
-   * 日历月份变化事件
-   */
-  onCalendarMonthChange(e) {
-    const { year, month, selectedDate } = e.detail;
+  onChartTap() {
+    console.log('点击图表，准备打开全屏模式');
+    console.log('当前图表数据点数量:', this.data.chartDataPoints.length);
+    console.log('体温数据点数量:', this.data.chartDataPoints.filter(p => p.hasTemperature).length);
     
     this.setData({
-      calendarYear: year,
-      calendarMonth: month,
-      selectedDate: selectedDate || ''
+      showFullscreenChart: true
+    }, () => {
+      setTimeout(() => {
+        this.drawFullscreenTemperatureLine();
+      }, 500);
     });
-    
-    this.loadCalendarData();
   },
 
-  /**
-   * 日历日期选择事件
-   */
-  onCalendarDateSelect(e) {
-    const { date, data } = e.detail;
+  closeFullscreenChart() {
+    this.setData({
+      showFullscreenChart: false
+    });
+  },
+
+  drawFullscreenTemperatureLine() {
+    console.log('开始绘制全屏体温连接线');
     
-    this.setData({ selectedDate: date });
-    
-    // 显示日期详情（和图表点击显示类似）
-    if (data) {
-      this.showDateDetails(date, data);
-    } else {
-      // 没有数据，提示用户可以添加记录
-      wx.showModal({
-        title: '记录提醒',
-        content: `${DateUtils.formatDisplayDate(date)} 暂无数据，是否前往记录页面添加？`,
-        confirmText: '去记录',
-        cancelText: '取消',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateTo({
-              url: `/pages/record/record?date=${date}`
-            });
+    const query = wx.createSelectorQuery();
+    query.select('#fullscreenTemperatureCanvas').fields({ node: true, size: true }).exec((res) => {
+      console.log('Canvas查询结果:', res);
+      
+      if (res[0] && res[0].node) {
+        const canvas = res[0].node;
+        const ctx = canvas.getContext('2d');
+        
+        const dpr = wx.getSystemInfoSync().pixelRatio;
+        canvas.width = res[0].width * dpr;
+        canvas.height = res[0].height * dpr;
+        ctx.scale(dpr, dpr);
+        
+        console.log('全屏Canvas尺寸:', res[0].width, 'x', res[0].height);
+        
+        ctx.clearRect(0, 0, res[0].width, res[0].height);
+        
+        // 获取有体温数据的点，按日期排序
+        const temperaturePoints = this.data.chartDataPoints
+          .filter(point => point.hasTemperature && point.temperatureValue)
+          .sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        console.log('全屏图表找到体温数据点:', temperaturePoints.length, '个');
+        
+        if (temperaturePoints.length < 2) {
+          console.log('全屏图表：体温数据点不足2个，无法绘制连线');
+          // 即使只有一个点，也绘制一个圆圈表示
+          if (temperaturePoints.length === 1) {
+            const point = temperaturePoints[0];
+            const x = (point.x / 100) * res[0].width;
+            const y = (point.y / 100) * res[0].height;
+            
+            ctx.fillStyle = '#ff6b9d';
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, 2 * Math.PI);
+            ctx.fill();
+            console.log('绘制单个体温点:', x, y);
           }
+          return;
         }
-      });
-    }
-  },
-
-  /**
-   * 显示日期详情
-   */
-  showDateDetails(date, data) {
-    const content = [];
-    
-    content.push(`日期: ${DateUtils.formatDisplayDate(date)}`);
-    
-    if (data.hasTemperature) {
-      content.push(`体温: ${data.temperatureValue}°C`);
-    }
-    
-    if (data.hasMenstrual) {
-      const flowMap = {
-        light: '少量',
-        medium: '中等', 
-        heavy: '大量'
-      };
-      content.push(`经量: ${flowMap[data.menstrualFlow] || '未知'}`);
-    }
-    
-    if (data.hasIntercourse) {
-      content.push(`同房: ${data.intercourseCount}次`);
-    }
-    
-    wx.showModal({
-      title: '详细信息',
-      content: content.join('\n'),
-      showCancel: false
+        
+        // 绘制连接线
+        ctx.beginPath();
+        ctx.strokeStyle = '#ff6b9d';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        const canvasWidth = res[0].width;
+        const canvasHeight = res[0].height;
+        
+        temperaturePoints.forEach((point, index) => {
+          const x = (point.x / 100) * canvasWidth;
+          const y = (point.y / 100) * canvasHeight;
+          
+          console.log(`全屏点${index + 1}: 坐标(${x}, ${y})`);
+          
+          if (index === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        });
+        
+        ctx.stroke();
+        console.log('全屏体温连接线绘制完成');
+        
+        // 绘制数据点圆圈
+        ctx.fillStyle = '#ff6b9d';
+        temperaturePoints.forEach((point) => {
+          const x = (point.x / 100) * canvasWidth;
+          const y = (point.y / 100) * canvasHeight;
+          ctx.beginPath();
+          ctx.arc(x, y, 6, 0, 2 * Math.PI);
+          ctx.fill();
+          
+          // 绘制白色边框
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.strokeStyle = '#ff6b9d';
+          ctx.lineWidth = 4;
+        });
+        
+        console.log('全屏体温点和连接线绘制完成');
+      } else {
+        console.error('无法获取全屏Canvas节点');
+      }
     });
   },
 
-  /**
-   * 切换缩放模式
-   */
   onZoomToggle() {
     const isZoomed = !this.data.isZoomed;
     let chartWidth = 350;
-    let chartScrollLeft = 0;
     
     if (isZoomed) {
-      // 根据数据量动态计算宽度，每天至少30rpx宽度
       const dataCount = this.data.chartData.length;
       chartWidth = Math.max(700, dataCount * 30);
-      
-      // 自动滚动到最右侧（最新数据）
-      setTimeout(() => {
-        chartScrollLeft = chartWidth - 350; // 滚动到最右侧
-        this.setData({ chartScrollLeft });
-      }, 100);
     }
     
     this.setData({ 
@@ -398,132 +480,9 @@ Page({
     });
 
     wx.showToast({
-      title: isZoomed ? '已放大图表，可左右滑动查看' : '已缩小图表',
+      title: isZoomed ? '已放大图表' : '已缩小图表',
       icon: 'none',
       duration: 1500
-    });
-  },
-
-  /**
-   * 切换到上一周期
-   */
-  onPreviousCycle() {
-    const { start } = this.data.dateRange;
-    const newEnd = DateUtils.subtractDays(start, 1);
-    const newStart = DateUtils.subtractDays(newEnd, 29);
-    
-    this.setData({
-      dateRange: {
-        start: newStart,
-        end: newEnd
-      }
-    });
-    
-    wx.showToast({
-      title: '切换至上一周期',
-      icon: 'none',
-      duration: 1000
-    });
-    
-    this.loadChartData();
-  },
-
-  /**
-   * 切换到下一周期
-   */
-  onNextCycle() {
-    const { end } = this.data.dateRange;
-    const today = DateUtils.formatDate(new Date());
-    
-    // 不能超过今天
-    if (end >= today) {
-      wx.showToast({
-        title: '已是最新数据',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    const newStart = DateUtils.addDays(end, 1);
-    let newEnd = DateUtils.addDays(newStart, 29);
-    
-    // 确保不超过今天
-    if (newEnd > today) {
-      newEnd = today;
-    }
-    
-    this.setData({
-      dateRange: {
-        start: newStart,
-        end: newEnd
-      }
-    });
-    
-    wx.showToast({
-      title: '切换至下一周期',
-      icon: 'none',
-      duration: 1000
-    });
-    
-    this.loadChartData();
-  },
-
-  /**
-   * 快速跳转到当前周期
-   */
-  goToCurrentCycle() {
-    const today = DateUtils.formatDate(new Date());
-    const thirtyDaysAgo = DateUtils.subtractDays(today, 29);
-    
-    this.setData({
-      dateRange: {
-        start: thirtyDaysAgo,
-        end: today
-      }
-    });
-    
-    wx.showToast({
-      title: '已回到当前周期',
-      icon: 'none',
-      duration: 1000
-    });
-    
-    this.loadChartData();
-  },
-
-  /**
-   * 跳转到记录页面
-   */
-  goToRecord() {
-    wx.navigateTo({
-      url: '/pages/record/record'
-    });
-  },
-
-  /**
-   * 关闭详情
-   */
-  closeDetails() {
-    this.setData({
-      selectedPointData: null
-    });
-  },
-
-  /**
-   * 点击图表放大
-   */
-  onChartTap() {
-    this.setData({
-      showFullscreenChart: true
-    });
-  },
-
-  /**
-   * 关闭全屏图表
-   */
-  closeFullscreenChart() {
-    this.setData({
-      showFullscreenChart: false
     });
   }
 });
