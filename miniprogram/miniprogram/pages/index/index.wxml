@@ -38,12 +38,18 @@
     <view class="card cycle-card">
       <view class="card-body">
         <!-- 周期天数单独一行 -->
-        <view class="cycle-day-info">
+        <view wx:if="{{cycleInfo.cycleDay > 0}}" class="cycle-day-info">
           <text class="cycle-day-text">当前周期第 {{cycleInfo.cycleDay || 0}} 天</text>
         </view>
         
-        <!-- 移除当前阶段部分 -->
-        <view class="predictions">
+        <!-- 未设置周期提示 -->
+        <view wx:else class="no-cycle-info" bindtap="showCycleStartModal">
+          <text class="no-cycle-text">点击设置周期开始日期</text>
+          <text class="no-cycle-desc">记录您的月经第一天，开启周期追踪</text>
+        </view>
+        
+        <!-- 预测信息 -->
+        <view class="predictions" wx:if="{{cycleInfo.cycleDay > 0}}">
           <view class="prediction-cards">
             <view class="prediction-card" wx:if="{{cycleInfo.nextPeriod}}">
               <view class="prediction-content">
@@ -224,6 +230,52 @@
     <view class="modal-footer">
       <button class="btn btn-outline" bindtap="closeCycleModal">取消</button>
       <button class="btn btn-primary" bindtap="confirmCyclePhase">确定</button>
+    </view>
+  </view>
+</view>
+
+<!-- 周期开始日期设置模态框 -->
+<view class="modal-mask" wx:if="{{showCycleStartModal}}" catchtap="closeCycleStartModal">
+  <view class="modal cycle-start-modal" catchtap="stopPropagation">
+    <view class="modal-header">
+      <text class="modal-title">设置周期开始日期</text>
+    </view>
+    <view class="modal-body">
+      <view class="cycle-start-info">
+        <text class="cycle-start-desc">请选择您最近一次月经的第一天</text>
+        <text class="cycle-start-tip">这将帮助我们计算您的周期天数和预测排卵期</text>
+      </view>
+      
+      <view class="date-picker-container">
+        <picker mode="date" value="{{cycleStartDate}}" start="{{cycleStartMinDate}}" end="{{currentDate}}" bindchange="onCycleStartDateChange">
+          <view class="date-picker">
+            <text class="date-picker-value">{{cycleStartDate || '请选择日期'}}</text>
+            <text class="date-picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+      
+      <view class="flow-selector">
+        <text class="flow-selector-title">月经量</text>
+        <view class="flow-options">
+          <view class="flow-option {{cycleStartFlow === 'light' ? 'active' : ''}}" bindtap="selectFlow" data-flow="light">
+            <text class="flow-icon">💧</text>
+            <text class="flow-label">少量</text>
+          </view>
+          <view class="flow-option {{cycleStartFlow === 'medium' ? 'active' : ''}}" bindtap="selectFlow" data-flow="medium">
+            <text class="flow-icon">💧💧</text>
+            <text class="flow-label">中等</text>
+          </view>
+          <view class="flow-option {{cycleStartFlow === 'heavy' ? 'active' : ''}}" bindtap="selectFlow" data-flow="heavy">
+            <text class="flow-icon">💧💧💧</text>
+            <text class="flow-label">大量</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="modal-footer">
+      <button class="btn btn-outline" bindtap="closeCycleStartModal">取消</button>
+      <button class="btn btn-primary" bindtap="confirmCycleStart">确定</button>
     </view>
   </view>
 </view>

@@ -28,7 +28,12 @@ Page({
     // 授权相关
     hasUserInfo: false,
     canIUseGetUserProfile: false,
-    userInfo: null
+    userInfo: null,
+    // 周期开始日期设置
+    showCycleStartModal: false,
+    cycleStartDate: '',
+    cycleStartMinDate: '',
+    cycleStartFlow: 'medium'
   },
 
   /**
@@ -41,8 +46,13 @@ Page({
       const today = DateUtils.getToday();
       console.log('Today date:', today);
       
+      // 设置日期相关数据
+      const threeMonthsAgo = DateUtils.subtractDays(today, 90);
+      
       this.setData({
-        currentDate: today
+        currentDate: today,
+        cycleStartMinDate: threeMonthsAgo,
+        cycleStartDate: today
       });
       
       console.log('Current date set to:', this.data.currentDate);
@@ -553,5 +563,121 @@ Page({
     } catch (error) {
       console.error('更新用户设置失败:', error);
     }
+  },
+
+  /**
+   * 显示周期开始日期设置模态框
+   */
+  showCycleStartModal() {
+    this.setData({
+      showCycleStartModal: true
+    });
+  },
+
+  /**
+   * 关闭周期开始日期设置模态框
+   */
+  closeCycleStartModal() {
+    this.setData({
+      showCycleStartModal: false
+    });
+  },
+
+  /**
+   * 周期开始日期变更
+   */
+  onCycleStartDateChange(e) {
+    this.setData({
+      cycleStartDate: e.detail.value
+    });
+  },
+
+  /**
+   * 选择月经量
+   */
+  selectFlow(e) {
+    const flow = e.currentTarget.dataset.flow;
+    this.setData({
+      cycleStartFlow: flow
+    });
+  },
+
+  /**
+   * 确认周期开始日期设置
+   */
+  async confirmCycleStart() {
+    try {
+      if (!this.data.cycleStartDate) {
+        wx.showToast({
+          title: '请选择日期',
+          icon: 'none'
+        });
+        return;
+      }
+
+      // 创建新的周期记录
+      const newCycle = {
+        id: this.generateId(),
+        startDate: this.data.cycleStartDate,
+        endDate: null, // 结束日期暂时为空，将在下一个周期开始时设置
+        length: null, // 周期长度暂时为空，将在下一个周期开始时计算
+        notes: '用户手动设置的周期开始日期',
+        createdAt: DateUtils.formatISO(new Date()),
+        updatedAt: DateUtils.formatISO(new Date())
+      };
+
+      // 获取现有周期数据
+      const cycles = await FertilityStorage.getCycles() || [];
+      
+      // 添加新周期
+      cycles.push(newCycle);
+      
+      // 保存周期数据
+      await FertilityStorage.saveCycles(cycles);
+      
+      // 同时记录月经数据
+      const dayRecords = await FertilityStorage.getDayRecords() || {};
+      
+      // 创建或更新当天的记录
+      if (!dayRecords[this.data.cycleStartDate]) {
+        dayRecords[this.data.cycleStartDate] = {};
+      }
+      
+      // 添加月经记录
+      dayRecords[this.data.cycleStartDate].menstrual = {
+        flow: this.data.cycleStartFlow,
+        symptoms: [],
+        notes: '周期开始日期'
+      };
+      
+      // 保存日记录
+      await FertilityStorage.saveDayRecords(dayRecords);
+      
+      // 关闭模态框
+      this.setData({
+        showCycleStartModal: false
+      });
+      
+      // 刷新页面数据
+      this.loadPageData();
+      
+      wx.showToast({
+        title: '周期设置成功',
+        icon: 'success'
+      });
+    } catch (error) {
+      console.error('设置周期开始日期失败:', error);
+      wx.showToast({
+        title: '设置失败',
+        icon: 'none'
+      });
+    }
+  },
+
+  /**
+   * 生成唯一ID
+   */
+  generateId() {
+    return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 });
