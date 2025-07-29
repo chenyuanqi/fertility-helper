@@ -6,6 +6,24 @@
     <text class="loading-text">加载中...</text>
   </view>
 
+  <!-- 授权弹窗 -->
+  <view wx:elif="{{!hasUserInfo}}" class="auth-container">
+    <view class="auth-card">
+      <view class="auth-header">
+        <view class="auth-logo">👶</view>
+        <text class="auth-title">备小孕</text>
+      </view>
+      <view class="auth-content">
+        <text class="auth-desc">为了给您提供更好的服务，我们需要获取您的微信昵称和头像信息</text>
+        <text class="auth-privacy">我们将严格保护您的隐私，不会泄露您的个人信息</text>
+      </view>
+      <view class="auth-footer">
+        <button wx:if="{{canIUseGetUserProfile}}" class="auth-button" bindtap="getUserProfile">微信授权登录</button>
+        <button wx:else open-type="getUserInfo" bindgetuserinfo="getUserInfo" class="auth-button">微信授权登录</button>
+      </view>
+    </view>
+  </view>
+
   <!-- 主要内容 -->
   <view wx:else>
     <!-- 日期头部 -->
