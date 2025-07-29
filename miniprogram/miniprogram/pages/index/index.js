@@ -33,7 +33,11 @@ Page({
     showCycleStartModal: false,
     cycleStartDate: '',
     cycleStartMinDate: '',
-    cycleStartFlow: 'medium'
+    cycleStartFlow: 'medium',
+    // 问候语相关
+    greeting: '',
+    greetingEmoji: '',
+    greetingTip: ''
   },
 
   /**
@@ -56,6 +60,9 @@ Page({
       });
       
       console.log('Current date set to:', this.data.currentDate);
+      
+      // 生成问候语
+      this.generateGreeting();
       
       // 检查是否可以使用 getUserProfile API
       if (wx.getUserProfile) {
@@ -679,5 +686,87 @@ Page({
    */
   generateId() {
     return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  },
+
+  /**
+   * 生成问候语
+   */
+  generateGreeting() {
+    try {
+      const now = new Date();
+      const hour = now.getHours();
+      let timeGreeting = '';
+      let emoji = '';
+      
+      // 根据时间段生成不同的问候语
+      if (hour >= 5 && hour < 9) {
+        timeGreeting = '早安';
+        emoji = '🌅';
+      } else if (hour >= 9 && hour < 12) {
+        timeGreeting = '上午好';
+        emoji = '☀️';
+      } else if (hour >= 12 && hour < 14) {
+        timeGreeting = '午安';
+        emoji = '🌞';
+      } else if (hour >= 14 && hour < 18) {
+        timeGreeting = '下午好';
+        emoji = '🌤️';
+      } else if (hour >= 18 && hour < 22) {
+        timeGreeting = '晚上好';
+        emoji = '🌙';
+      } else {
+        timeGreeting = '夜深了';
+        emoji = '✨';
+      }
+      
+      // 温馨称呼列表
+      const nicknames = ['亲爱的', '美丽的', '可爱的', '温柔的', '勇敢的', '坚强的', '聪明的'];
+      const randomNickname = nicknames[Math.floor(Math.random() * nicknames.length)];
+      
+      // 根据周期阶段生成个性化问候语
+      let phaseTip = '';
+      if (this.data.cycleInfo && this.data.cycleInfo.phase) {
+        switch (this.data.cycleInfo.phase) {
+          case 'menstrual':
+            phaseTip = '月经期要注意保暖哦，多喝热水~';
+            break;
+          case 'follicular':
+            phaseTip = '卵泡期是活力满满的时候，今天也要元气满满哦！';
+            break;
+          case 'ovulation':
+            phaseTip = '排卵期到啦，是备孕的好时机呢！';
+            break;
+          case 'luteal':
+            phaseTip = '黄体期要注意休息，保持好心情很重要哦~';
+            break;
+          default:
+            phaseTip = '今天也要开心哦，记得记录你的身体状况~';
+        }
+      } else {
+        // 随机鼓励语
+        const encouragements = [
+          '今天也要元气满满哦！',
+          '记录身体变化，更懂自己~',
+          '健康生活，好孕相伴！',
+          '每一天都是新的开始！',
+          '坚持记录，收获惊喜！'
+        ];
+        phaseTip = encouragements[Math.floor(Math.random() * encouragements.length)];
+      }
+      
+      this.setData({
+        greeting: `${timeGreeting}，${randomNickname}`,
+        greetingEmoji: emoji,
+        greetingTip: phaseTip
+      });
+    } catch (error) {
+      console.error('生成问候语失败:', error);
+      // 设置默认问候语
+      this.setData({
+        greeting: '你好',
+        greetingEmoji: '👋',
+        greetingTip: '欢迎使用备小孕！'
+      });
+    }
   }
 });

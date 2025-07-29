@@ -139,22 +139,55 @@
   animation: fadeInUp 0.6s ease-out;
 }
 
-.current-date {
-  text-align: center;
-  margin-bottom: 16rpx;
+.greeting-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
 }
 
-.date-display {
+.greeting-main {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.greeting-emoji {
   font-size: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80rpx;
+  height: 80rpx;
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.2), rgba(255, 138, 128, 0.2));
+  border-radius: 50%;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 157, 0.2);
+}
+
+.greeting-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.greeting {
+  font-size: 36rpx;
   font-weight: bold;
   color: #2c3e50;
-  margin-bottom: 8rpx;
-  display: block;
+  background: linear-gradient(135deg, #ff6b9d, #ff8a80);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.day-of-week {
+.greeting-tip {
+  font-size: 24rpx;
+  color: #6c757d;
+  font-weight: normal;
+}
+
+.date-info {
   font-size: 24rpx;
   color: #7f8c8d;
+  margin-top: 8rpx;
 }
 
 /* 周期信息卡片 */

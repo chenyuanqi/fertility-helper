@@ -29,7 +29,13 @@
     <!-- 日期头部 -->
     <view class="date-header">
       <view class="greeting-section">
-        <text class="greeting">你好，{{userSettings.nickname || '小明'}}</text>
+        <view class="greeting-main">
+          <text class="greeting-emoji">{{greetingEmoji}}</text>
+          <view class="greeting-text">
+            <text class="greeting">{{greeting}} {{userSettings.nickname || '宝贝'}}</text>
+            <text class="greeting-tip">{{greetingTip}}</text>
+          </view>
+        </view>
         <text class="date-info">{{formatDate(currentDate)}} {{getDayOfWeek(currentDate)}}</text>
       </view>
     </view>
