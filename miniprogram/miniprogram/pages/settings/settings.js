@@ -555,15 +555,44 @@ Page({
 
   // 导入数据
   importData() {
+    wx.showActionSheet({
+      itemList: ['从聊天记录选择文件', '从剪贴板导入', '扫描二维码导入'],
+      success: (res) => {
+        switch (res.tapIndex) {
+          case 0:
+            this.importFromFile();
+            break;
+          case 1:
+            this.importFromClipboard();
+            break;
+          case 2:
+            this.importFromQRCode();
+            break;
+        }
+      }
+    });
+  },
+
+  // 从文件导入
+  importFromFile() {
     wx.chooseMessageFile({
       count: 1,
       type: 'file',
       extension: ['json'],
       success: (res) => {
-        const filePath = res.tempFiles[0].path;
-        this.processImportFile(filePath);
+        if (res.tempFiles && res.tempFiles.length > 0) {
+          const filePath = res.tempFiles[0].path;
+          const fileName = res.tempFiles[0].name;
+          this.processImportFile(filePath, fileName);
+        } else {
+          wx.showToast({
+            title: '未选择有效文件',
+            icon: 'none'
+          });
+        }
       },
-      fail: () => {
+      fail: (error) => {
+        console.log('选择文件失败:', error);
         wx.showToast({
           title: '取消选择文件',
           icon: 'none'
@@ -572,29 +601,350 @@ Page({
     });
   },
 
+  // 从剪贴板导入
+  async importFromClipboard() {
+    try {
+      wx.showLoading({ title: '读取剪贴板...' });
+      
+      wx.getClipboardData({
+        success: (res) => {
+          wx.hideLoading();
+          const clipboardData = res.data;
+          
+          if (!clipboardData || !clipboardData.trim()) {
+            wx.showModal({
+              title: '剪贴板为空',
+              content: '剪贴板中没有数据。请先复制备小孕的备份数据到剪贴板。\n\n备份数据应该是JSON格式，以"{"开头，以"}"结尾。',
+              showCancel: false
+            });
+            return;
+          }
+          
+          // 简单检查数据格式
+          const trimmedData = clipboardData.trim();
+          if (!trimmedData.startsWith('{') || !trimmedData.endsWith('}')) {
+            wx.showModal({
+              title: '数据格式提示',
+              content: '剪贴板中的数据格式可能不正确。\n\n备小孕的备份数据应该是JSON格式，以"{"开头，以"}"结尾。\n\n是否仍要尝试导入？',
+              confirmText: '尝试导入',
+              cancelText: '取消',
+              success: (modalRes) => {
+                if (modalRes.confirm) {
+                  this.processImportData(clipboardData, '剪贴板');
+                }
+              }
+            });
+            return;
+          }
+          
+          // 检查是否包含备小孕的关键字段
+          if (!trimmedData.includes('"appName"') || !trimmedData.includes('备小孕')) {
+            wx.showModal({
+              title: '数据来源提示',
+              content: '剪贴板中的数据可能不是备小孕的备份数据。\n\n是否仍要尝试导入？',
+              confirmText: '尝试导入',
+              cancelText: '取消',
+              success: (modalRes) => {
+                if (modalRes.confirm) {
+                  this.processImportData(clipboardData, '剪贴板');
+                }
+              }
+            });
+            return;
+          }
+          
+          this.processImportData(clipboardData, '剪贴板');
+        },
+        fail: (error) => {
+          wx.hideLoading();
+          console.error('读取剪贴板失败:', error);
+          wx.showModal({
+            title: '读取剪贴板失败',
+            content: '无法读取剪贴板内容，请检查小程序权限设置。',
+            showCancel: false
+          });
+        }
+      });
+    } catch (error) {
+      wx.hideLoading();
+      console.error('从剪贴板导入失败:', error);
+      wx.showModal({
+        title: '导入失败',
+        content: '从剪贴板导入数据时发生错误，请重试。',
+        showCancel: false
+      });
+    }
+  },
+
+  // 从二维码导入（预留功能）
+  importFromQRCode() {
+    wx.showModal({
+      title: '扫描二维码导入',
+      content: '二维码导入功能正在开发中，敬请期待。',
+      showCancel: false
+    });
+  },
+
   // 处理导入文件
-  async processImportFile(filePath) {
-    wx.showLoading({ title: '正在导入数据...' });
+  async processImportFile(filePath, fileName) {
+    wx.showLoading({ title: '正在读取文件...' });
     
     try {
       const fs = wx.getFileSystemManager();
       const data = fs.readFileSync(filePath, 'utf8');
-      const importData = JSON.parse(data);
+      
+      wx.hideLoading();
+      this.processImportData(data, fileName);
+      
+    } catch (error) {
+      wx.hideLoading();
+      console.error('读取文件失败:', error);
+      wx.showToast({
+        title: '文件读取失败',
+        icon: 'error'
+      });
+    }
+  },
+
+  // 处理导入数据
+  async processImportData(dataString, sourceName) {
+    try {
+      // 预处理数据字符串
+      const cleanedData = this.preprocessImportData(dataString);
+      
+      if (!cleanedData) {
+        this.showImportFormatError(sourceName);
+        return;
+      }
+      
+      // 解析JSON数据
+      const importData = JSON.parse(cleanedData);
       
       // 验证数据格式
-      if (!importData.version || !importData.dayRecords) {
-        throw new Error('无效的备份文件格式');
+      const validationResult = this.validateImportData(importData);
+      if (!validationResult.isValid) {
+        wx.showModal({
+          title: '数据格式错误',
+          content: `导入失败：${validationResult.error}`,
+          showCancel: false
+        });
+        return;
       }
       
-      // 保存导入的数据
-      if (importData.userSettings) {
-        await FertilityStorage.saveUserSettings(importData.userSettings);
+      // 显示导入预览
+      this.showImportPreview(importData, sourceName);
+      
+    } catch (error) {
+      console.error('解析导入数据失败:', error);
+      this.showImportFormatError(sourceName, error.message);
+    }
+  },
+
+  // 预处理导入数据
+  preprocessImportData(dataString) {
+    try {
+      if (!dataString || typeof dataString !== 'string') {
+        return null;
       }
+      
+      // 去除首尾空白字符
+      let cleaned = dataString.trim();
+      
+      // 检查是否为空
+      if (!cleaned) {
+        return null;
+      }
+      
+      // 检查是否以JSON格式开始和结束
+      if (!cleaned.startsWith('{') || !cleaned.endsWith('}')) {
+        return null;
+      }
+      
+      // 移除可能的BOM字符
+      if (cleaned.charCodeAt(0) === 0xFEFF) {
+        cleaned = cleaned.slice(1);
+      }
+      
+      return cleaned;
+      
+    } catch (error) {
+      console.error('预处理数据失败:', error);
+      return null;
+    }
+  },
+
+  // 显示导入格式错误信息
+  showImportFormatError(sourceName, errorDetail = '') {
+    const exampleData = {
+      "version": "1.0.0",
+      "exportDate": "2024-01-01T12:00:00.000Z",
+      "appName": "备小孕",
+      "userSettings": {
+        "nickname": "小明",
+        "personalInfo": {
+          "averageCycleLength": 28,
+          "averageLutealPhase": 14
+        }
+      },
+      "dayRecords": {
+        "2024-01-01": {
+          "temperature": 36.5,
+          "menstruation": "light"
+        }
+      },
+      "cycles": [],
+      "statistics": {
+        "totalRecords": 1,
+        "completeCycles": 0
+      }
+    };
+    
+    const exampleJson = JSON.stringify(exampleData, null, 2);
+    
+    wx.showModal({
+      title: '数据格式错误',
+      content: `从${sourceName}导入失败，数据格式不正确。\n\n请确保数据是有效的JSON格式，且包含备小孕的备份数据。`,
+      confirmText: '查看示例',
+      cancelText: '知道了',
+      success: (res) => {
+        if (res.confirm) {
+          // 显示正确的数据格式示例
+          wx.showModal({
+            title: '正确的数据格式示例',
+            content: '正确的备份数据应该是JSON格式，包含version、appName、userSettings等字段。',
+            confirmText: '复制示例',
+            cancelText: '关闭',
+            success: (res2) => {
+              if (res2.confirm) {
+                // 将示例数据复制到剪贴板
+                wx.setClipboardData({
+                  data: exampleJson,
+                  success: () => {
+                    wx.showToast({
+                      title: '示例已复制到剪贴板',
+                      icon: 'success'
+                    });
+                  },
+                  fail: () => {
+                    wx.showToast({
+                      title: '复制失败',
+                      icon: 'error'
+                    });
+                  }
+                });
+              }
+            }
+          });
+        }
+      }
+    });
+  },
+
+  // 验证导入数据格式
+  validateImportData(data) {
+    try {
+      // 检查基本结构
+      if (!data || typeof data !== 'object') {
+        return { isValid: false, error: '数据格式无效' };
+      }
+      
+      // 检查版本信息
+      if (!data.version) {
+        return { isValid: false, error: '缺少版本信息' };
+      }
+      
+      // 检查应用名称
+      if (!data.appName || data.appName !== '备小孕') {
+        return { isValid: false, error: '不是备小孕的备份文件' };
+      }
+      
+      // 检查必要的数据字段
+      if (!data.dayRecords && !data.userSettings && !data.cycles) {
+        return { isValid: false, error: '备份文件中没有有效数据' };
+      }
+      
+      // 检查数据类型
+      if (data.dayRecords && typeof data.dayRecords !== 'object') {
+        return { isValid: false, error: '日记录数据格式错误' };
+      }
+      
+      if (data.cycles && !Array.isArray(data.cycles)) {
+        return { isValid: false, error: '周期数据格式错误' };
+      }
+      
+      if (data.userSettings && typeof data.userSettings !== 'object') {
+        return { isValid: false, error: '用户设置数据格式错误' };
+      }
+      
+      return { isValid: true };
+      
+    } catch (error) {
+      return { isValid: false, error: '数据验证失败' };
+    }
+  },
+
+  // 显示导入预览
+  showImportPreview(importData, sourceName) {
+    const dayRecordsCount = importData.dayRecords ? Object.keys(importData.dayRecords).length : 0;
+    const cyclesCount = importData.cycles ? importData.cycles.length : 0;
+    const hasUserSettings = !!importData.userSettings;
+    const exportDate = importData.exportDate ? new Date(importData.exportDate).toLocaleDateString() : '未知';
+    
+    let previewContent = `数据来源：${sourceName}\n`;
+    previewContent += `导出时间：${exportDate}\n`;
+    previewContent += `版本：${importData.version}\n\n`;
+    previewContent += `包含数据：\n`;
+    previewContent += `• 日记录：${dayRecordsCount} 条\n`;
+    previewContent += `• 周期数据：${cyclesCount} 个\n`;
+    previewContent += `• 用户设置：${hasUserSettings ? '是' : '否'}\n\n`;
+    previewContent += `导入后将覆盖当前所有数据，是否继续？`;
+    
+    wx.showModal({
+      title: '确认导入数据',
+      content: previewContent,
+      confirmText: '确认导入',
+      cancelText: '取消',
+      confirmColor: '#007aff',
+      success: (res) => {
+        if (res.confirm) {
+          this.performImport(importData);
+        }
+      }
+    });
+  },
+
+  // 执行导入操作
+  async performImport(importData) {
+    wx.showLoading({ title: '正在导入数据...' });
+    
+    try {
+      let importedItems = [];
+      
+      // 导入用户设置
+      if (importData.userSettings) {
+        // 恢复头像路径（如果之前被移除了）
+        const currentSettings = await FertilityStorage.getUserSettings();
+        const settingsToImport = { ...importData.userSettings };
+        
+        // 如果导入的设置中头像是占位符，保留当前头像
+        if (settingsToImport.avatar === '已设置' || settingsToImport.avatar === '未设置') {
+          settingsToImport.avatar = currentSettings?.avatar || '';
+        }
+        
+        await FertilityStorage.saveUserSettings(settingsToImport);
+        importedItems.push('用户设置');
+      }
+      
+      // 导入日记录
       if (importData.dayRecords) {
         await FertilityStorage.saveDayRecords(importData.dayRecords);
+        importedItems.push(`${Object.keys(importData.dayRecords).length} 条日记录`);
       }
+      
+      // 导入周期数据
       if (importData.cycles) {
         await FertilityStorage.saveCycles(importData.cycles);
+        importedItems.push(`${importData.cycles.length} 个周期`);
       }
       
       wx.hideLoading();
@@ -603,17 +953,27 @@ Page({
       await this.loadUserSettings();
       await this.loadStatistics();
       
+      // 重新初始化提醒管理器
+      await this.initReminderManager();
+      
+      // 显示导入成功信息
+      const successMessage = `导入成功！\n\n已导入：\n${importedItems.map(item => `• ${item}`).join('\n')}\n\n页面数据已更新。`;
+      
       wx.showModal({
-        title: '导入成功',
-        content: '数据已成功导入，页面已更新。',
-        showCancel: false
+        title: '导入完成',
+        content: successMessage,
+        showCancel: false,
+        confirmText: '知道了'
       });
+      
     } catch (error) {
       wx.hideLoading();
       console.error('导入数据失败:', error);
-      wx.showToast({
+      
+      wx.showModal({
         title: '导入失败',
-        icon: 'error'
+        content: `导入过程中发生错误：${error.message || '未知错误'}`,
+        showCancel: false
       });
     }
   },
