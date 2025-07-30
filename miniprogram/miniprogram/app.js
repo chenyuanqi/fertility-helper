@@ -1,6 +1,7 @@
 // app.js
 const { FertilityStorage } = require('./utils/storage');
 const { DateUtils } = require('./utils/date');
+const { ReminderManager } = require('./utils/reminderManager');
 
 App({
   globalData: {
@@ -21,12 +22,25 @@ App({
     // 初始化用户设置
     this.initializeUserSettings();
     
+    // 初始化提醒管理器
+    this.initializeReminderManager();
+    
     // 检查应用版本更新
     this.checkForUpdates();
   },
 
   onShow: function() {
     console.log('应用进入前台');
+    
+    // 应用进入前台时重新检查提醒设置
+    try {
+      const reminderManager = ReminderManager.getInstance();
+      reminderManager.init().catch(error => {
+        console.error('重新初始化提醒管理器失败:', error);
+      });
+    } catch (error) {
+      console.error('应用进入前台时处理提醒失败:', error);
+    }
   },
 
   onHide: function() {
@@ -113,6 +127,26 @@ App({
     }).catch(error => {
       console.error('初始化用户设置失败:', error);
     });
+  },
+
+  /**
+   * 初始化提醒管理器
+   */
+  initializeReminderManager: function() {
+    try {
+      // 延迟初始化，确保用户设置已加载
+      setTimeout(async () => {
+        try {
+          const reminderManager = ReminderManager.getInstance();
+          await reminderManager.init();
+          console.log('提醒管理器初始化完成');
+        } catch (error) {
+          console.error('初始化提醒管理器失败:', error);
+        }
+      }, 1000);
+    } catch (error) {
+      console.error('初始化提醒管理器失败:', error);
+    }
   },
 
   /**

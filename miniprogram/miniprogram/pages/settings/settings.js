@@ -1,6 +1,7 @@
 // pages/settings/settings.js
 const { DataManager } = require('../../utils/dataManager');
 const { FertilityStorage } = require('../../utils/storage');
+const { ReminderManager } = require('../../utils/reminderManager');
 
 Page({
   data: {
@@ -43,6 +44,7 @@ Page({
   async onLoad() {
     await this.loadUserSettings();
     await this.loadStatistics();
+    await this.initReminderManager();
   },
 
   async onShow() {
@@ -86,6 +88,17 @@ Page({
       this.setData({ statistics });
     } catch (error) {
       console.error('加载统计数据失败:', error);
+    }
+  },
+
+  // 初始化提醒管理器
+  async initReminderManager() {
+    try {
+      const reminderManager = ReminderManager.getInstance();
+      await reminderManager.init();
+      console.log('提醒管理器初始化完成');
+    } catch (error) {
+      console.error('初始化提醒管理器失败:', error);
     }
   },
 
@@ -261,6 +274,13 @@ Page({
       await FertilityStorage.saveUserSettings(newSettings);
       
       this.setData({ userSettings: newSettings });
+      
+      // 如果修改的是提醒时间，更新提醒管理器
+      if (inputType === 'reminderTime') {
+        const reminderManager = ReminderManager.getInstance();
+        await reminderManager.updateReminders(newSettings.reminders);
+      }
+      
       this.closeInputModal();
       
       wx.showToast({
@@ -283,8 +303,12 @@ Page({
     
     await this.saveSettings(newSettings);
     
+    // 更新提醒管理器
+    const reminderManager = ReminderManager.getInstance();
+    await reminderManager.updateReminders(newSettings.reminders);
+    
     wx.showToast({
-      title: newSettings.reminders.morningTemperature.enabled ? '已开启' : '已关闭',
+      title: newSettings.reminders.morningTemperature.enabled ? '晨起测温提醒已开启' : '晨起测温提醒已关闭',
       icon: 'success'
     });
   },
@@ -296,8 +320,12 @@ Page({
     
     await this.saveSettings(newSettings);
     
+    // 更新提醒管理器
+    const reminderManager = ReminderManager.getInstance();
+    await reminderManager.updateReminders(newSettings.reminders);
+    
     wx.showToast({
-      title: newSettings.reminders.fertileWindow.enabled ? '已开启' : '已关闭',
+      title: newSettings.reminders.fertileWindow.enabled ? '易孕期提醒已开启' : '易孕期提醒已关闭',
       icon: 'success'
     });
   },
@@ -309,8 +337,12 @@ Page({
     
     await this.saveSettings(newSettings);
     
+    // 更新提醒管理器
+    const reminderManager = ReminderManager.getInstance();
+    await reminderManager.updateReminders(newSettings.reminders);
+    
     wx.showToast({
-      title: newSettings.reminders.periodPrediction.enabled ? '已开启' : '已关闭',
+      title: newSettings.reminders.periodPrediction.enabled ? '排卵日提醒已开启' : '排卵日提醒已关闭',
       icon: 'success'
     });
   },
@@ -503,6 +535,51 @@ Page({
       content: '如有问题或建议，请通过小程序内的反馈功能联系我们。',
       showCancel: false
     });
+  },
+
+  // 测试提醒功能
+  async testReminder() {
+    try {
+      const reminderManager = ReminderManager.getInstance();
+      
+      // 显示当前活跃的提醒
+      const activeReminders = reminderManager.getActiveReminders();
+      
+      if (activeReminders.length === 0) {
+        wx.showModal({
+          title: '提醒测试',
+          content: '当前没有活跃的提醒。请先开启提醒功能。',
+          showCancel: false
+        });
+        return;
+      }
+      
+      let reminderInfo = '当前活跃的提醒：\n';
+      activeReminders.forEach((reminder, index) => {
+        reminderInfo += `${index + 1}. ${reminder.title}\n`;
+        reminderInfo += `   时间: ${reminder.trigger.toLocaleString()}\n`;
+        reminderInfo += `   重复: ${reminder.repeat === 'day' ? '每天' : '不重复'}\n\n`;
+      });
+      
+      wx.showModal({
+        title: '提醒测试',
+        content: reminderInfo,
+        confirmText: '测试通知',
+        success: (res) => {
+          if (res.confirm) {
+            // 立即显示一个测试通知
+            reminderManager.showNotification('测试提醒', '这是一个测试提醒，提醒功能正常工作！');
+          }
+        }
+      });
+      
+    } catch (error) {
+      console.error('测试提醒失败:', error);
+      wx.showToast({
+        title: '测试失败',
+        icon: 'error'
+      });
+    }
   },
 
   // 清空所有数据
