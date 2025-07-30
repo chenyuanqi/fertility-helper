@@ -148,13 +148,31 @@ Component({
         return processed;
       });
 
-      // 计算要显示X轴标签的索引
+      // 计算要显示X轴标签的索引 - 改进算法
       const maxLabels = 5;
-      const labelStep = Math.max(1, Math.floor(data.length / maxLabels));
       const displayIndexes = [];
-      for (let i = 0; i < data.length; i += labelStep) {
-        displayIndexes.push(i);
+      
+      if (data.length <= maxLabels) {
+        // 如果数据点不多，显示所有点
+        for (let i = 0; i < data.length; i++) {
+          displayIndexes.push(i);
+        }
+      } else {
+        // 均匀分布显示标签
+        displayIndexes.push(0); // 始终显示第一个
+        
+        const step = Math.floor((data.length - 1) / (maxLabels - 1));
+        for (let i = 1; i < maxLabels - 1; i++) {
+          const index = step * i;
+          if (index < data.length) {
+            displayIndexes.push(index);
+          }
+        }
+        
+        displayIndexes.push(data.length - 1); // 始终显示最后一个
       }
+      
+      console.log('计算日期标签索引:', displayIndexes, '总数据点:', data.length);
 
       this.setData({ 
         processedData,

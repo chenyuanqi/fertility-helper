@@ -1,451 +1,357 @@
-// pages/chart/chart.js
+// pages/chart/chart.js - 重新设计的图表页面
 const { FertilityStorage } = require('../../utils/storage');
-const { DateUtils } = require('../../utils/date.js');
+const { DateUtils } = require('../../utils/date');
 
 Page({
   data: {
-    chartData: [],
-    viewMode: 'all',
-    displayMode: 'chart',
-    isLoading: true,
-    cycleStats: {
-      cycleDay: 0,
+    // 周期信息
+    currentCycleIndex: 0,
+    cycles: [],
+    cycleInfo: {
+      startDate: '',
+      endDate: '',
+      dayCount: 0,
       averageTemp: 0,
       predictedOvulation: '',
-      temperatureCount: 0,
-      menstrualDays: 0,
-      intercourseCount: 0
+      temperatureCount: 0
     },
-    dateRange: {
-      start: '',
-      end: ''
-    },
-    isZoomed: false,
-    chartWidth: 350,
-    chartScrollLeft: 0,
-    selectedPointData: null,
-    showFullscreenChart: false,
-    chartDateLabels: [],
-    chartDataPoints: [],
-    temperatureLinePoints: ''
-  },
-
-  async onLoad(options) {
-    await this.initializeDateRange();
-    this.loadChartData();
-  },
-
-  onShow() {
-    this.loadChartData();
-  },
-
-  onReady() {
-    // 移除原来的Canvas绘制逻辑，现在使用专业图表组件
-  },
-
-  async initializeDateRange() {
-    try {
-      const cycles = await FertilityStorage.getCycles();
-      const today = DateUtils.formatDate(new Date());
-      
-      if (cycles && cycles.length > 0) {
-        const latestCycle = cycles[cycles.length - 1];
-        
-        if (latestCycle && latestCycle.startDate) {
-          const userSettings = await FertilityStorage.getUserSettings();
-          const averageCycleLength = userSettings?.personalInfo?.averageCycleLength || 28;
-          const cycleEndDate = DateUtils.addDays(latestCycle.startDate, averageCycleLength - 1);
-          
-          if (today <= cycleEndDate) {
-            this.setData({
-              dateRange: {
-                start: latestCycle.startDate,
-                end: today
-              }
-            });
-          } else {
-            const thirtyDaysAgo = DateUtils.subtractDays(today, 29);
-            this.setData({
-              dateRange: {
-                start: thirtyDaysAgo,
-                end: today
-              }
-            });
-          }
-        } else {
-          this.setDefaultDateRange();
-        }
-      } else {
-        this.setDefaultDateRange();
-      }
-    } catch (error) {
-      console.error('初始化日期范围失败:', error);
-      this.setDefaultDateRange();
-    }
-  },
-
-  setDefaultDateRange() {
-    const today = DateUtils.formatDate(new Date());
-    const thirtyDaysAgo = DateUtils.subtractDays(today, 29);
     
-    this.setData({
-      dateRange: {
-        start: thirtyDaysAgo,
-        end: today
-      }
-    });
+    // 图表数据
+    chartData: [],
+    viewMode: 'all', // 'all' 或 'temperature'
+    
+    // UI状态
+    isLoading: true,
+    canScrollLeft: false,
+    canScrollRight: false
   },
 
-  // 移除原来的Canvas绘制方法，现在使用专业图表组件
-
-  async loadChartData() {
+  async onLoad() {
     try {
-      this.setData({ isLoading: true });
-      
-      const { start, end } = this.data.dateRange;
-      let dayRecords = await FertilityStorage.getDayRecords();
-      
-      // 数据清理和验证
-      dayRecords = this.cleanDayRecords(dayRecords);
-      
-      const chartData = this.buildChartData(start, end, dayRecords);
-      const cycleStats = this.calculateCycleStats(chartData);
-      const chartDateLabels = this.generateChartDateLabels(start, end);
-      const { chartDataPoints, temperatureLinePoints } = this.generateChartPoints(chartData);
-      
-      this.setData({
-        chartData,
-        cycleStats,
-        chartDateLabels,
-        chartDataPoints,
-        temperatureLinePoints
-      });
+      console.log('图表页面开始加载');
+      await this.loadCycles();
+      await this.loadCurrentCycleData();
+      console.log('图表页面加载完成');
     } catch (error) {
-      console.error('加载图表数据异常:', error);
-      wx.showToast({
-        title: '加载数据异常',
-        icon: 'none'
-      });
-    } finally {
+      console.error('图表页面加载失败:', error);
+      wx.showToast({ title: '页面加载失败', icon: 'none' });
       this.setData({ isLoading: false });
     }
   },
 
-  // 数据清理方法
-  cleanDayRecords(dayRecords) {
-    if (!dayRecords || typeof dayRecords !== 'object') {
-      return {};
+  onShow() {
+    try {
+      console.log('图表页面显示');
+      this.loadCurrentCycleData();
+    } catch (error) {
+      console.error('图表页面显示时加载数据失败:', error);
     }
-
-    const cleanedRecords = {};
-    
-    Object.keys(dayRecords).forEach(date => {
-      const record = dayRecords[date];
-      if (!record || typeof record !== 'object') {
-        console.log(`清理无效记录: ${date}`, record);
-        return;
-      }
-
-      const cleanedRecord = {};
-
-      // 清理体温数据
-      if (record.temperature && 
-          typeof record.temperature === 'object' && 
-          typeof record.temperature.temperature === 'number' &&
-          record.temperature.temperature > 30 && 
-          record.temperature.temperature < 45) {
-        cleanedRecord.temperature = record.temperature;
-      }
-
-      // 清理月经数据
-      if (record.menstrual && 
-          typeof record.menstrual === 'object' && 
-          record.menstrual.flow && 
-          ['light', 'medium', 'heavy'].includes(record.menstrual.flow)) {
-        cleanedRecord.menstrual = record.menstrual;
-      }
-
-      // 清理同房数据 - 只保留有实际同房行为的记录
-      if (record.intercourse && Array.isArray(record.intercourse) && record.intercourse.length > 0) {
-        const validIntercourse = record.intercourse.filter(item => 
-          item && 
-          typeof item === 'object' && 
-          item.type && 
-          item.type !== 'none' && 
-          item.type !== '' &&
-          item.type !== 'no'
-        );
-        
-        if (validIntercourse.length > 0) {
-          cleanedRecord.intercourse = validIntercourse;
-        }
-      }
-
-      // 只保存有有效数据的记录
-      if (Object.keys(cleanedRecord).length > 0) {
-        cleanedRecords[date] = cleanedRecord;
-      } else {
-        console.log(`清理空记录: ${date}`);
-      }
-    });
-
-    console.log('数据清理完成，清理前:', Object.keys(dayRecords).length, '条，清理后:', Object.keys(cleanedRecords).length, '条');
-    
-    return cleanedRecords;
   },
 
+  /**
+   * 加载所有周期数据
+   */
+  async loadCycles() {
+    try {
+      let cycles = await FertilityStorage.getCycles() || [];
+      
+      // 如果没有周期数据，创建当前周期
+      if (cycles.length === 0) {
+        const today = DateUtils.getToday();
+        const defaultCycle = {
+          id: `cycle_${Date.now()}`,
+          startDate: DateUtils.subtractDays(today, 29),
+          endDate: today,
+          isComplete: false
+        };
+        cycles = [defaultCycle];
+        await FertilityStorage.saveCycles(cycles);
+      }
+      
+      // 确保每个周期都有结束日期
+      const userSettings = await FertilityStorage.getUserSettings();
+      cycles = cycles.map(cycle => {
+        if (!cycle.endDate) {
+          const cycleLength = userSettings?.personalInfo?.averageCycleLength || 28;
+          cycle.endDate = DateUtils.addDays(cycle.startDate, cycleLength - 1);
+        }
+        return cycle;
+      });
+      
+      this.setData({ 
+        cycles,
+        currentCycleIndex: cycles.length - 1 // 默认显示最新周期
+      });
+      
+      console.log('周期数据加载完成:', cycles.length, '个周期');
+      
+    } catch (error) {
+      console.error('加载周期数据失败:', error);
+      wx.showToast({ title: '加载周期失败', icon: 'none' });
+    }
+  },
+
+  /**
+   * 加载当前周期的数据
+   */
+  async loadCurrentCycleData() {
+    try {
+      this.setData({ isLoading: true });
+      
+      const { cycles, currentCycleIndex } = this.data;
+      if (!cycles || cycles.length === 0) return;
+      
+      const currentCycle = cycles[currentCycleIndex];
+      if (!currentCycle) return;
+      
+      // 获取周期日期范围内的所有数据
+      const dayRecords = await FertilityStorage.getDayRecords();
+      const chartData = this.buildChartData(currentCycle.startDate, currentCycle.endDate, dayRecords);
+      
+      // 计算周期统计信息
+      const cycleInfo = this.calculateCycleInfo(currentCycle, chartData);
+      
+      this.setData({
+        chartData,
+        cycleInfo,
+        isLoading: false
+      });
+      
+      console.log('当前周期数据:', { cycleInfo, chartDataCount: chartData.length });
+      
+    } catch (error) {
+      console.error('加载周期数据失败:', error);
+      wx.showToast({ title: '加载数据失败', icon: 'none' });
+      this.setData({ isLoading: false });
+    }
+  },
+
+  /**
+   * 构建图表数据
+   */
   buildChartData(startDate, endDate, dayRecords) {
-    const chartData = [];
     const dates = DateUtils.getDateRange(startDate, endDate);
+    const chartData = [];
     
-    console.log('=== 图表数据构建调试 ===');
-    console.log('日期范围:', startDate, '到', endDate);
-    console.log('原始日记录数据:', dayRecords);
-    
-    dates.forEach(date => {
-      const dayData = { date };
+    dates.forEach((date, index) => {
+      const dayData = {
+        date,
+        dayIndex: index + 1,
+        dateDisplay: DateUtils.formatDisplayDate(date),
+        hasData: false
+      };
       
       if (dayRecords && dayRecords[date]) {
         const record = dayRecords[date];
         
-        console.log(`${date} 的原始记录:`, record);
-        
-        // 体温数据验证
-        if (record.temperature && record.temperature.temperature) {
-          dayData.temperature = record.temperature;
-          console.log(`${date} 体温数据:`, record.temperature);
+        // 体温数据
+        if (record.temperature && 
+            typeof record.temperature.temperature === 'number' &&
+            record.temperature.temperature > 30 && 
+            record.temperature.temperature < 45) {
+          dayData.temperature = record.temperature.temperature;
+          dayData.hasData = true;
         }
         
-        // 月经数据验证
-        if (record.menstrual && record.menstrual.flow && record.menstrual.flow !== 'none') {
-          dayData.menstrual = record.menstrual;
-          console.log(`${date} 月经数据:`, record.menstrual);
+        // 月经数据 - 只有实际月经才标记
+        if (record.menstrual && 
+            record.menstrual.flow && 
+            ['light', 'medium', 'heavy'].includes(record.menstrual.flow)) {
+          dayData.menstrual = record.menstrual.flow;
+          dayData.hasData = true;
         }
         
-        // 同房数据验证 - 只保留有实际同房行为的记录
-        if (record.intercourse && Array.isArray(record.intercourse) && record.intercourse.length > 0) {
+        // 同房数据 - 只有实际同房才标记
+        if (record.intercourse && Array.isArray(record.intercourse)) {
           const validIntercourse = record.intercourse.filter(item => 
             item && 
-            typeof item === 'object' && 
-            item.type && 
-            item.type !== 'none' && 
-            item.type !== '' &&
-            item.type !== 'no'
+            item.time && 
+            (!item.type || item.type !== 'none')
           );
-          
           if (validIntercourse.length > 0) {
-            dayData.intercourse = validIntercourse;
-            console.log(`${date} 有效同房数据:`, validIntercourse);
-          } else {
-            console.log(`${date} 同房记录无实际行为，已过滤:`, record.intercourse);
+            dayData.intercourse = validIntercourse.length;
+            dayData.hasData = true;
           }
         }
-      } else {
-        console.log(`${date} 无记录数据`);
       }
       
       chartData.push(dayData);
     });
     
-    console.log('最终图表数据:', chartData);
-    console.log('=== 图表数据构建调试结束 ===');
-    
     return chartData;
   },
 
-  calculateCycleStats(chartData) {
-    const stats = {
-      cycleDay: 0,
-      averageTemp: 0,
-      predictedOvulation: '',
-      temperatureCount: 0,
-      menstrualDays: 0,
-      intercourseCount: 0
-    };
+  /**
+   * 计算周期统计信息
+   */
+  calculateCycleInfo(cycle, chartData) {
+    const dayCount = DateUtils.getDaysDifference(cycle.startDate, cycle.endDate) + 1;
     
-    const tempData = chartData.filter(item => 
-      item.temperature && item.temperature.temperature
-    );
-    stats.temperatureCount = tempData.length;
+    // 计算平均体温
+    const temperatureData = chartData.filter(day => day.temperature);
+    const averageTemp = temperatureData.length > 0 
+      ? (temperatureData.reduce((sum, day) => sum + day.temperature, 0) / temperatureData.length).toFixed(1)
+      : 0;
     
-    if (tempData.length > 0) {
-      const totalTemp = tempData.reduce((sum, item) => 
-        sum + item.temperature.temperature, 0
-      );
-      stats.averageTemp = (totalTemp / tempData.length).toFixed(1);
-    }
+    // 计算月经天数
+    const menstrualDays = chartData.filter(day => day.menstrual).length;
     
-    return stats;
-  },
-
-  generateChartDateLabels(startDate, endDate) {
-    const labels = [];
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    // 计算同房次数
+    const intercourseCount = chartData.reduce((sum, day) => sum + (day.intercourse || 0), 0);
     
-    const labelCount = Math.min(5, daysDiff);
-    const interval = Math.floor(daysDiff / (labelCount - 1));
-    
-    for (let i = 0; i < labelCount; i++) {
-      let labelDate;
-      if (i === labelCount - 1) {
-        labelDate = new Date(endDate);
-      } else {
-        labelDate = new Date(start);
-        labelDate.setDate(start.getDate() + (i * interval));
-      }
-      
-      const month = labelDate.getMonth() + 1;
-      const day = labelDate.getDate();
-      labels.push(`${month}/${day}`);
-    }
-    
-    return labels;
-  },
-
-  generateChartPoints(chartData) {
-    const chartDataPoints = [];
-    const temperaturePoints = [];
-    const totalDays = chartData.length;
-    
-    console.log('生成图表点，总天数:', totalDays);
-    
-    const temperatureData = chartData.filter(item => item.temperature && item.temperature.temperature);
-    let minTemp = 36.0;
-    let maxTemp = 37.5;
-    
-    if (temperatureData.length > 0) {
-      const temps = temperatureData.map(item => item.temperature.temperature);
-      minTemp = Math.min(...temps) - 0.2;
-      maxTemp = Math.max(...temps) + 0.2;
-      console.log('体温范围:', minTemp, '到', maxTemp);
-    }
-    
-    chartData.forEach((dayData, index) => {
-      const xPercent = totalDays > 1 ? (index / (totalDays - 1)) * 80 + 10 : 50;
-      
-      const hasTemperature = dayData.temperature && dayData.temperature.temperature;
-      const hasMenstrual = dayData.menstrual && dayData.menstrual.flow !== 'none';
-      // 精确的同房记录验证 - 必须有实际同房行为
-      const hasIntercourse = dayData.intercourse && 
-        dayData.intercourse.length > 0 && 
-        dayData.intercourse.some(record => 
-          record && record.type && record.type !== 'none' && record.type !== '' && record.type !== 'no'
-        );
-      
-      let yPercent = 50;
-      let temperatureValue = null;
-      
-      if (hasTemperature) {
-        const tempValue = dayData.temperature.temperature;
-        temperatureValue = tempValue.toFixed(1);
-        yPercent = 80 - ((tempValue - minTemp) / (maxTemp - minTemp)) * 60;
-        temperaturePoints.push(`${xPercent},${yPercent}`);
-        
-        console.log(`${dayData.date}: 体温${tempValue}°C, 坐标(${xPercent}%, ${yPercent}%)`);
-      }
-      
-      if (hasTemperature || hasMenstrual || hasIntercourse) {
-        const pointData = {
-          date: dayData.date,
-          x: xPercent,
-          y: yPercent,
-          hasTemperature,
-          hasMenstrual,
-          hasIntercourse,
-          temperatureValue
-        };
-        
-        chartDataPoints.push(pointData);
-      }
-    });
-    
-    const temperatureLinePoints = temperaturePoints.join(' ');
-    
-    console.log('生成的数据点:', chartDataPoints.length, '个');
-    console.log('体温数据点:', chartDataPoints.filter(p => p.hasTemperature).length, '个');
+    // 预测排卵日（简化算法：周期开始后14天）
+    const predictedOvulation = DateUtils.addDays(cycle.startDate, 13);
     
     return {
-      chartDataPoints,
-      temperatureLinePoints
+      startDate: cycle.startDate,
+      endDate: cycle.endDate,
+      dayCount,
+      averageTemp: parseFloat(averageTemp),
+      predictedOvulation: DateUtils.formatDisplayDate(predictedOvulation),
+      temperatureCount: temperatureData.length,
+      menstrualDays,
+      intercourseCount
     };
   },
 
-  onPointClick(e) {
-    const { point } = e.currentTarget.dataset;
-    this.showPointDetails(point);
+  /**
+   * 切换到上一个周期
+   */
+  onPreviousCycle() {
+    const { currentCycleIndex } = this.data;
+    if (currentCycleIndex > 0) {
+      this.setData({ currentCycleIndex: currentCycleIndex - 1 });
+      this.loadCurrentCycleData();
+    } else {
+      wx.showToast({ title: '已是最早周期', icon: 'none' });
+    }
   },
 
-  showPointDetails(pointData) {
-    const selectedPointData = {
-      dateDisplay: DateUtils.formatDisplayDate(pointData.date),
-      temperature: pointData.hasTemperature ? `${pointData.temperatureValue}°C` : '--'
-    };
-    
-    this.setData({ selectedPointData });
+  /**
+   * 切换到下一个周期
+   */
+  onNextCycle() {
+    const { currentCycleIndex, cycles } = this.data;
+    if (currentCycleIndex < cycles.length - 1) {
+      this.setData({ currentCycleIndex: currentCycleIndex + 1 });
+      this.loadCurrentCycleData();
+    } else {
+      wx.showToast({ title: '已是最新周期', icon: 'none' });
+    }
   },
 
-  closeDetails() {
-    this.setData({ selectedPointData: null });
-  },
-
+  /**
+   * 切换显示模式
+   */
   onViewModeChange(e) {
     const mode = e.currentTarget.dataset.mode;
     this.setData({ viewMode: mode });
   },
 
-  goToRecord() {
-    wx.navigateTo({
-      url: '/pages/record/record'
-    });
-  },
-
-  onChartTap() {
-    console.log('点击图表，准备打开全屏模式');
-    console.log('当前图表数据:', this.data.chartData?.length, '个数据点');
-    console.log('当前显示模式:', this.data.viewMode);
+  /**
+   * 图表滚动事件
+   */
+  onChartScroll(e) {
+    const { scrollLeft, scrollWidth } = e.detail;
+    const containerWidth = 750; // 假设容器宽度
     
     this.setData({
-      showFullscreenChart: true
-    }, () => {
-      // 延迟一下让全屏图表重新渲染
-      setTimeout(() => {
-        console.log('全屏图表应该已经显示');
-      }, 300);
+      canScrollLeft: scrollLeft > 0,
+      canScrollRight: scrollLeft < scrollWidth - containerWidth
     });
   },
 
-  onFullscreenChartClick(e) {
-    console.log('全屏图表点击事件:', e.detail);
-  },
-
-  closeFullscreenChart() {
-    this.setData({
-      showFullscreenChart: false
-    });
-  },
-
-  // 移除原来的全屏Canvas绘制方法，现在使用专业图表组件
-
-  onZoomToggle() {
-    const isZoomed = !this.data.isZoomed;
-    let chartWidth = 350;
-    
-    if (isZoomed) {
-      const dataCount = this.data.chartData.length;
-      chartWidth = Math.max(700, dataCount * 30);
+  /**
+   * 生成测试数据（开发用）
+   */
+  async generateTestData() {
+    try {
+      wx.showLoading({ title: '生成测试数据...' });
+      
+      const today = DateUtils.getToday();
+      const startDate = DateUtils.subtractDays(today, 29);
+      const dates = DateUtils.getDateRange(startDate, today);
+      
+      const dayRecords = {};
+      
+      dates.forEach((date, index) => {
+        const dayRecord = { date };
+        
+        // 生成体温数据（90%概率）
+        if (Math.random() < 0.9) {
+          const baseTemp = 36.2 + (Math.random() * 1.0);
+          // 模拟体温在排卵后升高
+          const ovulationDay = 14;
+          const tempAdjustment = index > ovulationDay ? 0.3 : 0;
+          
+          dayRecord.temperature = {
+            id: `temp_${Date.now()}_${index}`,
+            date: date,
+            time: '07:00',
+            temperature: Math.round((baseTemp + tempAdjustment) * 10) / 10,
+            note: '',
+            createdAt: DateUtils.formatISO(new Date()),
+            updatedAt: DateUtils.formatISO(new Date())
+          };
+        }
+        
+        // 生成月经数据（前5天）
+        if (index < 5) {
+          const flows = ['light', 'medium', 'heavy'];
+          dayRecord.menstrual = {
+            id: `menstrual_${Date.now()}_${index}`,
+            date: date,
+            flow: flows[Math.floor(Math.random() * flows.length)],
+            isStart: index === 0,
+            isEnd: index === 4,
+            note: '',
+            createdAt: DateUtils.formatISO(new Date()),
+            updatedAt: DateUtils.formatISO(new Date())
+          };
+        }
+        
+        // 生成同房数据（25%概率，在排卵期前后概率更高）
+        const isOvulationPeriod = index >= 10 && index <= 16;
+        const intercourseChance = isOvulationPeriod ? 0.5 : 0.15;
+        
+        if (Math.random() < intercourseChance) {
+          dayRecord.intercourse = [{
+            id: `intercourse_${Date.now()}_${index}`,
+            date: date,
+            time: '22:00',
+            protection: Math.random() < 0.3,
+            note: '',
+            createdAt: DateUtils.formatISO(new Date()),
+            updatedAt: DateUtils.formatISO(new Date())
+          }];
+        }
+        
+        dayRecords[date] = dayRecord;
+      });
+      
+      await FertilityStorage.saveDayRecords(dayRecords);
+      
+      // 创建测试周期
+      const testCycle = {
+        id: `cycle_${Date.now()}`,
+        startDate: startDate,
+        endDate: today,
+        isComplete: false
+      };
+      
+      await FertilityStorage.saveCycles([testCycle]);
+      
+      wx.hideLoading();
+      wx.showToast({ title: '测试数据生成成功', icon: 'success' });
+      
+      // 重新加载数据
+      await this.loadCycles();
+      await this.loadCurrentCycleData();
+      
+    } catch (error) {
+      wx.hideLoading();
+      console.error('生成测试数据失败:', error);
+      wx.showToast({ title: '生成失败', icon: 'none' });
     }
-    
-    this.setData({ 
-      isZoomed,
-      chartWidth
-    });
-
-    wx.showToast({
-      title: isZoomed ? '已放大图表' : '已缩小图表',
-      icon: 'none',
-      duration: 1500
-    });
   }
 });

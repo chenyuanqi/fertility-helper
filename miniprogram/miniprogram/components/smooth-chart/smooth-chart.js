@@ -126,47 +126,50 @@ Component({
         ctx.fillText(`${temp.toFixed(1)}°C`, padding - 5, y + 4);
       });
       
-      // 绘制日期标签 - 避免重复
+      // 绘制日期标签 - 改进的日期显示逻辑
       const dataLength = this.data.chartData.length;
       if (dataLength > 0) {
         const maxLabels = this.data.isFullscreen ? 8 : 5;
         const step = Math.max(1, Math.floor(dataLength / (maxLabels - 1)));
-        const drawnDates = new Set(); // 防止重复绘制
         
-        for (let i = 0; i < dataLength; i += step) {
+        // 根据是否全屏调整日期标签字体
+        const dateLabelFont = this.data.isFullscreen ? '12px sans-serif' : '10px sans-serif';
+        ctx.fillStyle = '#666';
+        ctx.font = dateLabelFont;
+        ctx.textAlign = 'center';
+        
+        console.log('绘制日期标签，数据长度:', dataLength, '步长:', step, '最大标签数:', maxLabels);
+        
+        // 绘制起始日期
+        if (this.data.chartData[0] && this.data.chartData[0].date) {
+          const firstDate = new Date(this.data.chartData[0].date);
+          const firstDateStr = `${firstDate.getMonth() + 1}/${firstDate.getDate()}`;
+          ctx.fillText(firstDateStr, padding, height - 10);
+          console.log('绘制起始日期:', firstDateStr);
+        }
+        
+        // 绘制中间的日期标签
+        for (let i = step; i < dataLength - step; i += step) {
           const item = this.data.chartData[i];
           if (item && item.date) {
             const date = new Date(item.date);
             const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
-            
-            // 避免重复日期
-            if (!drawnDates.has(dateStr)) {
-              drawnDates.add(dateStr);
-              const x = padding + (i / (dataLength - 1)) * chartWidth;
-              
-              // 根据是否全屏调整日期标签字体
-              const dateLabelFont = this.data.isFullscreen ? '12px sans-serif' : '10px sans-serif';
-              ctx.fillStyle = '#666';
-              ctx.font = dateLabelFont;
-              ctx.textAlign = 'center';
-              ctx.fillText(dateStr, x, height - 10);
-            }
+            const x = padding + (i / (dataLength - 1)) * chartWidth;
+            ctx.fillText(dateStr, x, height - 10);
+            console.log(`绘制中间日期 ${i}:`, dateStr, 'x:', x);
           }
         }
         
-        // 确保显示最后一个日期
-        const lastItem = this.data.chartData[dataLength - 1];
-        if (lastItem && lastItem.date) {
-          const lastDate = new Date(lastItem.date);
+        // 绘制结束日期
+        if (dataLength > 1 && this.data.chartData[dataLength - 1] && this.data.chartData[dataLength - 1].date) {
+          const lastDate = new Date(this.data.chartData[dataLength - 1].date);
           const lastDateStr = `${lastDate.getMonth() + 1}/${lastDate.getDate()}`;
-          if (!drawnDates.has(lastDateStr)) {
-            const x = padding + chartWidth;
-            ctx.fillStyle = '#666';
-            ctx.font = this.data.isFullscreen ? '12px sans-serif' : '10px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(lastDateStr, x, height - 10);
-          }
+          const x = padding + chartWidth;
+          ctx.fillText(lastDateStr, x, height - 10);
+          console.log('绘制结束日期:', lastDateStr, 'x:', x);
         }
+        
+        console.log('日期标签绘制完成');
       }
       
       ctx.setLineDash([]);

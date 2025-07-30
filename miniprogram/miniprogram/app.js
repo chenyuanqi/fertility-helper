@@ -43,10 +43,22 @@ App({
    */
   getSystemInfo: function() {
     return new Promise((resolve, reject) => {
-      wx.getSystemInfo({
-        success: resolve,
-        fail: reject,
-      });
+      // 使用新的API替代弃用的wx.getSystemInfo
+      Promise.all([
+        new Promise(res => wx.getSystemSetting({ success: res, fail: () => res({}) })),
+        new Promise(res => wx.getDeviceInfo({ success: res, fail: () => res({}) })),
+        new Promise(res => wx.getWindowInfo({ success: res, fail: () => res({}) })),
+        new Promise(res => wx.getAppBaseInfo({ success: res, fail: () => res({}) }))
+      ]).then(([systemSetting, deviceInfo, windowInfo, appBaseInfo]) => {
+        // 合并所有信息，保持与原wx.getSystemInfo兼容
+        const systemInfo = {
+          ...systemSetting,
+          ...deviceInfo,
+          ...windowInfo,
+          ...appBaseInfo
+        };
+        resolve(systemInfo);
+      }).catch(reject);
     });
   },
 
