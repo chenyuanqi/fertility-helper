@@ -734,7 +734,7 @@ Page({
             phaseTip = '卵泡期是活力满满的时候，今天也要元气满满哦！';
             break;
           case 'ovulation':
-            phaseTip = '排卵期到啦，是备孕的好时机呢！';
+            phaseTip = '排卵期到啦，是备小孕的好时机呢！';
             break;
           case 'luteal':
             phaseTip = '黄体期要注意休息，保持好心情很重要哦~';

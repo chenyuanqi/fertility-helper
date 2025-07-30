@@ -45,7 +45,7 @@
     "disableSWC": true
   },
   "appid": "wx7aed2592bf76adce",
-  "projectname": "fertility-helper",
+  "projectname": "备小孕",
   "libVersion": "3.8.12",
   "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
   "condition": {
