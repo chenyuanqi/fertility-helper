@@ -1,0 +1,15 @@
+<!--components/simple-chart/simple-chart.wxml-->
+<view class="simple-chart-container">
+  <canvas 
+    id="simpleChart"
+    type="2d"
+    class="simple-chart-canvas"
+    style="width: {{width}}rpx; height: {{height}}rpx;">
+  </canvas>
+  
+  <!-- 无数据提示 -->
+  <view wx:if="{{!chartData || chartData.length === 0}}" class="no-data">
+    <text class="no-data-text">暂无数据</text>
+    <text class="no-data-hint">请先记录体温、月经等数据</text>
+  </view>
+</view>
