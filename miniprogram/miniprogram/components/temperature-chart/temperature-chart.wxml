@@ -1,0 +1,9 @@
+<view class="chart-container">
+  <ec-canvas 
+    id="temperature-chart" 
+    canvas-id="temperature-chart"
+    ec="{{ ec }}"
+    style="width: {{width}}px; height: {{height}}px;"
+    bindtouchstart="onChartClick">
+  </ec-canvas>
+</view>

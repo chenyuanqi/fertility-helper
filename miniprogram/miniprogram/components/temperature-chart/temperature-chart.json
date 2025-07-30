@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "ec-canvas": "../../miniprogram_npm/echarts-for-weixin/ec-canvas/ec-canvas"
+  }
+}

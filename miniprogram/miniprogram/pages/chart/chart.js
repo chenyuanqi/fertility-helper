@@ -40,9 +40,7 @@ Page({
   },
 
   onReady() {
-    setTimeout(() => {
-      this.drawTemperatureLine();
-    }, 500);
+    // 移除原来的Canvas绘制逻辑，现在使用专业图表组件
   },
 
   async initializeDateRange() {
@@ -98,64 +96,18 @@ Page({
     });
   },
 
-  drawTemperatureLine() {
-    const query = wx.createSelectorQuery();
-    query.select('#temperatureCanvas').fields({ node: true, size: true }).exec((res) => {
-      if (res[0] && res[0].node) {
-        const canvas = res[0].node;
-        const ctx = canvas.getContext('2d');
-        
-        const dpr = wx.getSystemInfoSync().pixelRatio;
-        canvas.width = res[0].width * dpr;
-        canvas.height = res[0].height * dpr;
-        ctx.scale(dpr, dpr);
-        
-        ctx.clearRect(0, 0, res[0].width, res[0].height);
-        
-        // 获取有体温数据的点，按日期排序
-        const temperaturePoints = this.data.chartDataPoints
-          .filter(point => point.hasTemperature && point.temperatureValue)
-          .sort((a, b) => new Date(a.date) - new Date(b.date));
-        
-        console.log('找到体温数据点:', temperaturePoints.length, '个');
-        
-        if (temperaturePoints.length < 2) {
-          console.log('体温数据点不足2个，无法绘制连线');
-          return;
-        }
-        
-        ctx.beginPath();
-        ctx.strokeStyle = '#ff6b9d';
-        ctx.lineWidth = 3;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        
-        const canvasWidth = res[0].width;
-        const canvasHeight = res[0].height;
-        
-        temperaturePoints.forEach((point, index) => {
-          const x = (point.x / 100) * canvasWidth;
-          const y = (point.y / 100) * canvasHeight;
-          
-          if (index === 0) {
-            ctx.moveTo(x, y);
-          } else {
-            ctx.lineTo(x, y);
-          }
-        });
-        
-        ctx.stroke();
-        console.log('体温连接线绘制完成');
-      }
-    });
-  },
+  // 移除原来的Canvas绘制方法，现在使用专业图表组件
 
   async loadChartData() {
     try {
       this.setData({ isLoading: true });
       
       const { start, end } = this.data.dateRange;
-      const dayRecords = await FertilityStorage.getDayRecords();
+      let dayRecords = await FertilityStorage.getDayRecords();
+      
+      // 数据清理和验证
+      dayRecords = this.cleanDayRecords(dayRecords);
+      
       const chartData = this.buildChartData(start, end, dayRecords);
       const cycleStats = this.calculateCycleStats(chartData);
       const chartDateLabels = this.generateChartDateLabels(start, end);
@@ -167,8 +119,6 @@ Page({
         chartDateLabels,
         chartDataPoints,
         temperatureLinePoints
-      }, () => {
-        this.drawTemperatureLine();
       });
     } catch (error) {
       console.error('加载图表数据异常:', error);
@@ -181,9 +131,76 @@ Page({
     }
   },
 
+  // 数据清理方法
+  cleanDayRecords(dayRecords) {
+    if (!dayRecords || typeof dayRecords !== 'object') {
+      return {};
+    }
+
+    const cleanedRecords = {};
+    
+    Object.keys(dayRecords).forEach(date => {
+      const record = dayRecords[date];
+      if (!record || typeof record !== 'object') {
+        console.log(`清理无效记录: ${date}`, record);
+        return;
+      }
+
+      const cleanedRecord = {};
+
+      // 清理体温数据
+      if (record.temperature && 
+          typeof record.temperature === 'object' && 
+          typeof record.temperature.temperature === 'number' &&
+          record.temperature.temperature > 30 && 
+          record.temperature.temperature < 45) {
+        cleanedRecord.temperature = record.temperature;
+      }
+
+      // 清理月经数据
+      if (record.menstrual && 
+          typeof record.menstrual === 'object' && 
+          record.menstrual.flow && 
+          ['light', 'medium', 'heavy'].includes(record.menstrual.flow)) {
+        cleanedRecord.menstrual = record.menstrual;
+      }
+
+      // 清理同房数据 - 只保留有实际同房行为的记录
+      if (record.intercourse && Array.isArray(record.intercourse) && record.intercourse.length > 0) {
+        const validIntercourse = record.intercourse.filter(item => 
+          item && 
+          typeof item === 'object' && 
+          item.type && 
+          item.type !== 'none' && 
+          item.type !== '' &&
+          item.type !== 'no'
+        );
+        
+        if (validIntercourse.length > 0) {
+          cleanedRecord.intercourse = validIntercourse;
+        }
+      }
+
+      // 只保存有有效数据的记录
+      if (Object.keys(cleanedRecord).length > 0) {
+        cleanedRecords[date] = cleanedRecord;
+      } else {
+        console.log(`清理空记录: ${date}`);
+      }
+    });
+
+    console.log('数据清理完成，清理前:', Object.keys(dayRecords).length, '条，清理后:', Object.keys(cleanedRecords).length, '条');
+    
+    return cleanedRecords;
+  },
+
   buildChartData(startDate, endDate, dayRecords) {
     const chartData = [];
     const dates = DateUtils.getDateRange(startDate, endDate);
+    
+    console.log('=== 图表数据构建调试 ===');
+    console.log('日期范围:', startDate, '到', endDate);
+    console.log('原始日记录数据:', dayRecords);
     
     dates.forEach(date => {
       const dayData = { date };
@@ -191,19 +208,47 @@ Page({
       if (dayRecords && dayRecords[date]) {
         const record = dayRecords[date];
         
-        if (record.temperature) {
+        console.log(`${date} 的原始记录:`, record);
+        
+        // 体温数据验证
+        if (record.temperature && record.temperature.temperature) {
           dayData.temperature = record.temperature;
+          console.log(`${date} 体温数据:`, record.temperature);
         }
-        if (record.menstrual) {
+        
+        // 月经数据验证
+        if (record.menstrual && record.menstrual.flow && record.menstrual.flow !== 'none') {
           dayData.menstrual = record.menstrual;
+          console.log(`${date} 月经数据:`, record.menstrual);
         }
-        if (record.intercourse) {
-          dayData.intercourse = record.intercourse;
+        
+        // 同房数据验证 - 只保留有实际同房行为的记录
+        if (record.intercourse && Array.isArray(record.intercourse) && record.intercourse.length > 0) {
+          const validIntercourse = record.intercourse.filter(item => 
+            item && 
+            typeof item === 'object' && 
+            item.type && 
+            item.type !== 'none' && 
+            item.type !== '' &&
+            item.type !== 'no'
+          );
+          
+          if (validIntercourse.length > 0) {
+            dayData.intercourse = validIntercourse;
+            console.log(`${date} 有效同房数据:`, validIntercourse);
+          } else {
+            console.log(`${date} 同房记录无实际行为，已过滤:`, record.intercourse);
+          }
         }
+      } else {
+        console.log(`${date} 无记录数据`);
       }
       
       chartData.push(dayData);
     });
+    
+    console.log('最终图表数据:', chartData);
+    console.log('=== 图表数据构建调试结束 ===');
     
     return chartData;
   },
@@ -282,7 +327,12 @@ Page({
       
       const hasTemperature = dayData.temperature && dayData.temperature.temperature;
       const hasMenstrual = dayData.menstrual && dayData.menstrual.flow !== 'none';
-      const hasIntercourse = dayData.intercourse && dayData.intercourse.length > 0;
+      // 精确的同房记录验证 - 必须有实际同房行为
+      const hasIntercourse = dayData.intercourse && 
+        dayData.intercourse.length > 0 && 
+        dayData.intercourse.some(record => 
+          record && record.type && record.type !== 'none' && record.type !== '' && record.type !== 'no'
+        );
       
       let yPercent = 50;
       let temperatureValue = null;
@@ -353,16 +403,21 @@ Page({
 
   onChartTap() {
     console.log('点击图表，准备打开全屏模式');
-    console.log('当前图表数据点数量:', this.data.chartDataPoints.length);
-    console.log('体温数据点数量:', this.data.chartDataPoints.filter(p => p.hasTemperature).length);
+    console.log('当前图表数据:', this.data.chartData?.length, '个数据点');
+    console.log('当前显示模式:', this.data.viewMode);
     
     this.setData({
       showFullscreenChart: true
     }, () => {
+      // 延迟一下让全屏图表重新渲染
       setTimeout(() => {
-        this.drawFullscreenTemperatureLine();
-      }, 500);
+        console.log('全屏图表应该已经显示');
+      }, 300);
     });
+  },
+
+  onFullscreenChartClick(e) {
+    console.log('全屏图表点击事件:', e.detail);
   },
 
   closeFullscreenChart() {
@@ -371,99 +426,7 @@ Page({
     });
   },
 
-  drawFullscreenTemperatureLine() {
-    console.log('开始绘制全屏体温连接线');
-    
-    const query = wx.createSelectorQuery();
-    query.select('#fullscreenTemperatureCanvas').fields({ node: true, size: true }).exec((res) => {
-      console.log('Canvas查询结果:', res);
-      
-      if (res[0] && res[0].node) {
-        const canvas = res[0].node;
-        const ctx = canvas.getContext('2d');
-        
-        const dpr = wx.getSystemInfoSync().pixelRatio;
-        canvas.width = res[0].width * dpr;
-        canvas.height = res[0].height * dpr;
-        ctx.scale(dpr, dpr);
-        
-        console.log('全屏Canvas尺寸:', res[0].width, 'x', res[0].height);
-        
-        ctx.clearRect(0, 0, res[0].width, res[0].height);
-        
-        // 获取有体温数据的点，按日期排序
-        const temperaturePoints = this.data.chartDataPoints
-          .filter(point => point.hasTemperature && point.temperatureValue)
-          .sort((a, b) => new Date(a.date) - new Date(b.date));
-        
-        console.log('全屏图表找到体温数据点:', temperaturePoints.length, '个');
-        
-        if (temperaturePoints.length < 2) {
-          console.log('全屏图表：体温数据点不足2个，无法绘制连线');
-          // 即使只有一个点，也绘制一个圆圈表示
-          if (temperaturePoints.length === 1) {
-            const point = temperaturePoints[0];
-            const x = (point.x / 100) * res[0].width;
-            const y = (point.y / 100) * res[0].height;
-            
-            ctx.fillStyle = '#ff6b9d';
-            ctx.beginPath();
-            ctx.arc(x, y, 6, 0, 2 * Math.PI);
-            ctx.fill();
-            console.log('绘制单个体温点:', x, y);
-          }
-          return;
-        }
-        
-        // 绘制连接线
-        ctx.beginPath();
-        ctx.strokeStyle = '#ff6b9d';
-        ctx.lineWidth = 4;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        
-        const canvasWidth = res[0].width;
-        const canvasHeight = res[0].height;
-        
-        temperaturePoints.forEach((point, index) => {
-          const x = (point.x / 100) * canvasWidth;
-          const y = (point.y / 100) * canvasHeight;
-          
-          console.log(`全屏点${index + 1}: 坐标(${x}, ${y})`);
-          
-          if (index === 0) {
-            ctx.moveTo(x, y);
-          } else {
-            ctx.lineTo(x, y);
-          }
-        });
-        
-        ctx.stroke();
-        console.log('全屏体温连接线绘制完成');
-        
-        // 绘制数据点圆圈
-        ctx.fillStyle = '#ff6b9d';
-        temperaturePoints.forEach((point) => {
-          const x = (point.x / 100) * canvasWidth;
-          const y = (point.y / 100) * canvasHeight;
-          ctx.beginPath();
-          ctx.arc(x, y, 6, 0, 2 * Math.PI);
-          ctx.fill();
-          
-          // 绘制白色边框
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 2;
-          ctx.stroke();
-          ctx.strokeStyle = '#ff6b9d';
-          ctx.lineWidth = 4;
-        });
-        
-        console.log('全屏体温点和连接线绘制完成');
-      } else {
-        console.error('无法获取全屏Canvas节点');
-      }
-    });
-  },
+  // 移除原来的全屏Canvas绘制方法，现在使用专业图表组件
 
   onZoomToggle() {
     const isZoomed = !this.data.isZoomed;
