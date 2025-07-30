@@ -614,7 +614,8 @@ Page({
           if (!clipboardData || !clipboardData.trim()) {
             wx.showModal({
               title: '剪贴板为空',
-              content: '剪贴板中没有数据。请先复制备小孕的备份数据到剪贴板。\n\n备份数据应该是JSON格式，以"{"开头，以"}"结尾。',
+              content: '剪贴板中没有数据。请先复制备小孕的备份数据到剪贴板。' +
+                       '\n\n备份数据应该是JSON格式，以"{"开头，以"}"结尾。',
               showCancel: false
             });
             return;
@@ -1097,12 +1098,45 @@ Page({
   // 清空所有数据
   clearAllData() {
     wx.showModal({
-      title: '危险操作',
-      content: '确定要清空所有数据吗？此操作无法撤销！',
-      confirmColor: '#f5222d',
+      title: '⚠️ 危险操作警告',
+      content: '您即将清空所有数据，包括：' +
+               '\n• 所有体温记录' +
+               '\n• 月经记录' +
+               '\n• 同房记录' +
+               '\n• 周期数据' +
+               '\n• 个人设置' +
+               '\n• 统计信息' +
+               '\n\n此操作无法撤销！确定要继续吗？',
+      confirmText: '我要清空',
+      cancelText: '取消',
+      confirmColor: '#ff4d4f',
+      success: (res) => {
+        if (res.confirm) {
+          // 第二次确认
+          this.showSecondConfirmation();
+        }
+      }
+    });
+  },
+
+  // 显示第二次确认
+  showSecondConfirmation() {
+    wx.showModal({
+      title: '🚨 最后确认',
+      content: '请再次确认：您真的要清空所有数据吗？' +
+               '\n\n清空后将无法恢复，建议您先导出数据进行备份。' +
+               '\n\n如果确定要清空，请点击"确认清空"。',
+      confirmText: '确认清空',
+      cancelText: '我再想想',
+      confirmColor: '#ff4d4f',
       success: (res) => {
         if (res.confirm) {
           this.performClearData();
+        } else {
+          wx.showToast({
+            title: '已取消清空操作',
+            icon: 'success'
+          });
         }
       }
     });
@@ -1110,19 +1144,22 @@ Page({
 
   // 执行清空数据
   async performClearData() {
-    wx.showLoading({ title: '正在清空数据...' });
+    wx.showLoading({ title: '正在清空所有数据...' });
     
     try {
-      const { StorageManager } = require('../../utils/storage');
-      await StorageManager.clear();
+      // 清空所有存储的数据
+      await this.clearAllStorageData();
       
       wx.hideLoading();
       
       wx.showModal({
-        title: '清空完成',
-        content: '所有数据已清空，将返回首页。',
+        title: '✅ 清空完成',
+        content: '所有数据已成功清空！' +
+                 '\n\n应用将重新启动，您可以重新开始记录数据。',
         showCancel: false,
+        confirmText: '重新开始',
         success: () => {
+          // 重新启动应用到首页
           wx.reLaunch({
             url: '/pages/index/index'
           });
@@ -1131,10 +1168,96 @@ Page({
     } catch (error) {
       wx.hideLoading();
       console.error('清空数据失败:', error);
-      wx.showToast({
+      console.error('清空数据失败:', error);
+      
+      wx.showModal({
         title: '清空失败',
-        icon: 'error'
+        content: `清空数据时发生错误：${error.message || '未知错误'}` +
+                 '\n\n请重试或联系客服。',
+        showCancel: false,
+        confirmText: '知道了'
       });
+    }
+  },
+
+  // 清空所有存储数据
+  async clearAllStorageData() {
+    try {
+      // 获取所有存储键
+      const storageKeys = [
+        'fertility_user_settings',
+        'fertility_day_records', 
+        'fertility_cycles',
+        'fertility_statistics',
+        'fertility_app_version',
+        'fertility_backup_data',
+        'fertility_last_sync',
+        'fertility_reminder_shown_today' // 提醒记录
+      ];
+      
+      // 逐个清空存储项
+      const clearPromises = storageKeys.map(key => {
+        return new Promise((resolve) => {
+          wx.removeStorage({
+            key: key,
+            success: () => {
+              console.log(`已清空存储项: ${key}`);
+              resolve();
+            },
+            fail: (error) => {
+              console.warn(`清空存储项失败: ${key}`, error);
+              resolve(); // 即使失败也继续
+            }
+          });
+        });
+      });
+      
+      // 等待所有清空操作完成
+      await Promise.all(clearPromises);
+      
+      // 清空文件系统中的用户数据（如头像等）
+      await this.clearUserFiles();
+      
+      console.log('所有数据清空完成');
+      
+    } catch (error) {
+      console.error('清空存储数据失败:', error);
+      throw new Error('清空数据失败，请重试');
+    }
+  },
+
+  // 清空用户文件
+  async clearUserFiles() {
+    try {
+      const fs = wx.getFileSystemManager();
+      
+      // 获取用户数据目录下的所有文件
+      const userDataPath = wx.env.USER_DATA_PATH;
+      
+      fs.readdir({
+        dirPath: userDataPath,
+        success: (res) => {
+          // 删除所有用户文件
+          res.files.forEach(fileName => {
+            const filePath = `${userDataPath}/${fileName}`;
+            fs.unlink({
+              filePath: filePath,
+              success: () => {
+                console.log(`已删除文件: ${fileName}`);
+              },
+              fail: (error) => {
+                console.warn(`删除文件失败: ${fileName}`, error);
+              }
+            });
+          });
+        },
+        fail: (error) => {
+          console.warn('读取用户数据目录失败:', error);
+        }
+      });
+    } catch (error) {
+      console.warn('清空用户文件失败:', error);
+      // 不抛出错误，因为这不是关键操作
     }
   },
 
