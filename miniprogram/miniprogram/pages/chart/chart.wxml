@@ -113,10 +113,14 @@
     <view class="data-summary">
       <text class="summary-title">本周期数据摘要</text>
       <view class="summary-content">
-        <text class="summary-text">周期天数：{{cycleInfo.dayCount}}天</text>
-        <text class="summary-text">体温记录：{{cycleInfo.temperatureCount}}天</text>
-        <text class="summary-text">月经天数：{{cycleInfo.menstrualDays}}天</text>
-        <text class="summary-text">同房次数：{{cycleInfo.intercourseCount}}次</text>
+        <view class="summary-row">
+          <text class="summary-text">周期天数：{{cycleInfo.dayCount}}天</text>
+          <text class="summary-text">体温记录：{{cycleInfo.temperatureCount}}天</text>
+        </view>
+        <view class="summary-row">
+          <text class="summary-text">月经天数：{{cycleInfo.menstrualDays}}天</text>
+          <text class="summary-text">同房次数：{{cycleInfo.intercourseCount}}次</text>
+        </view>
       </view>
     </view>
   </view>

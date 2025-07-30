@@ -278,15 +278,22 @@
 
 .summary-content {
   display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.summary-row {
+  display: flex;
   justify-content: space-between;
+  gap: 16rpx;
 }
 
 .summary-text {
   font-size: 22rpx;
   color: #666;
   flex: 1;
-  min-width: 140rpx;
   text-align: center;
+  padding: 8rpx 16rpx;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 12rpx;
 }
