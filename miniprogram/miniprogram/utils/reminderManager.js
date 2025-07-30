@@ -5,6 +5,9 @@ const { DateUtils } = require('./date');
 class ReminderManager {
   constructor() {
     this.reminders = new Map(); // 存储已设置的提醒
+    this.shownToday = new Set(); // 记录今天已经显示过的提醒
+    this.lastCheckDate = null; // 记录上次检查的日期
+    this.storageKey = 'reminder_shown_today'; // 本地存储键
   }
 
   /**
@@ -22,6 +25,9 @@ class ReminderManager {
    */
   async init() {
     try {
+      // 加载今天已显示的提醒记录
+      await this.loadTodayShownReminders();
+      
       const userSettings = await FertilityStorage.getUserSettings();
       if (userSettings && userSettings.reminders) {
         await this.setupAllReminders(userSettings.reminders);
@@ -32,10 +38,67 @@ class ReminderManager {
   }
 
   /**
+   * 加载今天已显示的提醒记录
+   */
+  async loadTodayShownReminders() {
+    try {
+      const today = DateUtils.getToday();
+      const storedData = wx.getStorageSync(this.storageKey);
+      
+      if (storedData && storedData.date === today) {
+        // 如果是今天的记录，加载已显示的提醒
+        this.shownToday = new Set(storedData.reminders || []);
+        this.lastCheckDate = today;
+      } else {
+        // 如果不是今天的记录，清空记录
+        this.shownToday = new Set();
+        this.lastCheckDate = today;
+        await this.saveTodayShownReminders();
+      }
+    } catch (error) {
+      console.error('加载今天已显示的提醒记录失败:', error);
+      this.shownToday = new Set();
+      this.lastCheckDate = DateUtils.getToday();
+    }
+  }
+
+  /**
+   * 保存今天已显示的提醒记录
+   */
+  async saveTodayShownReminders() {
+    try {
+      const today = DateUtils.getToday();
+      const data = {
+        date: today,
+        reminders: Array.from(this.shownToday)
+      };
+      wx.setStorageSync(this.storageKey, data);
+    } catch (error) {
+      console.error('保存今天已显示的提醒记录失败:', error);
+    }
+  }
+
+  /**
+   * 检查是否需要重置今天的记录
+   */
+  async checkAndResetDailyRecord() {
+    const today = DateUtils.getToday();
+    if (this.lastCheckDate !== today) {
+      // 新的一天，重置记录
+      this.shownToday = new Set();
+      this.lastCheckDate = today;
+      await this.saveTodayShownReminders();
+    }
+  }
+
+  /**
    * 设置所有提醒
    */
   async setupAllReminders(reminders) {
     try {
+      // 检查并重置每日记录
+      await this.checkAndResetDailyRecord();
+      
       // 清除所有现有提醒
       await this.clearAllReminders();
 
@@ -74,31 +137,12 @@ class ReminderManager {
       const nextReminderTime = this.getNextReminderTime(time);
       
       // 设置本地通知
-      wx.requestSubscribeMessage({
-        tmplIds: ['temperature_reminder_template'], // 需要在微信公众平台配置模板
-        success: (res) => {
-          if (res['temperature_reminder_template'] === 'accept') {
-            // 用户同意接收通知
-            this.scheduleLocalNotification({
-              id: reminderId,
-              title: '体温测量提醒',
-              content: '该测量基础体温了，记得在起床前测量哦！',
-              trigger: nextReminderTime,
-              repeat: 'day' // 每天重复
-            });
-          }
-        },
-        fail: (error) => {
-          console.warn('用户拒绝订阅消息:', error);
-          // 即使用户拒绝订阅消息，也可以设置本地提醒
-          this.scheduleLocalNotification({
-            id: reminderId,
-            title: '体温测量提醒',
-            content: '该测量基础体温了，记得在起床前测量哦！',
-            trigger: nextReminderTime,
-            repeat: 'day'
-          });
-        }
+      this.scheduleLocalNotification({
+        id: reminderId,
+        title: '体温测量提醒',
+        content: '该测量基础体温了，记得在起床前测量哦！',
+        trigger: nextReminderTime,
+        repeat: 'day' // 每天重复
       });
 
     } catch (error) {
@@ -224,9 +268,6 @@ class ReminderManager {
    */
   scheduleLocalNotification(options) {
     try {
-      // 微信小程序不支持本地推送通知，这里使用模拟实现
-      // 实际项目中可能需要结合服务端推送或其他方案
-      
       const { id, title, content, trigger, repeat } = options;
       
       // 存储提醒信息
@@ -245,8 +286,13 @@ class ReminderManager {
       
       if (delay > 0) {
         // 设置定时器
-        const timerId = setTimeout(() => {
-          this.showNotification(title, content);
+        const timerId = setTimeout(async () => {
+          // 检查今天是否已经显示过这个提醒
+          await this.checkAndResetDailyRecord();
+          
+          if (!this.shownToday.has(id)) {
+            this.showNotification(title, content, id);
+          }
           
           // 如果是重复提醒，重新设置
           if (repeat === 'day') {
@@ -277,22 +323,30 @@ class ReminderManager {
   /**
    * 显示通知
    */
-  showNotification(title, content) {
+  async showNotification(title, content, reminderId) {
     try {
-      // 显示系统通知（如果支持）
+      // 检查今天是否已经显示过这个提醒
+      if (this.shownToday.has(reminderId)) {
+        console.log(`提醒 ${reminderId} 今天已经显示过，跳过`);
+        return;
+      }
+
+      // 显示系统通知
       wx.showModal({
         title: title,
         content: content,
         showCancel: false,
-        confirmText: '知道了'
+        confirmText: '知道了',
+        success: async () => {
+          // 记录今天已经显示过这个提醒
+          this.shownToday.add(reminderId);
+          await this.saveTodayShownReminders();
+        }
       });
       
-      // 同时显示Toast提示
-      wx.showToast({
-        title: title,
-        icon: 'none',
-        duration: 3000
-      });
+      // 记录今天已经显示过这个提醒（防止用户不点击确认）
+      this.shownToday.add(reminderId);
+      await this.saveTodayShownReminders();
       
       console.log(`显示通知: ${title} - ${content}`);
     } catch (error) {
@@ -345,7 +399,8 @@ class ReminderManager {
           title: reminder.title,
           content: reminder.content,
           trigger: reminder.trigger,
-          repeat: reminder.repeat
+          repeat: reminder.repeat,
+          shownToday: this.shownToday.has(id)
         });
       }
     }
@@ -361,6 +416,19 @@ class ReminderManager {
       console.log('提醒设置已更新');
     } catch (error) {
       console.error('更新提醒设置失败:', error);
+    }
+  }
+
+  /**
+   * 手动重置今天的提醒记录（用于测试）
+   */
+  async resetTodayReminders() {
+    try {
+      this.shownToday = new Set();
+      await this.saveTodayShownReminders();
+      console.log('已重置今天的提醒记录');
+    } catch (error) {
+      console.error('重置今天的提醒记录失败:', error);
     }
   }
 }

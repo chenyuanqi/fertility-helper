@@ -373,7 +373,12 @@ Page({
       const exportData = {
         version: '1.0.0',
         exportDate: new Date().toISOString(),
-        userSettings,
+        appName: '备小孕',
+        userSettings: {
+          ...userSettings,
+          // 移除敏感信息
+          avatar: userSettings.avatar ? '已设置' : '未设置'
+        },
         dayRecords,
         cycles,
         statistics: this.data.statistics
@@ -382,9 +387,9 @@ Page({
       // 将数据转为JSON字符串
       const jsonString = JSON.stringify(exportData, null, 2);
       
-      // 保存到微信文件系统
+      // 保存到微信临时文件系统
       const fs = wx.getFileSystemManager();
-      const fileName = `fertility-backup-${new Date().toISOString().split('T')[0]}.json`;
+      const fileName = `备小孕数据备份-${new Date().toISOString().split('T')[0]}.json`;
       const filePath = `${wx.env.USER_DATA_PATH}/${fileName}`;
       
       fs.writeFile({
@@ -393,10 +398,25 @@ Page({
         encoding: 'utf8',
         success: () => {
           wx.hideLoading();
+          
+          // 显示导出选项
           wx.showModal({
             title: '导出成功',
-            content: `数据已导出到 ${fileName}，您可以通过微信文件管理器查看。`,
-            showCancel: false
+            content: '数据已导出完成，您希望如何处理？',
+            confirmText: '分享给好友',
+            cancelText: '仅保存本地',
+            success: (res) => {
+              if (res.confirm) {
+                // 用户选择分享给好友
+                this.shareExportedFile(filePath, fileName);
+              } else {
+                // 用户选择仅保存本地
+                wx.showToast({
+                  title: '文件已保存到本地',
+                  icon: 'success'
+                });
+              }
+            }
           });
         },
         fail: (error) => {
@@ -413,6 +433,121 @@ Page({
       console.error('导出数据失败:', error);
       wx.showToast({
         title: '导出失败',
+        icon: 'error'
+      });
+    }
+  },
+
+  // 分享导出的文件
+  shareExportedFile(filePath, fileName) {
+    try {
+      // 使用微信的文件分享功能
+      wx.shareFileMessage({
+        filePath: filePath,
+        fileName: fileName,
+        success: () => {
+          wx.showToast({
+            title: '分享成功',
+            icon: 'success'
+          });
+        },
+        fail: (error) => {
+          console.error('分享文件失败:', error);
+          
+          // 如果分享失败，提供备选方案
+          wx.showModal({
+            title: '分享失败',
+            content: '无法直接分享文件，您可以通过以下方式分享数据：\n1. 复制数据内容\n2. 保存到相册后分享截图',
+            confirmText: '复制数据',
+            cancelText: '取消',
+            success: (res) => {
+              if (res.confirm) {
+                this.copyDataToClipboard(filePath);
+              }
+            }
+          });
+        }
+      });
+    } catch (error) {
+      console.error('分享文件异常:', error);
+      
+      // 提供备选的分享方案
+      wx.showModal({
+        title: '分享方式',
+        content: '请选择分享方式：',
+        confirmText: '复制数据',
+        cancelText: '生成二维码',
+        success: (res) => {
+          if (res.confirm) {
+            this.copyDataToClipboard(filePath);
+          } else {
+            this.generateQRCode(filePath);
+          }
+        }
+      });
+    }
+  },
+
+  // 复制数据到剪贴板
+  copyDataToClipboard(filePath) {
+    try {
+      const fs = wx.getFileSystemManager();
+      const data = fs.readFileSync(filePath, 'utf8');
+      
+      wx.setClipboardData({
+        data: data,
+        success: () => {
+          wx.showToast({
+            title: '数据已复制到剪贴板',
+            icon: 'success',
+            duration: 2000
+          });
+          
+          setTimeout(() => {
+            wx.showModal({
+              title: '使用提示',
+              content: '数据已复制到剪贴板，您可以粘贴到微信聊天中发送给好友，或保存到备忘录中。',
+              showCancel: false
+            });
+          }, 2000);
+        },
+        fail: (error) => {
+          console.error('复制到剪贴板失败:', error);
+          wx.showToast({
+            title: '复制失败',
+            icon: 'error'
+          });
+        }
+      });
+    } catch (error) {
+      console.error('读取文件失败:', error);
+      wx.showToast({
+        title: '读取文件失败',
+        icon: 'error'
+      });
+    }
+  },
+
+  // 生成二维码分享（备选方案）
+  generateQRCode(filePath) {
+    try {
+      // 这里可以实现生成包含数据的二维码
+      // 由于数据量可能较大，这里提供一个简化的实现
+      wx.showModal({
+        title: '二维码分享',
+        content: '二维码分享功能正在开发中。建议使用复制数据的方式进行分享。',
+        confirmText: '复制数据',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            this.copyDataToClipboard(filePath);
+          }
+        }
+      });
+    } catch (error) {
+      console.error('生成二维码失败:', error);
+      wx.showToast({
+        title: '生成二维码失败',
         icon: 'error'
       });
     }
@@ -558,17 +693,34 @@ Page({
       activeReminders.forEach((reminder, index) => {
         reminderInfo += `${index + 1}. ${reminder.title}\n`;
         reminderInfo += `   时间: ${reminder.trigger.toLocaleString()}\n`;
-        reminderInfo += `   重复: ${reminder.repeat === 'day' ? '每天' : '不重复'}\n\n`;
+        reminderInfo += `   重复: ${reminder.repeat === 'day' ? '每天' : '不重复'}\n`;
+        reminderInfo += `   今日状态: ${reminder.shownToday ? '已显示' : '未显示'}\n\n`;
       });
       
-      wx.showModal({
-        title: '提醒测试',
-        content: reminderInfo,
-        confirmText: '测试通知',
-        success: (res) => {
-          if (res.confirm) {
-            // 立即显示一个测试通知
-            reminderManager.showNotification('测试提醒', '这是一个测试提醒，提醒功能正常工作！');
+      wx.showActionSheet({
+        itemList: ['查看提醒状态', '测试通知', '重置今日记录'],
+        success: async (res) => {
+          switch (res.tapIndex) {
+            case 0:
+              // 查看提醒状态
+              wx.showModal({
+                title: '提醒状态',
+                content: reminderInfo,
+                showCancel: false
+              });
+              break;
+            case 1:
+              // 测试通知
+              await reminderManager.showNotification('测试提醒', '这是一个测试提醒，提醒功能正常工作！', 'test_reminder');
+              break;
+            case 2:
+              // 重置今日记录
+              await reminderManager.resetTodayReminders();
+              wx.showToast({
+                title: '今日提醒记录已重置',
+                icon: 'success'
+              });
+              break;
           }
         }
       });
