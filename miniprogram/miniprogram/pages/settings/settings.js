@@ -2,6 +2,7 @@
 const { DataManager } = require('../../utils/dataManager');
 const { FertilityStorage } = require('../../utils/storage');
 const { ReminderManager } = require('../../utils/reminderManager');
+const reportGenerator = require('../../utils/reportGenerator');
 
 Page({
   data: {
@@ -980,17 +981,460 @@ Page({
   },
 
   // 生成报告
-  generateReport() {
+  async generateReport() {
+    wx.showActionSheet({
+      itemList: ['生成文本报告', '生成详细数据报告', '自定义报告设置', '打开报告页面'],
+      success: async (res) => {
+        switch (res.tapIndex) {
+          case 0:
+            await this.generateTextReport();
+            break;
+          case 1:
+            await this.generateDetailedReport();
+            break;
+          case 2:
+            await this.showReportSettings();
+            break;
+          case 3:
+            this.openReportPage();
+            break;
+        }
+      }
+    });
+  },
+
+  // 打开报告页面
+  openReportPage() {
+    wx.navigateTo({
+      url: '/pages/report/report'
+    });
+  },
+
+  // 生成文本报告
+  async generateTextReport() {
     wx.showLoading({ title: '正在生成报告...' });
     
-    setTimeout(() => {
+    try {
+      // 生成文本格式的报告
+      const textReport = await reportGenerator.generateCycleReport({
+        cycleCount: 3,
+        format: 'text'
+      });
+      
       wx.hideLoading();
+      
+      // 显示报告选项
       wx.showModal({
-        title: '功能开发中',
-        content: '报告生成功能正在开发中，敬请期待。',
+        title: '报告生成完成',
+        content: '周期分析报告已生成完成，您希望如何处理？',
+        confirmText: '查看报告',
+        cancelText: '分享报告',
+        success: (res) => {
+          if (res.confirm) {
+            this.showReportContent(textReport);
+          } else {
+            this.shareReport(textReport, '备小孕周期分析报告.txt');
+          }
+        }
+      });
+      
+    } catch (error) {
+      wx.hideLoading();
+      console.error('生成报告失败:', error);
+      wx.showModal({
+        title: '生成失败',
+        content: error.message || '报告生成失败，请检查是否有足够的数据记录',
         showCancel: false
       });
-    }, 1500);
+    }
+  },
+
+  // 生成详细数据报告
+  async generateDetailedReport() {
+    wx.showLoading({ title: '正在生成详细报告...' });
+    
+    try {
+      // 生成JSON格式的详细报告
+      const detailedReport = await reportGenerator.generateCycleReport({
+        cycleCount: 5,
+        format: 'json'
+      });
+      
+      wx.hideLoading();
+      
+      // 显示报告摘要
+      const summary = this.generateReportSummary(detailedReport);
+      
+      wx.showModal({
+        title: '详细报告生成完成',
+        content: summary,
+        confirmText: '导出报告',
+        cancelText: '查看摘要',
+        success: (res) => {
+          if (res.confirm) {
+            this.exportDetailedReport(detailedReport);
+          } else {
+            this.showReportSummary(detailedReport);
+          }
+        }
+      });
+      
+    } catch (error) {
+      wx.hideLoading();
+      console.error('生成详细报告失败:', error);
+      wx.showModal({
+        title: '生成失败',
+        content: error.message || '详细报告生成失败，请检查数据完整性',
+        showCancel: false
+      });
+    }
+  },
+
+  // 显示报告设置
+  async showReportSettings() {
+    wx.showActionSheet({
+      itemList: ['分析最近3个周期', '分析最近6个周期', '分析全部周期', '自定义时间范围'],
+      success: async (res) => {
+        let cycleCount;
+        switch (res.tapIndex) {
+          case 0:
+            cycleCount = 3;
+            break;
+          case 1:
+            cycleCount = 6;
+            break;
+          case 2:
+            cycleCount = 999; // 表示全部
+            break;
+          case 3:
+            await this.showCustomRangeSettings();
+            return;
+        }
+        
+        await this.generateCustomReport(cycleCount);
+      }
+    });
+  },
+
+  // 生成自定义报告
+  async generateCustomReport(cycleCount) {
+    wx.showLoading({ title: '正在生成自定义报告...' });
+    
+    try {
+      const report = await reportGenerator.generateCycleReport({
+        cycleCount: cycleCount,
+        format: 'text'
+      });
+      
+      wx.hideLoading();
+      this.showReportContent(report);
+      
+    } catch (error) {
+      wx.hideLoading();
+      console.error('生成自定义报告失败:', error);
+      wx.showToast({
+        title: '生成失败',
+        icon: 'error'
+      });
+    }
+  },
+
+  // 显示自定义时间范围设置
+  async showCustomRangeSettings() {
+    wx.showModal({
+      title: '自定义时间范围',
+      content: '自定义时间范围功能正在开发中，目前支持按周期数量分析。',
+      showCancel: false
+    });
+  },
+
+  // 显示报告内容
+  showReportContent(reportText) {
+    // 由于微信小程序modal内容长度限制，我们需要分页显示或跳转到新页面
+    const maxLength = 1000;
+    
+    if (reportText.length <= maxLength) {
+      wx.showModal({
+        title: '周期分析报告',
+        content: reportText,
+        confirmText: '复制报告',
+        cancelText: '关闭',
+        success: (res) => {
+          if (res.confirm) {
+            this.copyReportToClipboard(reportText);
+          }
+        }
+      });
+    } else {
+      // 报告内容太长，提供其他选项
+      wx.showModal({
+        title: '报告内容较长',
+        content: '报告内容较长，建议复制到剪贴板查看完整内容，或分享给好友。',
+        confirmText: '复制报告',
+        cancelText: '分享报告',
+        success: (res) => {
+          if (res.confirm) {
+            this.copyReportToClipboard(reportText);
+          } else {
+            this.shareReport(reportText, '备小孕周期分析报告.txt');
+          }
+        }
+      });
+    }
+  },
+
+  // 生成报告摘要
+  generateReportSummary(detailedReport) {
+    const summary = detailedReport.summary;
+    const cycleAnalysis = detailedReport.cycleAnalysis;
+    
+    let summaryText = `报告时间：${detailedReport.reportPeriod}\n\n`;
+    summaryText += `数据摘要：\n`;
+    summaryText += `• 记录天数：${summary.totalRecordDays}天\n`;
+    summaryText += `• 平均周期：${summary.averageCycleLength}天\n`;
+    summaryText += `• 周期规律性：${summary.cycleRegularity}\n`;
+    summaryText += `• 体温记录率：${summary.temperatureRecordRate}%\n`;
+    
+    if (cycleAnalysis.cycleCount) {
+      summaryText += `\n周期分析：\n`;
+      summaryText += `• 分析周期数：${cycleAnalysis.cycleCount}个\n`;
+      summaryText += `• 规律性评估：${cycleAnalysis.regularityAssessment}\n`;
+    }
+    
+    summaryText += `\n数据质量：${detailedReport.dataQuality.score}分 (${detailedReport.dataQuality.assessment})`;
+    
+    return summaryText;
+  },
+
+  // 显示报告摘要
+  showReportSummary(detailedReport) {
+    const summary = this.generateReportSummary(detailedReport);
+    
+    wx.showModal({
+      title: '报告摘要',
+      content: summary,
+      confirmText: '查看建议',
+      cancelText: '导出完整报告',
+      success: (res) => {
+        if (res.confirm) {
+          this.showReportRecommendations(detailedReport.recommendations);
+        } else {
+          this.exportDetailedReport(detailedReport);
+        }
+      }
+    });
+  },
+
+  // 显示报告建议
+  showReportRecommendations(recommendations) {
+    if (!recommendations || recommendations.length === 0) {
+      wx.showModal({
+        title: '个性化建议',
+        content: '暂无特别建议，请继续保持良好的记录习惯！',
+        showCancel: false
+      });
+      return;
+    }
+    
+    let recommendationText = '基于您的数据分析，我们为您提供以下建议：\n\n';
+    
+    recommendations.forEach((rec, index) => {
+      const priority = rec.priority === 'high' ? '🔴' : rec.priority === 'medium' ? '🟡' : '🟢';
+      recommendationText += `${priority} ${rec.title}\n${rec.content}\n\n`;
+    });
+    
+    wx.showModal({
+      title: '个性化建议',
+      content: recommendationText,
+      confirmText: '复制建议',
+      cancelText: '知道了',
+      success: (res) => {
+        if (res.confirm) {
+          this.copyReportToClipboard(recommendationText);
+        }
+      }
+    });
+  },
+
+  // 导出详细报告
+  async exportDetailedReport(detailedReport) {
+    wx.showLoading({ title: '正在导出报告...' });
+    
+    try {
+      // 将详细报告转换为JSON字符串
+      const reportJson = JSON.stringify(detailedReport, null, 2);
+      
+      // 保存到临时文件
+      const fs = wx.getFileSystemManager();
+      const fileName = `备小孕周期分析报告-${new Date().toISOString().split('T')[0]}.json`;
+      const filePath = `${wx.env.USER_DATA_PATH}/${fileName}`;
+      
+      fs.writeFile({
+        filePath,
+        data: reportJson,
+        encoding: 'utf8',
+        success: () => {
+          wx.hideLoading();
+          
+          wx.showModal({
+            title: '报告导出成功',
+            content: '详细报告已导出完成，您可以分享给医生或保存备用。',
+            confirmText: '分享报告',
+            cancelText: '复制内容',
+            success: (res) => {
+              if (res.confirm) {
+                this.shareReportFile(filePath, fileName);
+              } else {
+                this.copyReportToClipboard(reportJson);
+              }
+            }
+          });
+        },
+        fail: (error) => {
+          wx.hideLoading();
+          console.error('导出报告失败:', error);
+          
+          // 如果文件保存失败，直接复制到剪贴板
+          wx.showModal({
+            title: '导出失败',
+            content: '文件保存失败，是否复制报告内容到剪贴板？',
+            confirmText: '复制内容',
+            cancelText: '取消',
+            success: (res) => {
+              if (res.confirm) {
+                this.copyReportToClipboard(reportJson);
+              }
+            }
+          });
+        }
+      });
+      
+    } catch (error) {
+      wx.hideLoading();
+      console.error('导出详细报告失败:', error);
+      wx.showToast({
+        title: '导出失败',
+        icon: 'error'
+      });
+    }
+  },
+
+  // 复制报告到剪贴板
+  copyReportToClipboard(reportContent) {
+    wx.setClipboardData({
+      data: reportContent,
+      success: () => {
+        wx.showToast({
+          title: '报告已复制到剪贴板',
+          icon: 'success',
+          duration: 2000
+        });
+        
+        setTimeout(() => {
+          wx.showModal({
+            title: '使用提示',
+            content: '报告内容已复制到剪贴板，您可以粘贴到微信聊天、备忘录或其他应用中查看完整内容。',
+            showCancel: false
+          });
+        }, 2000);
+      },
+      fail: (error) => {
+        console.error('复制到剪贴板失败:', error);
+        wx.showToast({
+          title: '复制失败',
+          icon: 'error'
+        });
+      }
+    });
+  },
+
+  // 分享报告
+  shareReport(reportContent, fileName) {
+    try {
+      // 保存报告到临时文件
+      const fs = wx.getFileSystemManager();
+      const filePath = `${wx.env.USER_DATA_PATH}/${fileName}`;
+      
+      fs.writeFile({
+        filePath,
+        data: reportContent,
+        encoding: 'utf8',
+        success: () => {
+          this.shareReportFile(filePath, fileName);
+        },
+        fail: (error) => {
+          console.error('保存报告文件失败:', error);
+          
+          // 如果文件保存失败，提供备选方案
+          wx.showModal({
+            title: '分享方式',
+            content: '无法创建文件，请选择其他分享方式：',
+            confirmText: '复制内容',
+            cancelText: '取消',
+            success: (res) => {
+              if (res.confirm) {
+                this.copyReportToClipboard(reportContent);
+              }
+            }
+          });
+        }
+      });
+    } catch (error) {
+      console.error('分享报告失败:', error);
+      wx.showToast({
+        title: '分享失败',
+        icon: 'error'
+      });
+    }
+  },
+
+  // 分享报告文件
+  shareReportFile(filePath, fileName) {
+    try {
+      wx.shareFileMessage({
+        filePath: filePath,
+        fileName: fileName,
+        success: () => {
+          wx.showToast({
+            title: '分享成功',
+            icon: 'success'
+          });
+        },
+        fail: (error) => {
+          console.error('分享文件失败:', error);
+          
+          // 分享失败，提供备选方案
+          wx.showModal({
+            title: '分享失败',
+            content: '无法直接分享文件，是否复制报告内容到剪贴板？',
+            confirmText: '复制内容',
+            cancelText: '取消',
+            success: (res) => {
+              if (res.confirm) {
+                // 读取文件内容并复制
+                const fs = wx.getFileSystemManager();
+                try {
+                  const content = fs.readFileSync(filePath, 'utf8');
+                  this.copyReportToClipboard(content);
+                } catch (readError) {
+                  console.error('读取文件失败:', readError);
+                  wx.showToast({
+                    title: '读取文件失败',
+                    icon: 'error'
+                  });
+                }
+              }
+            }
+          });
+        }
+      });
+    } catch (error) {
+      console.error('分享报告文件异常:', error);
+      wx.showToast({
+        title: '分享异常',
+        icon: 'error'
+      });
+    }
   },
 
   // 检查更新

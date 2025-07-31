@@ -1,0 +1,62 @@
+<!--pages/report/report.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="header">
+    <text class="title">周期分析报告</text>
+    <text class="subtitle">基于您的记录数据生成个性化分析</text>
+  </view>
+
+  <!-- 报告类型切换 -->
+  <view class="type-selector">
+    <view class="type-item {{reportType === 'text' ? 'active' : ''}}" 
+          bindtap="switchReportType" data-type="text">
+      <text>文本报告</text>
+    </view>
+    <view class="type-item {{reportType === 'json' ? 'active' : ''}}" 
+          bindtap="switchReportType" data-type="json">
+      <text>详细数据</text>
+    </view>
+  </view>
+
+  <!-- 生成按钮 -->
+  <view class="generate-section" wx:if="{{!hasReport}}">
+    <button class="generate-btn" bindtap="generateReport" loading="{{loading}}">
+      {{loading ? '正在生成...' : '生成报告'}}
+    </button>
+  </view>
+
+  <!-- 报告内容 -->
+  <view class="report-section" wx:if="{{hasReport}}">
+    <view class="report-header">
+      <text class="report-title">{{reportType === 'text' ? '分析报告' : '详细数据'}}</text>
+      <view class="report-actions">
+        <button class="action-btn" bindtap="copyReport" size="mini">复制</button>
+        <button class="action-btn" bindtap="shareReport" size="mini" type="primary">分享</button>
+      </view>
+    </view>
+    
+    <scroll-view class="report-content" scroll-y="true">
+      <text class="report-text" user-select="true">{{reportContent}}</text>
+    </scroll-view>
+    
+    <view class="report-footer">
+      <button class="regenerate-btn" bindtap="generateReport" size="mini">重新生成</button>
+    </view>
+  </view>
+
+  <!-- 使用说明 -->
+  <view class="help-section" wx:if="{{!hasReport && !loading}}">
+    <view class="help-item">
+      <text class="help-icon">📊</text>
+      <text class="help-text">文本报告：易读的分析报告，适合日常查看</text>
+    </view>
+    <view class="help-item">
+      <text class="help-icon">📋</text>
+      <text class="help-text">详细数据：完整的JSON数据，适合专业分析</text>
+    </view>
+    <view class="help-item">
+      <text class="help-icon">💡</text>
+      <text class="help-text">建议至少有一个完整周期的数据记录</text>
+    </view>
+  </view>
+</view>
