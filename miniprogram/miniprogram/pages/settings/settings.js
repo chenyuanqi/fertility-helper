@@ -1008,10 +1008,8 @@ Page({
 
   // 显示帮助
   showHelp() {
-    wx.showModal({
-      title: '使用帮助',
-      content: '帮助文档正在完善中，如有问题请联系客服。',
-      showCancel: false
+    wx.navigateTo({
+      url: '/pages/help/help'
     });
   },
 

@@ -4,7 +4,8 @@
     "pages/record/record",
     "pages/chart/chart",
     "pages/calendar/calendar",
-    "pages/settings/settings"
+    "pages/settings/settings",
+    "pages/help/help"
   ],
   "tabBar": {
     "color": "#999999",
