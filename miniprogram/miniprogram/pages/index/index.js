@@ -1,6 +1,8 @@
 // pages/index/index.js
 const { FertilityStorage } = require('../../utils/storage');
 const { DateUtils } = require('../../utils/date');
+const { OvulationAlgorithm } = require('../../utils/ovulationAlgorithm');
+const { DataAnalysis } = require('../../utils/dataAnalysis');
 
 Page({
   /**
@@ -15,6 +17,13 @@ Page({
       phase: 'unknown',
       nextPeriod: '',
       ovulationPrediction: ''
+    },
+    // 智能分析结果
+    smartAnalysis: {
+      ovulationWindow: null,
+      fertileWindow: null,
+      recommendations: [],
+      confidence: 'low'
     },
     quickStats: {
       temperatureRecords: 0,
@@ -122,6 +131,9 @@ Page({
       
       // 加载快速统计
       await this.loadQuickStats();
+      
+      // 执行智能分析
+      await this.performSmartAnalysis();
       
       console.log('loadPageData completed');
     } catch (error) {
@@ -678,6 +690,203 @@ Page({
         title: '设置失败',
         icon: 'none'
       });
+    }
+  },
+
+  /**
+   * 执行智能分析
+   */
+  async performSmartAnalysis() {
+    try {
+      const dayRecords = await FertilityStorage.getDayRecords();
+      
+      // 准备体温数据
+      const temperatureData = Object.entries(dayRecords)
+        .filter(([date, record]) => record.temperature && record.temperature.temperature)
+        .map(([date, record]) => ({
+          date,
+          temperature: record.temperature.temperature
+        }))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      // 准备月经数据
+      const menstrualData = Object.entries(dayRecords)
+        .filter(([date, record]) => record.menstrual && record.menstrual.flow && record.menstrual.flow !== 'none')
+        .map(([date, record]) => ({
+          date,
+          flow: record.menstrual.flow,
+          isStart: this.isMenstrualStart(date, dayRecords),
+          isEnd: this.isMenstrualEnd(date, dayRecords)
+        }))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      // 准备同房数据
+      const intercourseData = Object.entries(dayRecords)
+        .filter(([date, record]) => record.intercourse && record.intercourse.length > 0)
+        .map(([date, record]) => ({
+          date,
+          times: record.intercourse.length,
+          protection: record.intercourse.some(item => item.protection)
+        }))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      // 执行综合分析
+      const analysisResult = OvulationAlgorithm.comprehensiveAnalysis(
+        temperatureData,
+        menstrualData,
+        intercourseData
+      );
+
+      // 更新智能分析结果
+      this.setData({
+        smartAnalysis: {
+          ovulationWindow: analysisResult.ovulationWindow,
+          fertileWindow: analysisResult.fertileWindow,
+          recommendations: analysisResult.recommendations.slice(0, 3), // 只显示前3个建议
+          confidence: analysisResult.ovulationWindow.confidence || 'low',
+          temperatureAnalysis: analysisResult.temperatureAnalysis,
+          cycleAnalysis: analysisResult.cycleAnalysis
+        }
+      });
+
+      // 更新周期信息
+      if (analysisResult.ovulationWindow.isValid) {
+        const updatedCycleInfo = { ...this.data.cycleInfo };
+        
+        if (analysisResult.ovulationWindow.ovulationDate) {
+          updatedCycleInfo.ovulationPrediction = analysisResult.ovulationWindow.ovulationDate;
+        }
+        
+        if (analysisResult.cycleAnalysis.isValid && analysisResult.cycleAnalysis.nextMenstrualDate) {
+          updatedCycleInfo.nextPeriod = analysisResult.cycleAnalysis.nextMenstrualDate;
+        }
+
+        // 更新当前周期阶段
+        if (analysisResult.fertileWindow.isValid) {
+          const currentStatus = analysisResult.fertileWindow.currentStatus;
+          switch (currentStatus.phase) {
+            case 'optimal':
+            case 'fertile':
+              updatedCycleInfo.phase = 'ovulation';
+              break;
+            case 'pre_fertile':
+              updatedCycleInfo.phase = 'follicular';
+              break;
+            case 'post_fertile':
+              updatedCycleInfo.phase = 'luteal';
+              break;
+          }
+        }
+
+        this.setData({ cycleInfo: updatedCycleInfo });
+      }
+
+      console.log('智能分析完成:', analysisResult);
+    } catch (error) {
+      console.error('智能分析失败:', error);
+      // 设置默认的分析结果
+      this.setData({
+        smartAnalysis: {
+          ovulationWindow: null,
+          fertileWindow: null,
+          recommendations: [{
+            type: 'data_quality',
+            priority: 'high',
+            title: '开始记录数据',
+            content: '建议每天记录体温和月经信息，以获得更准确的排卵预测'
+          }],
+          confidence: 'low'
+        }
+      });
+    }
+  },
+
+  /**
+   * 判断是否为月经开始日
+   */
+  isMenstrualStart(date, dayRecords) {
+    const currentRecord = dayRecords[date];
+    if (!currentRecord || !currentRecord.menstrual || currentRecord.menstrual.flow === 'none') {
+      return false;
+    }
+
+    // 检查前一天是否有月经记录
+    const previousDate = DateUtils.subtractDays(date, 1);
+    const previousRecord = dayRecords[previousDate];
+    
+    return !previousRecord || !previousRecord.menstrual || previousRecord.menstrual.flow === 'none';
+  },
+
+  /**
+   * 判断是否为月经结束日
+   */
+  isMenstrualEnd(date, dayRecords) {
+    const currentRecord = dayRecords[date];
+    if (!currentRecord || !currentRecord.menstrual || currentRecord.menstrual.flow === 'none') {
+      return false;
+    }
+
+    // 检查后一天是否有月经记录
+    const nextDate = DateUtils.addDays(date, 1);
+    const nextRecord = dayRecords[nextDate];
+    
+    return !nextRecord || !nextRecord.menstrual || nextRecord.menstrual.flow === 'none';
+  },
+
+  /**
+   * 查看智能分析详情
+   */
+  viewSmartAnalysis() {
+    if (!this.data.smartAnalysis.ovulationWindow && !this.data.smartAnalysis.fertileWindow) {
+      wx.showToast({
+        title: '暂无分析数据',
+        icon: 'none'
+      });
+      return;
+    }
+
+    // 跳转到图表页面查看详细分析
+    wx.switchTab({
+      url: '/pages/chart/chart'
+    });
+  },
+
+  /**
+   * 获取易孕期状态文本
+   */
+  getFertileStatusText() {
+    if (!this.data.smartAnalysis.fertileWindow || !this.data.smartAnalysis.fertileWindow.isValid) {
+      return '暂无预测';
+    }
+
+    const status = this.data.smartAnalysis.fertileWindow.currentStatus;
+    switch (status.phase) {
+      case 'optimal':
+        return '最佳受孕期';
+      case 'fertile':
+        return '易孕期';
+      case 'pre_fertile':
+        return `${status.daysToFertile}天后进入易孕期`;
+      case 'post_fertile':
+        return '易孕期已过';
+      default:
+        return '暂无预测';
+    }
+  },
+
+  /**
+   * 获取置信度文本
+   */
+  getConfidenceText() {
+    switch (this.data.smartAnalysis.confidence) {
+      case 'high':
+        return '高准确度';
+      case 'medium':
+        return '中等准确度';
+      case 'low':
+        return '低准确度';
+      default:
+        return '暂无数据';
     }
   },
 
