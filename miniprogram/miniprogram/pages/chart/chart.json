@@ -1,6 +1,6 @@
 {
   "navigationBarTitleText": "图表分析",
   "usingComponents": {
-    "simple-chart": "/components/simple-chart/simple-chart"
+    "simple-chart": "../../components/simple-chart/simple-chart"
   }
 }
