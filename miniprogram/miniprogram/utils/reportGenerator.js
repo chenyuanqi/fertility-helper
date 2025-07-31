@@ -4,9 +4,17 @@
  */
 
 const { DataAnalysis } = require('./dataAnalysis');
-const { OvulationAlgorithm } = require('./ovulationAlgorithm');
 const { FertilityStorage } = require('./storage');
 const { DateUtils } = require('./date');
+
+// 尝试加载排卵算法模块，如果失败则使用null
+let OvulationAlgorithm = null;
+try {
+  const ovulationModule = require('./ovulationAlgorithm');
+  OvulationAlgorithm = ovulationModule.OvulationAlgorithm || ovulationModule;
+} catch (error) {
+  console.warn('排卵算法模块加载失败，将使用简化分析:', error);
+}
 
 class ReportGenerator {
   constructor() {
@@ -220,27 +228,142 @@ class ReportGenerator {
    * 生成生育力分析
    */
   async generateFertilityAnalysis(dayRecords) {
+    // 如果排卵算法模块不可用，直接使用简化分析
+    if (!this.ovulationAlgorithm) {
+      return this.generateSimpleFertilityAnalysis(dayRecords);
+    }
+    
     try {
-      const prediction = await this.ovulationAlgorithm.predictOvulation();
-      const currentStatus = await this.ovulationAlgorithm.getCurrentFertilityStatus();
+      // 准备数据用于排卵算法分析
+      const temperatureData = this.prepareTemperatureData(dayRecords);
+      const menstrualData = this.prepareMenstrualData(dayRecords);
+      
+      // 使用排卵算法进行综合分析
+      const analysis = this.ovulationAlgorithm.comprehensiveAnalysis(
+        temperatureData,
+        menstrualData,
+        []
+      );
+      
+      let currentStatus = '未知';
+      let confidence = '低';
+      let nextOvulation = '无法预测';
+      let fertilityWindow = '无法确定';
+      
+      if (analysis.fertileWindow && analysis.fertileWindow.isValid) {
+        const status = analysis.fertileWindow.currentStatus;
+        currentStatus = status.description || '未知';
+        confidence = analysis.fertileWindow.confidence || '低';
+        
+        if (analysis.ovulationWindow && analysis.ovulationWindow.isValid) {
+          nextOvulation = this.formatDate(analysis.ovulationWindow.ovulationDate);
+          fertilityWindow = `${this.formatDate(analysis.fertileWindow.fertileStart)} - ${this.formatDate(analysis.fertileWindow.fertileEnd)}`;
+        }
+      }
       
       return {
-        currentStatus: currentStatus.status || '未知',
-        confidence: currentStatus.confidence || '低',
-        nextOvulation: prediction.nextOvulationDate || '无法预测',
-        fertilityWindow: prediction.fertilityWindow || '无法确定',
-        recommendations: this.generateFertilityRecommendations(currentStatus, prediction)
+        currentStatus,
+        confidence,
+        nextOvulation,
+        fertilityWindow,
+        recommendations: this.generateFertilityRecommendations({ status: currentStatus, confidence }, { nextOvulationDate: nextOvulation })
       };
     } catch (error) {
       console.error('生育力分析失败:', error);
-      return {
-        currentStatus: '分析失败',
-        confidence: '低',
-        nextOvulation: '无法预测',
-        fertilityWindow: '无法确定',
-        recommendations: ['建议完善体温记录以提高预测准确性']
-      };
+      // 提供简化的生育力分析
+      return this.generateSimpleFertilityAnalysis(dayRecords);
     }
+  }
+
+  /**
+   * 准备体温数据用于排卵算法
+   */
+  prepareTemperatureData(dayRecords) {
+    return Object.keys(dayRecords)
+      .filter(date => dayRecords[date].temperature && dayRecords[date].temperature.temperature)
+      .map(date => ({
+        date,
+        temperature: dayRecords[date].temperature.temperature
+      }))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+  }
+
+  /**
+   * 准备月经数据用于排卵算法
+   */
+  prepareMenstrualData(dayRecords) {
+    return Object.keys(dayRecords)
+      .filter(date => dayRecords[date].menstrual && dayRecords[date].menstrual.flow && dayRecords[date].menstrual.flow !== 'none')
+      .map(date => ({
+        date,
+        flow: dayRecords[date].menstrual.flow,
+        isStart: dayRecords[date].menstrual.isStart || false,
+        isEnd: dayRecords[date].menstrual.isEnd || false
+      }))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+  }
+
+  /**
+   * 生成简化的生育力分析（当排卵算法不可用时）
+   */
+  generateSimpleFertilityAnalysis(dayRecords) {
+    const dates = Object.keys(dayRecords).sort();
+    const today = new Date().toISOString().split('T')[0];
+    
+    // 查找最近的月经开始日期
+    let lastMenstrualStart = null;
+    for (let i = dates.length - 1; i >= 0; i--) {
+      const date = dates[i];
+      const record = dayRecords[date];
+      if (record.menstrual && record.menstrual.flow && record.menstrual.flow !== 'none') {
+        if (record.menstrual.isStart || !lastMenstrualStart) {
+          lastMenstrualStart = date;
+          break;
+        }
+      }
+    }
+    
+    let currentStatus = '未知';
+    let nextOvulation = '无法预测';
+    let fertilityWindow = '无法确定';
+    
+    if (lastMenstrualStart) {
+      const daysSinceLastPeriod = Math.floor(
+        (new Date(today) - new Date(lastMenstrualStart)) / (1000 * 60 * 60 * 24)
+      );
+      
+      // 简单的周期估算
+      if (daysSinceLastPeriod >= 10 && daysSinceLastPeriod <= 18) {
+        currentStatus = '可能易孕期';
+        fertilityWindow = '排卵期前后';
+      } else if (daysSinceLastPeriod >= 12 && daysSinceLastPeriod <= 16) {
+        currentStatus = '排卵期';
+        fertilityWindow = '最佳受孕时机';
+      } else if (daysSinceLastPeriod < 10) {
+        currentStatus = '月经后期';
+        fertilityWindow = '非易孕期';
+      } else {
+        currentStatus = '黄体期';
+        fertilityWindow = '非易孕期';
+      }
+      
+      // 估算下次排卵日
+      const estimatedNextOvulation = new Date(lastMenstrualStart);
+      estimatedNextOvulation.setDate(estimatedNextOvulation.getDate() + 28 + 14); // 假设28天周期
+      nextOvulation = this.formatDate(estimatedNextOvulation.toISOString().split('T')[0]);
+    }
+    
+    return {
+      currentStatus,
+      confidence: '低',
+      nextOvulation,
+      fertilityWindow,
+      recommendations: [
+        '建议完善体温记录以提高预测准确性',
+        '坚持记录月经周期有助于更准确的分析',
+        '如需专业指导，请咨询妇科医生'
+      ]
+    };
   }
 
   /**
