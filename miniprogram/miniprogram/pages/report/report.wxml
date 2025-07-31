@@ -59,4 +59,12 @@
       <text class="help-text">建议至少有一个完整周期的数据记录</text>
     </view>
   </view>
+
+  <!-- 隐藏的canvas用于生成图片 -->
+  <canvas 
+    id="reportCanvas" 
+    canvas-id="reportCanvas"
+    style="position: fixed; top: -9999px; left: -9999px; width: 375px; height: 600px;"
+    type="2d">
+  </canvas>
 </view>

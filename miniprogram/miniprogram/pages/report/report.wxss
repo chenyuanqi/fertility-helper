@@ -93,13 +93,24 @@
 
 .report-actions {
   display: flex;
-  gap: 20rpx;
+  gap: 10rpx;
 }
 
 .action-btn {
   padding: 10rpx 20rpx;
   font-size: 24rpx;
-  border-radius: 20rpx;
+  border-radius: 8rpx;
+  min-width: 80rpx;
+}
+
+.action-btn[type="primary"] {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+}
+
+.action-btn[type="primary"]:active {
+  opacity: 0.8;
 }
 
 .report-content {
