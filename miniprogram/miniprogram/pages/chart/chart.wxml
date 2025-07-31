@@ -74,7 +74,7 @@
             chart-data="{{chartData}}" 
             view-mode="{{viewMode}}"
             width="{{chartData.length > 15 ? chartData.length * 50 : 750}}"
-            height="400">
+            height="450">
           </simple-chart>
         </view>
       </scroll-view>

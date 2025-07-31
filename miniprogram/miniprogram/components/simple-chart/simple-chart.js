@@ -92,7 +92,8 @@ Component({
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, width, height);
       
-      const padding = { top: 20, right: 20, bottom: 60, left: 40 };
+      // 增加顶部空间以容纳月经和同房标记
+      const padding = { top: 60, right: 20, bottom: 60, left: 40 };
       const chartWidth = width - padding.left - padding.right;
       const chartHeight = height - padding.top - padding.bottom;
       
@@ -161,6 +162,38 @@ Component({
         ctx.fillText(`${temp.toFixed(1)}°C`, padding.left - 5, y + 4);
       }
       
+      // 绘制纵向网格线（日期对应）
+      const dataLength = this.data.chartData.length;
+      
+      // 计算纵向网格线的间距
+      const dateSpacing = chartWidth / Math.max(1, dataLength - 1);
+      const minSpacing = 25; // 最小间距，避免网格线过密
+      
+      // 如果日期太密集，则隔几个显示一条纵向网格线
+      let step = 1;
+      if (dateSpacing < minSpacing && dataLength > 15) {
+        step = Math.max(1, Math.floor(dataLength / 15)); // 最多显示15条纵向网格线
+      }
+      
+      // 绘制纵向网格线
+      for (let i = 0; i < dataLength; i += step) {
+        const x = padding.left + (i / Math.max(1, dataLength - 1)) * chartWidth;
+        
+        ctx.beginPath();
+        ctx.moveTo(x, padding.top);
+        ctx.lineTo(x, padding.top + chartHeight);
+        ctx.stroke();
+      }
+      
+      // 确保显示最后一条纵向网格线
+      if (dataLength > 1) {
+        const lastX = padding.left + chartWidth;
+        ctx.beginPath();
+        ctx.moveTo(lastX, padding.top);
+        ctx.lineTo(lastX, padding.top + chartHeight);
+        ctx.stroke();
+      }
+      
       ctx.setLineDash([]);
     },
 
@@ -200,27 +233,31 @@ Component({
           ctx.fillText(`${day.temperature.toFixed(1)}`, x, y - 10);
         }
         
-        // 在全部数据模式下绘制月经和同房标记
+        // 在全部数据模式下绘制月经和同房标记 - 标记在日期上方
         if (this.data.viewMode === 'all') {
-          const baseY = padding.top + chartHeight + 10;
-          
-          // 月经标记
+          // 月经标记 - 在图表顶部上方
           if (day.menstrual) {
-            const colors = { light: '#ffb3ba', medium: '#ff6b6b', heavy: '#e74c3c' };
+            const colors = { light: '#ffcccb', medium: '#ff6b6b', heavy: '#e74c3c' };
+            const markY = padding.top - 30;
+            
+            // 绘制月经标记矩形
             ctx.fillStyle = colors[day.menstrual] || '#ff6b6b';
-            ctx.fillRect(x - 3, baseY, 6, 15);
+            ctx.fillRect(x - 5, markY, 10, 8);
             
             // 白色边框
             ctx.strokeStyle = '#fff';
             ctx.lineWidth = 1;
-            ctx.strokeRect(x - 3, baseY, 6, 15);
+            ctx.strokeRect(x - 5, markY, 10, 8);
           }
           
-          // 同房标记
+          // 同房标记 - 在图表顶部上方，如果有月经记录则在更上方
           if (day.intercourse) {
+            const markY = day.menstrual ? padding.top - 45 : padding.top - 30;
+            
+            // 绘制同房标记圆形
             ctx.fillStyle = '#4ecdc4';
             ctx.beginPath();
-            ctx.arc(x, baseY + 25, 5, 0, 2 * Math.PI);
+            ctx.arc(x, markY + 4, 5, 0, 2 * Math.PI);
             ctx.fill();
             
             // 白色边框
@@ -228,12 +265,12 @@ Component({
             ctx.lineWidth = 1;
             ctx.stroke();
             
-            // 多次标记
+            // 如果有多次同房，显示数字
             if (day.intercourse > 1) {
               ctx.fillStyle = '#fff';
-              ctx.font = '8px sans-serif';
+              ctx.font = '7px sans-serif';
               ctx.textAlign = 'center';
-              ctx.fillText(day.intercourse.toString(), x, baseY + 28);
+              ctx.fillText(day.intercourse.toString(), x, markY + 6);
             }
           }
         }
@@ -259,35 +296,70 @@ Component({
     },
 
     /**
-     * 绘制日期标签
+     * 绘制日期标签 - 显示所有日期，格式为 MMDD
      */
     drawDateLabels(ctx, padding, chartWidth, height) {
       const dataLength = this.data.chartData.length;
-      const maxLabels = Math.min(8, dataLength);
-      const step = Math.max(1, Math.floor(dataLength / maxLabels));
       
       ctx.fillStyle = '#666';
-      ctx.font = '11px sans-serif';
+      ctx.font = '9px sans-serif';
       ctx.textAlign = 'center';
       
-      // 绘制选定的日期标签
+      // 计算每个日期的间距
+      const dateSpacing = chartWidth / Math.max(1, dataLength - 1);
+      const minSpacing = 18; // 进一步减小最小间距，显示更多日期
+      
+      // 如果日期太密集，则隔几个显示一个
+      let step = 1;
+      if (dateSpacing < minSpacing && dataLength > 20) {
+        step = Math.max(1, Math.floor(dataLength / 20)); // 最多显示20个日期标签
+      }
+      
+      // 绘制日期标签
+      const displayedIndices = new Set();
+      
+      // 优先显示关键日期（有数据的日期）
       for (let i = 0; i < dataLength; i += step) {
         const day = this.data.chartData[i];
-        if (day && day.dateDisplay) {
+        if (day && day.date) {
           const x = padding.left + (i / Math.max(1, dataLength - 1)) * chartWidth;
           const y = height - 15;
           
-          ctx.fillText(day.dateDisplay, x, y);
+          // 格式化日期为 MMDD 格式
+          const date = new Date(day.date);
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const dayNum = String(date.getDate()).padStart(2, '0');
+          const dateStr = month + dayNum;
+          
+          ctx.fillText(dateStr, x, y);
+          displayedIndices.add(i);
         }
       }
       
-      // 确保显示最后一个日期
-      if (dataLength > 1) {
+      // 确保显示第一个和最后一个日期
+      if (!displayedIndices.has(0)) {
+        const firstDay = this.data.chartData[0];
+        if (firstDay && firstDay.date) {
+          const x = padding.left;
+          const y = height - 15;
+          const date = new Date(firstDay.date);
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const dayNum = String(date.getDate()).padStart(2, '0');
+          const dateStr = month + dayNum;
+          ctx.fillText(dateStr, x, y);
+        }
+      }
+      
+      if (dataLength > 1 && !displayedIndices.has(dataLength - 1)) {
         const lastDay = this.data.chartData[dataLength - 1];
-        if (lastDay && lastDay.dateDisplay) {
+        if (lastDay && lastDay.date) {
           const x = padding.left + chartWidth;
           const y = height - 15;
-          ctx.fillText(lastDay.dateDisplay, x, y);
+          const date = new Date(lastDay.date);
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const dayNum = String(date.getDate()).padStart(2, '0');
+          const dateStr = month + dayNum;
+          ctx.fillText(dateStr, x, y);
         }
       }
     }
