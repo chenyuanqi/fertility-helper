@@ -179,43 +179,61 @@ Page({
     try {
       const cycles = await FertilityStorage.getCycles();
       
-      // 简化的周期信息计算
+      // 初始化周期信息
       const cycleInfo = {
         cycleDay: 0,
         phase: 'unknown',
         nextPeriod: '',
-        ovulationPrediction: ''
+        ovulationPrediction: '',
+        hasCycleData: false
       };
       
+      // 只有当存在有效周期数据时才计算周期信息
       if (cycles && cycles.length > 0) {
         const lastCycle = cycles[cycles.length - 1];
         if (lastCycle && lastCycle.startDate) {
           const daysSinceStart = DateUtils.getDaysDifference(lastCycle.startDate, this.data.currentDate);
-          cycleInfo.cycleDay = daysSinceStart + 1;
           
-          // 简单的周期阶段判断
-          if (daysSinceStart < 5) {
-            cycleInfo.phase = 'menstrual';
-          } else if (daysSinceStart < 14) {
-            cycleInfo.phase = 'follicular';
-          } else if (daysSinceStart < 16) {
-            cycleInfo.phase = 'ovulation';
-          } else {
-            cycleInfo.phase = 'luteal';
+          // 只有当天数合理时才显示周期信息（避免显示过大的天数）
+          if (daysSinceStart >= 0 && daysSinceStart <= 60) {
+            cycleInfo.cycleDay = daysSinceStart + 1;
+            cycleInfo.hasCycleData = true;
+            
+            // 简单的周期阶段判断
+            if (daysSinceStart < 5) {
+              cycleInfo.phase = 'menstrual';
+            } else if (daysSinceStart < 14) {
+              cycleInfo.phase = 'follicular';
+            } else if (daysSinceStart < 16) {
+              cycleInfo.phase = 'ovulation';
+            } else {
+              cycleInfo.phase = 'luteal';
+            }
+            
+            // 预测下次月经
+            const averageCycleLength = this.data.userSettings?.personalInfo?.averageCycleLength || 28;
+            cycleInfo.nextPeriod = DateUtils.formatDisplayDate(DateUtils.addDays(lastCycle.startDate, averageCycleLength));
+            
+            // 预测排卵日
+            cycleInfo.ovulationPrediction = DateUtils.formatDisplayDate(DateUtils.addDays(lastCycle.startDate, averageCycleLength - 14));
           }
-          
-          // 预测下次月经
-          const averageCycleLength = this.data.userSettings?.personalInfo?.averageCycleLength || 28;
-          cycleInfo.nextPeriod = DateUtils.addDays(lastCycle.startDate, averageCycleLength);
-          
-          // 预测排卵日
-          cycleInfo.ovulationPrediction = DateUtils.addDays(lastCycle.startDate, averageCycleLength - 14);
         }
       }
       
       this.setData({ cycleInfo });
+      console.log('周期信息加载完成:', cycleInfo);
     } catch (error) {
       console.error('加载周期信息失败:', error);
+      // 设置默认的空周期信息
+      this.setData({
+        cycleInfo: {
+          cycleDay: 0,
+          phase: 'unknown',
+          nextPeriod: '',
+          ovulationPrediction: '',
+          hasCycleData: false
+        }
+      });
     }
   },
 

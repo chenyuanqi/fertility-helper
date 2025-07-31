@@ -8,16 +8,27 @@
   <!-- 主要内容 -->
   <view wx:else class="chart-content">
     
+    <!-- 无数据提示 -->
+    <view wx:if="{{cycles.length === 0}}" class="no-data-container">
+      <view class="no-data-content">
+        <text class="no-data-icon">📊</text>
+        <text class="no-data-title">暂无周期数据</text>
+        <text class="no-data-desc">请先在首页设置周期开始日期，开始记录您的生理周期</text>
+        <button class="btn btn-primary" bindtap="goToIndex">去设置周期</button>
+      </view>
+    </view>
+    
     <!-- 1. 顶部周期信息 -->
-    <view class="cycle-header">
+    <view wx:else class="cycle-header">
       <view class="cycle-navigation">
         <button class="nav-button" bindtap="onPreviousCycle">
           <text class="nav-icon">‹</text>
         </button>
         
-        <view class="cycle-title">
+        <view class="cycle-title" bindlongpress="showCycleMenu">
           <text class="cycle-name">第{{currentCycleIndex + 1}}个周期</text>
           <text class="cycle-range">{{cycleInfo.startDate}} 至 {{cycleInfo.endDate}}</text>
+          <text class="cycle-edit-hint">长按编辑</text>
         </view>
         
         <button class="nav-button" bindtap="onNextCycle">

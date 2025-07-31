@@ -297,3 +297,69 @@
   background: rgba(102, 126, 234, 0.1);
   border-radius: 12rpx;
 }
+
+/* 无数据提示 */
+.no-data-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.no-data-content {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10rpx);
+  border-radius: 24rpx;
+  padding: 60rpx 40rpx;
+  text-align: center;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+  max-width: 500rpx;
+}
+
+.no-data-icon {
+  font-size: 80rpx;
+  display: block;
+  margin-bottom: 24rpx;
+}
+
+.no-data-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #2c3e50;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.no-data-desc {
+  font-size: 26rpx;
+  color: #7f8c8d;
+  line-height: 1.5;
+  display: block;
+  margin-bottom: 40rpx;
+}
+
+.btn {
+  padding: 20rpx 40rpx;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.btn-primary:active {
+  background: #5a67d8;
+  transform: scale(0.95);
+}
+
+/* 周期管理 */
+.cycle-edit-hint {
+  display: block;
+  font-size: 20rpx;
+  color: #bbb;
+  margin-top: 8rpx;
+}

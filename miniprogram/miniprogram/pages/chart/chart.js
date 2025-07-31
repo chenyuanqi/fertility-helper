@@ -55,19 +55,6 @@ Page({
     try {
       let cycles = await FertilityStorage.getCycles() || [];
       
-      // 如果没有周期数据，创建当前周期
-      if (cycles.length === 0) {
-        const today = DateUtils.getToday();
-        const defaultCycle = {
-          id: `cycle_${Date.now()}`,
-          startDate: DateUtils.subtractDays(today, 29),
-          endDate: today,
-          isComplete: false
-        };
-        cycles = [defaultCycle];
-        await FertilityStorage.saveCycles(cycles);
-      }
-      
       // 确保每个周期都有结束日期
       const userSettings = await FertilityStorage.getUserSettings();
       cycles = cycles.map(cycle => {
@@ -80,7 +67,7 @@ Page({
       
       this.setData({ 
         cycles,
-        currentCycleIndex: cycles.length - 1 // 默认显示最新周期
+        currentCycleIndex: cycles.length > 0 ? cycles.length - 1 : 0 // 默认显示最新周期
       });
       
       console.log('周期数据加载完成:', cycles.length, '个周期');
@@ -99,10 +86,27 @@ Page({
       this.setData({ isLoading: true });
       
       const { cycles, currentCycleIndex } = this.data;
-      if (!cycles || cycles.length === 0) return;
+      if (!cycles || cycles.length === 0) {
+        this.setData({ 
+          chartData: [],
+          cycleInfo: {
+            startDate: '',
+            endDate: '',
+            dayCount: 0,
+            averageTemp: 0,
+            predictedOvulation: '',
+            temperatureCount: 0
+          },
+          isLoading: false 
+        });
+        return;
+      }
       
       const currentCycle = cycles[currentCycleIndex];
-      if (!currentCycle) return;
+      if (!currentCycle) {
+        this.setData({ isLoading: false });
+        return;
+      }
       
       // 获取周期日期范围内的所有数据
       const dayRecords = await FertilityStorage.getDayRecords();
@@ -258,6 +262,126 @@ Page({
     this.setData({
       canScrollLeft: scrollLeft > 0,
       canScrollRight: scrollLeft < scrollWidth - containerWidth
+    });
+  },
+
+  /**
+   * 跳转到首页设置周期
+   */
+  goToIndex() {
+    wx.switchTab({
+      url: '/pages/index/index'
+    });
+  },
+
+  /**
+   * 显示周期管理菜单
+   */
+  showCycleMenu() {
+    const { cycles, currentCycleIndex } = this.data;
+    if (!cycles || cycles.length === 0) return;
+
+    wx.showActionSheet({
+      itemList: ['编辑周期', '删除周期', '新建周期'],
+      success: (res) => {
+        switch (res.tapIndex) {
+          case 0:
+            this.editCurrentCycle();
+            break;
+          case 1:
+            this.deleteCurrentCycle();
+            break;
+          case 2:
+            this.createNewCycle();
+            break;
+        }
+      }
+    });
+  },
+
+  /**
+   * 编辑当前周期
+   */
+  editCurrentCycle() {
+    const { cycles, currentCycleIndex } = this.data;
+    const currentCycle = cycles[currentCycleIndex];
+    
+    wx.showModal({
+      title: '编辑周期',
+      content: `当前周期：${currentCycle.startDate} 至 ${currentCycle.endDate}`,
+      showCancel: true,
+      confirmText: '去首页编辑',
+      success: (res) => {
+        if (res.confirm) {
+          wx.switchTab({
+            url: '/pages/index/index'
+          });
+        }
+      }
+    });
+  },
+
+  /**
+   * 删除当前周期
+   */
+  async deleteCurrentCycle() {
+    const { cycles, currentCycleIndex } = this.data;
+    
+    wx.showModal({
+      title: '删除周期',
+      content: '确定要删除这个周期吗？此操作不可恢复。',
+      showCancel: true,
+      confirmText: '删除',
+      confirmColor: '#ff4444',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            // 删除周期
+            cycles.splice(currentCycleIndex, 1);
+            await FertilityStorage.saveCycles(cycles);
+            
+            // 调整当前周期索引
+            const newIndex = Math.max(0, Math.min(currentCycleIndex, cycles.length - 1));
+            this.setData({ 
+              cycles,
+              currentCycleIndex: newIndex 
+            });
+            
+            // 重新加载数据
+            await this.loadCurrentCycleData();
+            
+            wx.showToast({
+              title: '周期已删除',
+              icon: 'success'
+            });
+          } catch (error) {
+            console.error('删除周期失败:', error);
+            wx.showToast({
+              title: '删除失败',
+              icon: 'none'
+            });
+          }
+        }
+      }
+    });
+  },
+
+  /**
+   * 创建新周期
+   */
+  createNewCycle() {
+    wx.showModal({
+      title: '新建周期',
+      content: '请到首页设置新的周期开始日期',
+      showCancel: true,
+      confirmText: '去设置',
+      success: (res) => {
+        if (res.confirm) {
+          wx.switchTab({
+            url: '/pages/index/index'
+          });
+        }
+      }
     });
   },
 

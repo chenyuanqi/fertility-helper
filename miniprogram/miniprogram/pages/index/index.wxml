@@ -43,40 +43,45 @@
     <!-- 周期信息卡片 -->
     <view class="card cycle-card">
       <view class="card-body">
-        <!-- 周期天数单独一行 -->
-        <view wx:if="{{cycleInfo.cycleDay > 0}}" class="cycle-day-info">
-          <text class="cycle-day-text">当前周期第 {{cycleInfo.cycleDay || 0}} 天</text>
+        <!-- 有周期数据时显示 -->
+        <view wx:if="{{cycleInfo.hasCycleData && cycleInfo.cycleDay > 0}}" class="cycle-info-content">
+          <!-- 周期天数 -->
+          <view class="cycle-day-info">
+            <text class="cycle-day-text">当前周期第 {{cycleInfo.cycleDay}} 天</text>
+            <text class="cycle-edit-btn" bindtap="showCycleStartModal">修改</text>
+          </view>
+          
+          <!-- 预测信息 -->
+          <view class="predictions">
+            <view class="prediction-cards">
+              <view class="prediction-card" wx:if="{{cycleInfo.nextPeriod}}">
+                <view class="prediction-content">
+                  <text class="prediction-label">下次月经（预测）</text>
+                  <text class="prediction-date">{{cycleInfo.nextPeriod}}</text>
+                </view>
+              </view>
+              <view class="prediction-card" wx:if="{{cycleInfo.ovulationPrediction}}">
+                <view class="prediction-content">
+                  <text class="prediction-label">排卵日（预测）</text>
+                  <text class="prediction-date">{{cycleInfo.ovulationPrediction}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
         </view>
         
         <!-- 未设置周期提示 -->
         <view wx:else class="no-cycle-info" bindtap="showCycleStartModal">
-          <text class="no-cycle-text">点击设置周期开始日期</text>
-          <text class="no-cycle-desc">记录您的月经第一天，开启周期追踪</text>
-        </view>
-        
-        <!-- 预测信息 -->
-        <view class="predictions" wx:if="{{cycleInfo.cycleDay > 0}}">
-          <view class="prediction-cards">
-            <view class="prediction-card" wx:if="{{cycleInfo.nextPeriod}}">
-              <view class="prediction-content">
-                <text class="prediction-label">下次月经（预测）</text>
-                <text class="prediction-date">{{cycleInfo.nextPeriod}}</text>
-              </view>
-            </view>
-            <view class="prediction-card" wx:if="{{cycleInfo.ovulationPrediction}}">
-              <view class="prediction-content">
-                <text class="prediction-label">排卵日（预测）</text>
-                <text class="prediction-date">{{cycleInfo.ovulationPrediction}}</text>
-              </view>
-            </view>
-          </view>
+          <view class="no-cycle-icon">📅</view>
+          <text class="no-cycle-text">设置周期开始日期</text>
+          <text class="no-cycle-desc">记录您的月经第一天，开启智能周期追踪</text>
         </view>
       </view>
     </view>
 
     <!-- 今日记录卡片 -->
     <!-- 智能分析卡片 -->
-    <view class="card smart-analysis-card" wx:if="{{smartAnalysis.ovulationWindow || smartAnalysis.fertileWindow}}">
+    <view class="card smart-analysis-card" wx:if="{{smartAnalysis.ovulationWindow && smartAnalysis.fertileWindow && (quickStats.temperatureRecords >= 10 || quickStats.menstrualDays >= 5)}}">
       <view class="card-header">
         <text class="card-title">智能分析</text>
         <view class="confidence-badge confidence-{{smartAnalysis.confidence}}">
