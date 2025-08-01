@@ -105,10 +105,12 @@ Page({
   },
 
   /**
+  /**
    * 生命周期函数--监听页面显示
    */
   onShow() {
-    // 页面显示时刷新数据
+    console.log('=== Index page onShow - 页面显示时刷新数据 ===');
+    // 页面显示时刷新数据，确保获取最新的周期信息
     this.loadPageData();
   },
 
@@ -173,11 +175,15 @@ Page({
   },
 
   /**
+  /**
    * 加载周期信息
    */
   async loadCycleInfo() {
     try {
+      console.log('=== 开始加载周期信息 ===');
       const cycles = await FertilityStorage.getCycles();
+      console.log('获取到的周期数据:', cycles);
+      console.log('周期数据数量:', cycles ? cycles.length : 0);
       
       // 初始化周期信息
       const cycleInfo = {
@@ -190,9 +196,15 @@ Page({
       
       // 只有当存在有效周期数据时才计算周期信息
       if (cycles && cycles.length > 0) {
-        const lastCycle = cycles[cycles.length - 1];
+        // 按开始日期排序，确保获取最新的周期
+        const sortedCycles = cycles.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+        const lastCycle = sortedCycles[0];
+        
+        console.log('最新周期数据:', lastCycle);
+        
         if (lastCycle && lastCycle.startDate) {
           const daysSinceStart = DateUtils.getDaysDifference(lastCycle.startDate, this.data.currentDate);
+          console.log('距离周期开始天数:', daysSinceStart);
           
           // 只有当天数合理时才显示周期信息（避免显示过大的天数）
           if (daysSinceStart >= 0 && daysSinceStart <= 60) {
@@ -211,17 +223,43 @@ Page({
             }
             
             // 预测下次月经
-            const averageCycleLength = this.data.userSettings?.personalInfo?.averageCycleLength || 28;
-            cycleInfo.nextPeriod = DateUtils.formatDisplayDate(DateUtils.addDays(lastCycle.startDate, averageCycleLength));
+            // 预测下次月经 - 确保获取最新的用户设置
+            const currentUserSettings = this.data.userSettings;
+            const averageCycleLength = currentUserSettings?.personalInfo?.averageCycleLength || 28;
             
-            // 预测排卵日
-            cycleInfo.ovulationPrediction = DateUtils.formatDisplayDate(DateUtils.addDays(lastCycle.startDate, averageCycleLength - 14));
+            console.log('当前用户设置:', currentUserSettings);
+            console.log('使用的平均周期长度:', averageCycleLength);
+            
+            const nextPeriodDate = DateUtils.addDays(lastCycle.startDate, averageCycleLength);
+            cycleInfo.nextPeriod = DateUtils.formatDisplayDate(nextPeriodDate);
+            
+            // 预测排卵日（排卵日通常在下次月经前14天）
+            const ovulationDate = DateUtils.addDays(lastCycle.startDate, averageCycleLength - 14);
+            cycleInfo.ovulationPrediction = DateUtils.formatDisplayDate(ovulationDate);
+            
+            console.log('预测计算详情:');
+            console.log('- 周期开始日期:', lastCycle.startDate);
+            console.log('- 平均周期长度:', averageCycleLength);
+            console.log('- 计算公式: 开始日期 + 周期长度');
+            console.log('- 计算过程:', lastCycle.startDate, '+', averageCycleLength, '天');
+            console.log('- 预测下次月经日期:', nextPeriodDate);
+            console.log('- 预测下次月经显示:', cycleInfo.nextPeriod);
+            console.log('- 预测排卵日期:', ovulationDate);
+            console.log('- 预测排卵显示:', cycleInfo.ovulationPrediction);
+            
+            console.log('计算完成的周期信息:', cycleInfo);
+          } else {
+            console.log('周期天数不合理，不显示周期信息');
           }
+        } else {
+          console.log('周期数据无效');
         }
+      } else {
+        console.log('没有周期数据');
       }
       
       this.setData({ cycleInfo });
-      console.log('周期信息加载完成:', cycleInfo);
+      console.log('周期信息设置完成:', this.data.cycleInfo);
     } catch (error) {
       console.error('加载周期信息失败:', error);
       // 设置默认的空周期信息
@@ -413,20 +451,29 @@ Page({
    * 设置周期阶段
    */
   onSetCyclePhase() {
-    this.setData({
-      showCycleModal: true,
-      selectedPhase: this.data.cycleInfo.phase || 'unknown'
-    });
-  },
-
-  /**
-   * 选择周期阶段
-   */
-  selectPhase(e) {
-    const phase = e.currentTarget.dataset.phase;
-    this.setData({
-      selectedPhase: phase
-    });
+      // 关闭模态框
+      this.setData({
+        showCycleStartModal: false
+      });
+      
+      // 强制刷新页面数据 - 确保使用最新保存的数据
+      // 强制刷新页面数据 - 确保使用最新保存的数据
+      console.log('=== 周期数据保存完成，开始刷新页面显示 ===');
+      
+      // 重新加载所有页面数据
+      this.loadPageData().then(() => {
+        console.log('=== 页面数据刷新完成 ===');
+        wx.showToast({
+          title: '周期设置成功',
+          icon: 'success'
+        });
+      }).catch((refreshError) => {
+        console.error('刷新页面数据失败:', refreshError);
+        wx.showToast({
+          title: '数据刷新失败',
+          icon: 'none'
+        });
+      });
   },
 
   /**
@@ -652,6 +699,8 @@ Page({
         return;
       }
 
+      console.log('开始保存周期数据，日期:', this.data.cycleStartDate);
+
       // 创建新的周期记录
       const newCycle = {
         id: this.generateId(),
@@ -664,39 +713,61 @@ Page({
       };
 
       // 获取现有周期数据
-      const cycles = await FertilityStorage.getCycles() || [];
+      let cycles = await FertilityStorage.getCycles() || [];
+      console.log('现有周期数据:', cycles);
       
-      // 添加新周期
-      cycles.push(newCycle);
+      // 检查是否已存在相同日期的周期，如果存在则更新，否则添加
+      const existingIndex = cycles.findIndex(cycle => cycle.startDate === this.data.cycleStartDate);
+      if (existingIndex >= 0) {
+        cycles[existingIndex] = newCycle;
+        console.log('更新现有周期记录');
+      } else {
+        cycles.push(newCycle);
+        console.log('添加新周期记录');
+      }
       
       // 保存周期数据
       await FertilityStorage.saveCycles(cycles);
+      console.log('周期数据保存成功:', cycles);
+      
+      // 验证数据是否保存成功
+      const isDataSaved = await this.verifyCycleDataSaved(this.data.cycleStartDate);
+      if (!isDataSaved) {
+        throw new Error('数据保存验证失败');
+      }
       
       // 同时记录月经数据
-      const dayRecords = await FertilityStorage.getDayRecords() || {};
+      let dayRecords = await FertilityStorage.getDayRecords() || {};
       
       // 创建或更新当天的记录
       if (!dayRecords[this.data.cycleStartDate]) {
-        dayRecords[this.data.cycleStartDate] = {};
+        dayRecords[this.data.cycleStartDate] = { date: this.data.cycleStartDate };
       }
       
       // 添加月经记录
       dayRecords[this.data.cycleStartDate].menstrual = {
+        id: this.generateId(),
         flow: this.data.cycleStartFlow,
         symptoms: [],
-        notes: '周期开始日期'
+        notes: '周期开始日期',
+        isStart: true,
+        createdAt: DateUtils.formatISO(new Date()),
+        updatedAt: DateUtils.formatISO(new Date())
       };
       
       // 保存日记录
       await FertilityStorage.saveDayRecords(dayRecords);
+      console.log('日记录保存成功');
       
+      // 关闭模态框
       // 关闭模态框
       this.setData({
         showCycleStartModal: false
       });
       
-      // 刷新页面数据
-      this.loadPageData();
+      // 强制刷新页面数据 - 确保使用最新保存的数据
+      console.log('周期数据保存完成，开始刷新页面显示');
+      await this.loadPageData();
       
       wx.showToast({
         title: '周期设置成功',
@@ -705,7 +776,7 @@ Page({
     } catch (error) {
       console.error('设置周期开始日期失败:', error);
       wx.showToast({
-        title: '设置失败',
+        title: '设置失败: ' + error.message,
         icon: 'none'
       });
     }
@@ -768,15 +839,24 @@ Page({
       });
 
       // 更新周期信息
-      if (analysisResult.ovulationWindow.isValid) {
+      // 更新周期信息（只在有足够数据且分析结果可靠时才覆盖基础预测）
+      if (analysisResult.ovulationWindow.isValid && analysisResult.ovulationWindow.confidence === 'high') {
         const updatedCycleInfo = { ...this.data.cycleInfo };
+        
+        console.log('智能分析结果可靠，更新预测信息');
+        console.log('分析结果:', analysisResult);
         
         if (analysisResult.ovulationWindow.ovulationDate) {
           updatedCycleInfo.ovulationPrediction = analysisResult.ovulationWindow.ovulationDate;
+          console.log('更新排卵预测:', analysisResult.ovulationWindow.ovulationDate);
         }
         
-        if (analysisResult.cycleAnalysis.isValid && analysisResult.cycleAnalysis.nextMenstrualDate) {
+        // 只有在分析结果非常可靠时才覆盖基础的月经预测
+        if (analysisResult.cycleAnalysis.isValid && 
+            analysisResult.cycleAnalysis.nextMenstrualDate && 
+            analysisResult.ovulationWindow.confidence === 'high') {
           updatedCycleInfo.nextPeriod = analysisResult.cycleAnalysis.nextMenstrualDate;
+          console.log('更新月经预测:', analysisResult.cycleAnalysis.nextMenstrualDate);
         }
 
         // 更新当前周期阶段
@@ -797,6 +877,9 @@ Page({
         }
 
         this.setData({ cycleInfo: updatedCycleInfo });
+      } else {
+        console.log('智能分析结果不够可靠，保持基础预测');
+        console.log('分析置信度:', analysisResult.ovulationWindow?.confidence);
       }
 
       console.log('智能分析完成:', analysisResult);
@@ -913,6 +996,38 @@ Page({
    */
   generateId() {
     return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  },
+
+  /**
+   * 验证数据保存是否成功
+   */
+  async verifyCycleDataSaved(expectedDate) {
+    try {
+      console.log('验证周期数据是否保存成功，期望日期:', expectedDate);
+      
+      // 等待一小段时间确保数据已写入
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const cycles = await FertilityStorage.getCycles();
+      console.log('验证时获取的周期数据:', cycles);
+      
+      if (!cycles || cycles.length === 0) {
+        console.error('验证失败：没有找到任何周期数据');
+        return false;
+      }
+      
+      const foundCycle = cycles.find(cycle => cycle.startDate === expectedDate);
+      if (!foundCycle) {
+        console.error('验证失败：没有找到指定日期的周期数据');
+        return false;
+      }
+      
+      console.log('验证成功：找到周期数据', foundCycle);
+      return true;
+    } catch (error) {
+      console.error('验证周期数据时出错:', error);
+      return false;
+    }
   },
 
   /**

@@ -127,14 +127,38 @@ class FertilityStorage {
    * 保存周期数据
    */
   static async saveCycles(cycles) {
-    return StorageManager.setItem(STORAGE_KEYS.CYCLES, cycles);
+    console.log('FertilityStorage.saveCycles 开始保存周期数据:', cycles);
+    try {
+      await StorageManager.setItem(STORAGE_KEYS.CYCLES, cycles);
+      
+      // 验证数据是否保存成功
+      const savedData = await StorageManager.getItem(STORAGE_KEYS.CYCLES, []);
+      console.log('FertilityStorage.saveCycles 保存后验证数据:', savedData);
+      
+      if (!savedData || savedData.length !== cycles.length) {
+        throw new Error('数据保存验证失败');
+      }
+      
+      console.log('FertilityStorage.saveCycles 保存成功');
+      return true;
+    } catch (error) {
+      console.error('FertilityStorage.saveCycles 保存失败:', error);
+      throw error;
+    }
   }
 
   /**
    * 获取周期数据
    */
   static async getCycles() {
-    return StorageManager.getItem(STORAGE_KEYS.CYCLES, []);
+    try {
+      const cycles = await StorageManager.getItem(STORAGE_KEYS.CYCLES, []);
+      console.log('FertilityStorage.getCycles 获取周期数据:', cycles);
+      return cycles;
+    } catch (error) {
+      console.error('FertilityStorage.getCycles 获取失败:', error);
+      return [];
+    }
   }
 
   /**
