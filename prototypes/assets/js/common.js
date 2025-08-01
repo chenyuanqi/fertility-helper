@@ -3,7 +3,7 @@
 // 模拟数据存储
 const mockData = {
   user: {
-    nickname: '小明',
+    nickname: '小龙',
     avgCycleLength: 28,
     avgLutealPhase: 14
   },

@@ -134,7 +134,7 @@ Page({
 
   // 编辑昵称
   editNickname() {
-    this.showInputModal('编辑昵称', 'nickname', this.data.userSettings.nickname || '小明');
+    this.showInputModal('编辑昵称', 'nickname', this.data.userSettings.nickname || '小龙');
   },
 
   // 编辑周期长度
@@ -782,7 +782,7 @@ Page({
       "exportDate": "2024-01-01T12:00:00.000Z",
       "appName": "备小孕",
       "userSettings": {
-        "nickname": "小明",
+        "nickname": "小龙",
         "personalInfo": {
           "averageCycleLength": 28,
           "averageLutealPhase": 14

@@ -7,7 +7,7 @@
         src="{{userSettings.avatar}}"
         size="{{160}}"
         editable="{{true}}"
-        userName="{{userSettings.nickname || '小明'}}"
+        userName="{{userSettings.nickname || '小龙'}}"
         showBorder="{{true}}"
         borderColor="#ff6b9d"
         bind:avatarTap="onAvatarTap"
@@ -16,7 +16,7 @@
         bind:error="onAvatarError"
       />
     </view>
-    <view class="profile-name">{{userSettings.nickname || '小明'}}</view>
+    <view class="profile-name">{{userSettings.nickname || '小龙'}}</view>
     <view class="profile-stats">
       <text>已使用 {{statistics.daysUsed}} 天</text>
       <text>记录 {{statistics.totalRecords}} 次</text>
@@ -37,7 +37,7 @@
         <view class="item-title">昵称</view>
         <view class="item-description">设置显示昵称</view>
       </view>
-      <view class="item-value">{{userSettings.nickname || '小明'}}</view>
+      <view class="item-value">{{userSettings.nickname || '小龙'}}</view>
       <view class="item-arrow">›</view>
     </view>
     
@@ -241,8 +241,7 @@
 
   <!-- 版本信息 -->
   <view class="version-info">
-    <view class="version-number">备小孕 v1.0.0</view>
-    <view class="copyright">© 2024 备小孕团队</view>
+    <view class="copyright">© 2025 元气团队</view>
   </view>
 </view>
 
