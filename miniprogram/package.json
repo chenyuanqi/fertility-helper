@@ -1,5 +1,18 @@
 {
-  "dependencies": {
-    "echarts-for-weixin": "^1.0.2"
-  }
+  "name": "fertility-helper-miniprogram",
+  "version": "1.0.0",
+  "description": "备小孕小程序测试配置",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest tests/utils.test.js",
+    "test:integration": "jest tests/integration.test.js",
+    "test:ux": "jest tests/ux.test.js",
+    "test:boundary": "jest tests/boundary.test.js"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0"
+  },
 }
