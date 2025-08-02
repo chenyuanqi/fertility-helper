@@ -1,0 +1,138 @@
+<!--pages/chart/chart-new.wxml - 重新设计的图表页面模板-->
+<view class="chart-page">
+  <!-- 加载状态 -->
+  <view wx:if="{{isLoading}}" class="loading-container">
+    <view class="loading-text">加载图表数据中...</view>
+  </view>
+
+  <!-- 主要内容 -->
+  <view wx:else class="chart-content">
+    
+    <!-- 无数据提示 -->
+    <view wx:if="{{cycles.length === 0}}" class="no-data-container">
+      <view class="no-data-content">
+        <text class="no-data-icon">📊</text>
+        <text class="no-data-title">暂无周期数据</text>
+        <text class="no-data-desc">请先在首页设置周期开始日期，开始记录您的生理周期</text>
+        <button class="btn btn-primary" bindtap="goToIndex">去设置周期</button>
+      </view>
+    </view>
+    
+    <!-- 1. 顶部周期信息 -->
+    <view wx:else class="cycle-header">
+      <view class="cycle-navigation">
+        <button class="nav-button" bindtap="onPreviousCycle">
+          <text class="nav-icon">‹</text>
+        </button>
+        
+        <view class="cycle-title" bindlongpress="showCycleMenu">
+          <text class="cycle-name">第{{currentCycleIndex + 1}}个周期</text>
+          <text class="cycle-range">{{cycleInfo.startDate}} 至 {{cycleInfo.endDate}}</text>
+          <text class="cycle-edit-hint">长按编辑</text>
+        </view>
+        
+        <button class="nav-button" bindtap="onNextCycle">
+          <text class="nav-icon">›</text>
+        </button>
+      </view>
+      
+      <!-- 周期统计信息 -->
+      <view class="cycle-stats">
+        <view class="stat-item">
+          <text class="stat-value">{{cycleInfo.averageTemp || 0}}°C</text>
+          <text class="stat-label">平均体温</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{cycleInfo.predictedOvulation || '--'}}</text>
+          <text class="stat-label">预计排卵</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{cycleInfo.temperatureCount || 0}}</text>
+          <text class="stat-label">体温记录</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 2. 图表控制 -->
+    <view class="chart-controls">
+      <view class="view-mode-tabs">
+        <button class="tab-button {{viewMode === 'all' ? 'active' : ''}}" 
+                bindtap="onViewModeChange" data-mode="all">
+          全部数据
+        </button>
+        <button class="tab-button {{viewMode === 'temperature' ? 'active' : ''}}" 
+                bindtap="onViewModeChange" data-mode="temperature">
+          仅体温
+        </button>
+      </view>
+      
+      <!-- 开发测试按钮 -->
+      <button class="test-button" bindtap="generateTestData">生成测试数据</button>
+    </view>
+
+    <!-- 3. 图表容器 -->
+    <view class="chart-container">
+      <scroll-view 
+        class="chart-scroll" 
+        scroll-x="{{true}}" 
+        enhanced="{{true}}"
+        show-scrollbar="{{false}}"
+        bindscroll="onChartScroll">
+        
+        <view class="chart-content-area" style="width: {{chartData.length > 15 ? chartData.length * 50 : 750}}rpx;">
+          <!-- 使用新的简化图表组件 -->
+          <simple-chart 
+            chart-data="{{chartData}}" 
+            view-mode="{{viewMode}}"
+            width="{{chartData.length > 15 ? chartData.length * 50 : 750}}"
+            height="450">
+          </simple-chart>
+        </view>
+      </scroll-view>
+      
+      <!-- 滚动指示器 -->
+      <view class="scroll-indicators" wx:if="{{chartData.length > 15}}">
+        <view class="scroll-hint {{canScrollLeft ? 'active' : ''}}">← 左滑查看更多</view>
+        <view class="scroll-hint {{canScrollRight ? 'active' : ''}}">右滑查看更多 →</view>
+      </view>
+    </view>
+
+    <!-- 4. 图例说明 -->
+    <view class="chart-legend">
+      <view class="legend-title">图表说明</view>
+      <view class="legend-items">
+        <view class="legend-item">
+          <view class="legend-dot temperature"></view>
+          <text class="legend-text">基础体温</text>
+        </view>
+        <view class="legend-item" wx:if="{{viewMode === 'all'}}">
+          <view class="legend-dot menstrual"></view>
+          <text class="legend-text">月经记录</text>
+        </view>
+        <view class="legend-item" wx:if="{{viewMode === 'all'}}">
+          <view class="legend-dot intercourse"></view>
+          <text class="legend-text">同房记录</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-line"></view>
+          <text class="legend-text">体温连线</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 5. 数据摘要 -->
+    <view class="data-summary">
+      <text class="summary-title">本周期数据摘要</text>
+      <view class="summary-content">
+        <view class="summary-row">
+          <text class="summary-text">周期天数：{{cycleInfo.dayCount}}天</text>
+          <text class="summary-text">体温记录：{{cycleInfo.temperatureCount}}天</text>
+        </view>
+        <view class="summary-row">
+          <text class="summary-text">月经天数：{{cycleInfo.menstrualDays}}天</text>
+          <text class="summary-text">同房次数：{{cycleInfo.intercourseCount}}次</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

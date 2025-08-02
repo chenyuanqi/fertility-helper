@@ -3,11 +3,25 @@
     "pages/index/index",
     "pages/record/record",
     "pages/chart/chart",
-    "pages/calendar/calendar",
-    "pages/settings/settings",
-    "pages/help/help",
-    "pages/report/report"
+    "pages/calendar/calendar", 
+    "pages/settings/settings"
   ],
+  "subPackages": [
+    {
+      "root": "subpackages/features",
+      "name": "features",
+      "pages": [
+        "pages/help/help",
+        "pages/report/report"
+      ]
+    }
+  ],
+  "preloadRule": {
+    "pages/index/index": {
+      "network": "all",
+      "packages": ["features"]
+    }
+  },
   "tabBar": {
     "color": "#999999",
     "selectedColor": "#ff6b9d",
@@ -33,13 +47,14 @@
     ]
   },
   "window": {
-    "backgroundColor": "#ffffff",
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#ff6b9d",
+    "navigationBarBackgroundColor": "#fff",
     "navigationBarTitleText": "备小孕",
-    "navigationBarTextStyle": "white"
+    "navigationBarTextStyle": "black",
+    "enablePullDownRefresh": true,
+    "backgroundColor": "#f8f9fa"
   },
-  "sitemapLocation": "sitemap.json",
   "style": "v2",
+  "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents"
 }

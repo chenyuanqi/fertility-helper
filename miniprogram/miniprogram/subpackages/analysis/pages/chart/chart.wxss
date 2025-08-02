@@ -1,0 +1,365 @@
+/* pages/chart/chart-new.wxss - 新图表页面样式 */
+
+.chart-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20rpx;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400rpx;
+}
+
+.loading-text {
+  color: white;
+  font-size: 28rpx;
+}
+
+/* 主要内容 */
+.chart-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+/* 1. 周期头部 */
+.cycle-header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10rpx);
+  border-radius: 24rpx;
+  padding: 32rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.cycle-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.nav-button {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  background: #f8f9fa;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  color: #666;
+}
+
+.nav-button:active {
+  background: #e9ecef;
+  transform: scale(0.95);
+}
+
+.nav-icon {
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.cycle-title {
+  text-align: center;
+}
+
+.cycle-name {
+  display: block;
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 8rpx;
+}
+
+.cycle-range {
+  display: block;
+  font-size: 24rpx;
+  color: #7f8c8d;
+}
+
+.cycle-stats {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-top: 24rpx;
+  border-top: 1rpx solid #ecf0f1;
+}
+
+.stat-item {
+  text-align: center;
+  flex: 1;
+}
+
+.stat-value {
+  display: block;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #e74c3c;
+  margin-bottom: 8rpx;
+}
+
+.stat-label {
+  display: block;
+  font-size: 22rpx;
+  color: #7f8c8d;
+}
+
+/* 2. 图表控制 */
+.chart-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10rpx);
+  border-radius: 20rpx;
+  padding: 20rpx 32rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.view-mode-tabs {
+  display: flex;
+  background: #f8f9fa;
+  border-radius: 16rpx;
+  padding: 6rpx;
+}
+
+.tab-button {
+  padding: 16rpx 24rpx;
+  font-size: 24rpx;
+  border: none;
+  border-radius: 12rpx;
+  background: transparent;
+  color: #666;
+  transition: all 0.3s ease;
+}
+
+.tab-button.active {
+  background: #667eea;
+  color: white;
+  box-shadow: 0 2rpx 8rpx rgba(102, 126, 234, 0.3);
+}
+
+.test-button {
+  padding: 16rpx 24rpx;
+  font-size: 22rpx;
+  background: #ff6b9d;
+  color: white;
+  border: none;
+  border-radius: 12rpx;
+  opacity: 0.8;
+}
+
+.test-button:active {
+  opacity: 1;
+  transform: scale(0.95);
+}
+
+/* 3. 图表容器 */
+.chart-container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10rpx);
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.chart-scroll {
+  width: 100%;
+  height: 450rpx;
+}
+
+.chart-content-area {
+  height: 450rpx;
+  min-width: 750rpx;
+}
+
+.scroll-indicators {
+  display: flex;
+  justify-content: space-between;
+  padding: 16rpx 32rpx;
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.scroll-hint {
+  font-size: 22rpx;
+  color: #999;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.scroll-hint.active {
+  opacity: 1;
+  color: #667eea;
+}
+
+/* 4. 图例说明 */
+.chart-legend {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10rpx);
+  border-radius: 20rpx;
+  padding: 24rpx 32rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.legend-title {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx;
+  justify-content: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.legend-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+}
+
+.legend-dot.temperature {
+  background: #ff6b9d;
+}
+
+.legend-dot.menstrual {
+  background: #e74c3c;
+}
+
+.legend-dot.intercourse {
+  background: #4ecdc4;
+}
+
+.legend-line {
+  width: 24rpx;
+  height: 3rpx;
+  background: #ff6b9d;
+  border-radius: 2rpx;
+}
+
+.legend-text {
+  font-size: 22rpx;
+  color: #666;
+}
+
+/* 5. 数据摘要 */
+.data-summary {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10rpx);
+  border-radius: 20rpx;
+  padding: 24rpx 32rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.summary-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 16rpx;
+  text-align: center;
+}
+
+.summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.summary-text {
+  font-size: 22rpx;
+  color: #666;
+  flex: 1;
+  text-align: center;
+  padding: 8rpx 16rpx;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 12rpx;
+}
+
+/* 无数据提示 */
+.no-data-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.no-data-content {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10rpx);
+  border-radius: 24rpx;
+  padding: 60rpx 40rpx;
+  text-align: center;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+  max-width: 500rpx;
+}
+
+.no-data-icon {
+  font-size: 80rpx;
+  display: block;
+  margin-bottom: 24rpx;
+}
+
+.no-data-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #2c3e50;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.no-data-desc {
+  font-size: 26rpx;
+  color: #7f8c8d;
+  line-height: 1.5;
+  display: block;
+  margin-bottom: 40rpx;
+}
+
+.btn {
+  padding: 20rpx 40rpx;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.btn-primary:active {
+  background: #5a67d8;
+  transform: scale(0.95);
+}
+
+/* 周期管理 */
+.cycle-edit-hint {
+  display: block;
+  font-size: 20rpx;
+  color: #bbb;
+  margin-top: 8rpx;
+}

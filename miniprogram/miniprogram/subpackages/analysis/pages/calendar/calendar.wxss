@@ -1,0 +1,656 @@
+/* pages/calendar/calendar.wxss */
+.container {
+  padding: 0;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400rpx;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid #ff6b9d;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20rpx;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #666666;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 日历头部 */
+.calendar-header {
+  background: white;
+  border-radius: 20rpx;
+  padding: 40rpx 32rpx;
+  margin: 16rpx;
+  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.08);
+}
+
+.month-navigation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 32rpx;
+  padding: 0;
+  height: 80rpx;
+  position: relative;
+}
+
+.month-nav-btn {
+  width: 60rpx;
+  height: 60rpx;
+  background: transparent;
+  color: #999999;
+  font-size: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  margin: 0;
+  font-weight: normal;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.month-nav-btn:active {
+  background: rgba(255, 107, 157, 0.15);
+  color: #ff6b9d;
+  transform: translateY(-50%) scale(0.85);
+}
+
+.nav-icon {
+  font-size: 48rpx;
+  line-height: 1;
+  color: inherit;
+  font-weight: 300;
+}
+
+.prev-btn {
+  left: 60rpx;
+}
+
+.next-btn {
+  right: 60rpx;
+}
+
+.month-year {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #ff6b9d;
+  text-align: center;
+  white-space: nowrap;
+  letter-spacing: 2rpx;
+  padding: 20rpx 0;
+  min-height: 60rpx;
+  line-height: 60rpx;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+@keyframes shine {
+  0% {
+    left: -100%;
+  }
+  50% {
+    left: 100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* 回到今天按钮容器 */
+.today-button-container {
+  margin-top: 24rpx;
+  text-align: center;
+}
+
+.today-btn-bottom {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 16rpx 32rpx;
+  background: linear-gradient(135deg, #ff6b9d, #ff8fab);
+  color: white;
+  border: none;
+  border-radius: 24rpx;
+  font-size: 24rpx;
+  font-weight: bold;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 157, 0.3);
+}
+
+.today-btn-bottom:active {
+  background: linear-gradient(135deg, #e85a8a, #e67394);
+  transform: translateY(1rpx);
+}
+
+.today-icon {
+  font-size: 28rpx;
+}
+
+.today-text {
+  font-size: 24rpx;
+}
+
+.calendar-info {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32rpx;
+  margin-top: 40rpx;
+}
+
+.info-item {
+  text-align: center;
+  padding: 20rpx 12rpx;
+  background: rgba(255, 107, 157, 0.03);
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(255, 107, 157, 0.1);
+}
+
+.info-value {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #ff6b9d;
+  margin-bottom: 8rpx;
+}
+
+.info-label {
+  font-size: 24rpx;
+  color: #888888;
+  font-weight: 500;
+}
+
+/* 日历容器 */
+.calendar-container {
+  background: white;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 星期标题 */
+.weekday-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 16rpx;
+}
+
+.weekday-item {
+  text-align: center;
+  font-size: 24rpx;
+  font-weight: bold;
+  color: #999999;
+  padding: 16rpx 0;
+}
+
+/* 日历网格 */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2rpx;
+  background: #f0f0f0;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.calendar-day {
+  background: white;
+  height: 120rpx;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 8rpx 4rpx;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calendar-day:active {
+  background: rgba(255, 107, 157, 0.1);
+}
+
+.calendar-day.other-month {
+  background: #f8f8f8;
+  opacity: 0.3;
+}
+
+.calendar-day.today {
+  background: rgba(255, 107, 157, 0.15);
+}
+
+.calendar-day.today .day-number {
+  color: #ff6b9d;
+  font-weight: bold;
+}
+
+.calendar-day.selected {
+  background: #ff6b9d;
+  color: white;
+}
+
+.calendar-day.selected .day-number {
+  color: white;
+}
+
+.calendar-day.menstruation {
+  background: linear-gradient(to bottom, white 0%, rgba(255, 182, 193, 0.3) 100%);
+}
+
+.calendar-day.selected.menstruation {
+  background: linear-gradient(to bottom, #ff6b9d 0%, #ff4081 100%);
+}
+
+.day-number {
+  font-size: 28rpx;
+  color: #333333;
+  margin-bottom: 4rpx;
+  z-index: 2;
+}
+
+.other-month .day-number {
+  color: #cccccc;
+}
+
+/* 数据指示器 */
+.day-indicators {
+  position: absolute;
+  bottom: 8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8rpx;
+}
+
+.indicator-icon {
+  font-size: 16rpx;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.indicator-icon.temperature {
+  color: #ff6b9d;
+}
+
+.indicator-icon.temperature.high-temp {
+  color: #ff3333;
+}
+
+.indicator-icon.menstruation {
+  color: #ff9999;
+}
+
+.indicator-icon.intimacy {
+  color: #4ecdc4;
+}
+
+.indicator-icon.symptoms {
+  color: #ffa726;
+}
+
+/* 日期详情弹框 */
+.date-details-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.date-details-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+}
+
+.date-details-content {
+  position: relative;
+  width: 80%;
+  max-width: 600rpx;
+  background: white;
+  border-radius: 24rpx;
+  padding: 40rpx 32rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.2);
+  z-index: 1002;
+  animation: popIn 0.3s ease-out;
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.selected-date {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.close-text {
+  font-size: 28rpx;
+  color: #666;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+}
+
+.close-text:active {
+  background-color: #f5f5f5;
+  color: #ff6b9d;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24rpx;
+}
+
+.detail-card {
+  background: #f8f9fa;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  text-align: center;
+}
+
+.detail-icon {
+  font-size: 40rpx;
+  margin-bottom: 16rpx;
+}
+
+.detail-title {
+  font-size: 24rpx;
+  color: #666666;
+  margin-bottom: 8rpx;
+}
+
+.detail-value {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.detail-value.empty {
+  color: #cccccc;
+  font-weight: normal;
+}
+
+.detail-notes {
+  grid-column: 1 / -1;
+  margin-top: 16rpx;
+}
+
+.notes-content {
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.5;
+  padding: 16rpx;
+  background: white;
+  border-radius: 8rpx;
+  border: 1rpx solid #e0e0e0;
+}
+
+.details-actions {
+  margin-top: 32rpx;
+  text-align: center;
+}
+
+.action-btn {
+  background: linear-gradient(135deg, #ff6b9d, #ff8fab);
+  color: white;
+  border: none;
+  border-radius: 40rpx;
+  padding: 16rpx 40rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 157, 0.3);
+}
+
+.action-btn:active {
+  background: linear-gradient(135deg, #e85a8a, #e67394);
+  transform: translateY(2rpx);
+}
+
+/* 图例说明 */
+.calendar-legend {
+  background: white;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin: 16rpx;
+  margin-bottom: 100rpx; /* 为底部tabbar留空间 */
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+.legend-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 24rpx;
+}
+
+.legend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.legend-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+}
+
+.legend-square {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 4rpx;
+}
+
+.legend-dot.temperature {
+  background: #ff6b9d;
+}
+
+.legend-dot.menstruation {
+  background: #ff9999;
+}
+
+.legend-dot.intimacy {
+  background: #4ecdc4;
+}
+
+.legend-dot.symptoms {
+  background: #ffa726;
+}
+
+.legend-square.today-legend {
+  background: rgba(255, 107, 157, 0.15);
+}
+
+.legend-square.menstruation-bg {
+  background: linear-gradient(to bottom, white 0%, rgba(255, 182, 193, 0.3) 100%);
+  border: 1rpx solid #f0f0f0;
+}
+
+/* 响应式适配 */
+@media (max-width: 375px) {
+  .calendar-header,
+  .calendar-container,
+  .selected-day-details,
+  .calendar-legend {
+    margin: 12rpx;
+    padding: 24rpx;
+  }
+  
+  .month-navigation {
+    padding: 0 16rpx;
+    height: 70rpx;
+  }
+  
+  .month-nav-btn {
+    width: 50rpx;
+    height: 50rpx;
+    font-size: 36rpx;
+  }
+  
+  .month-year {
+    font-size: 30rpx;
+    letter-spacing: 1rpx;
+    padding: 16rpx 32rpx;
+    min-height: 50rpx;
+    line-height: 50rpx;
+  }
+  
+  .today-btn-bottom {
+    padding: 12rpx 24rpx;
+    font-size: 22rpx;
+  }
+  
+  .today-icon {
+    font-size: 24rpx;
+  }
+  
+  .today-text {
+    font-size: 22rpx;
+  }
+  
+  .calendar-day {
+    height: 100rpx;
+    padding: 6rpx 2rpx;
+  }
+  
+  .day-number {
+    font-size: 24rpx;
+  }
+  
+  .indicator-icon {
+    font-size: 14rpx;
+  }
+  
+  .info-value {
+    font-size: 32rpx;
+  }
+  
+  .details-grid {
+    grid-template-columns: 1fr;
+    gap: 16rpx;
+  }
+}
+
+@media (max-width: 320px) {
+  .month-navigation {
+    padding: 0 12rpx;
+    height: 60rpx;
+  }
+  
+  .month-nav-btn {
+    width: 44rpx;
+    height: 44rpx;
+    font-size: 32rpx;
+  }
+  
+  .month-year {
+    font-size: 26rpx;
+    letter-spacing: 0;
+    padding: 12rpx 24rpx;
+    min-height: 44rpx;
+    line-height: 44rpx;
+  }
+  
+  .today-btn-bottom {
+    padding: 10rpx 20rpx;
+    font-size: 20rpx;
+  }
+  
+  .today-icon {
+    font-size: 22rpx;
+  }
+  
+  .today-text {
+    font-size: 20rpx;
+  }
+  
+  .calendar-info {
+    gap: 16rpx;
+  }
+  
+  .info-value {
+    font-size: 28rpx;
+  }
+  
+  .info-label {
+    font-size: 20rpx;
+  }
+}
+
+/* 动画效果 */
+.calendar-container,
+.calendar-header,
+.selected-day-details,
+.calendar-legend {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

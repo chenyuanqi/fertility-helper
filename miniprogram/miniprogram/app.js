@@ -2,6 +2,9 @@
 const { FertilityStorage } = require('./utils/storage');
 const { DateUtils } = require('./utils/date');
 const { ReminderManager } = require('./utils/reminderManager');
+const dataLoader = require('./utils/dataLoader');
+const memoryManager = require('./utils/memoryManager');
+const performanceMonitor = require('./utils/performanceMonitor');
 
 App({
   globalData: {
@@ -11,6 +14,9 @@ App({
 
   onLaunch: function () {
     console.log('备小孕启动');
+    
+    // 开始性能监控
+    performanceMonitor.startMonitoring('app_launch');
     
     // 获取系统信息
     this.getSystemInfo().then(systemInfo => {
@@ -25,8 +31,14 @@ App({
     // 初始化提醒管理器
     this.initializeReminderManager();
     
+    // 预加载核心数据
+    this.preloadCoreData();
+    
     // 检查应用版本更新
     this.checkForUpdates();
+    
+    // 结束性能监控
+    performanceMonitor.endMonitoring('app_launch');
   },
 
   onShow: function() {
@@ -41,10 +53,22 @@ App({
     } catch (error) {
       console.error('应用进入前台时处理提醒失败:', error);
     }
+    
+    // 重新开始内存监控
+    memoryManager.startMonitoring();
   },
 
   onHide: function() {
     console.log('应用进入后台');
+    
+    // 应用进入后台时停止内存监控以节省资源
+    memoryManager.stopMonitoring();
+    
+    // 清理过期缓存
+    // 清理过期缓存
+    if (dataLoader && typeof dataLoader.clearCache === 'function') {
+      dataLoader.clearCache();
+    }
   },
 
   onError: function(error) {
@@ -178,6 +202,23 @@ App({
         console.error('新版本下载失败');
       });
     }
+  },
+
+  /**
+  /**
+   * 预加载核心数据
+   */
+  preloadCoreData: function() {
+    // 延迟预加载，避免阻塞启动
+    setTimeout(() => {
+      if (dataLoader && typeof dataLoader.preloadData === 'function') {
+        dataLoader.preloadData().catch(error => {
+          console.error('预加载数据失败:', error);
+        });
+      } else {
+        console.log('dataLoader.preloadData 方法不可用，跳过预加载');
+      }
+    }, 2000);
   },
 
   /**
