@@ -1,0 +1,158 @@
+<!-- 兼容性测试页面 -->
+<view class="container">
+  <!-- 页面头部 -->
+  <view class="header">
+    <view class="title">兼容性测试</view>
+    <view class="subtitle">检测小程序在当前环境下的兼容性</view>
+  </view>
+
+  <!-- 兼容性信息卡片 -->
+  <view class="compatibility-info" wx:if="{{compatibilityReport}}">
+    <view class="info-title">设备信息</view>
+    
+    <view class="info-item">
+      <view class="info-label">设备型号</view>
+      <view class="info-value">{{compatibilityReport.systemInfo.model || 'Unknown'}}</view>
+    </view>
+    
+    <view class="info-item">
+      <view class="info-label">操作系统</view>
+      <view class="info-value">{{compatibilityReport.systemInfo.system || 'Unknown'}}</view>
+    </view>
+    
+    <view class="info-item">
+      <view class="info-label">微信版本</view>
+      <view class="info-value">{{compatibilityReport.systemInfo.version || 'Unknown'}}</view>
+    </view>
+    
+    <view class="info-item">
+      <view class="info-label">基础库版本</view>
+      <view class="info-value">{{compatibilityReport.systemInfo.SDKVersion || 'Unknown'}}</view>
+    </view>
+    
+    <view class="info-item">
+      <view class="info-label">屏幕尺寸</view>
+      <view class="info-value">{{compatibilityReport.systemInfo.windowWidth}}×{{compatibilityReport.systemInfo.windowHeight}}</view>
+    </view>
+
+    <!-- 兼容性评分 -->
+    <view class="compatibility-score" wx:if="{{compatibilityReport.overallCompatibility}}">
+      <view class="score-text">{{compatibilityReport.overallCompatibility.score}}/100</view>
+      <view class="score-level">兼容性等级: {{compatibilityReport.overallCompatibility.level}}</view>
+    </view>
+  </view>
+
+  <!-- 测试控制区域 -->
+  <view class="test-control">
+    <!-- 测试状态显示 -->
+    <view class="test-status status-{{testStatus}}">
+      <!-- 状态图标 -->
+      <view class="status-icon status-icon-{{testStatus}}">
+        <text wx:if="{{testStatus === 'ready'}}">🚀</text>
+        <text wx:if="{{testStatus === 'running'}}">⏳</text>
+        <text wx:if="{{testStatus === 'completed'}}">✅</text>
+        <text wx:if="{{testStatus === 'failed'}}">❌</text>
+      </view>
+      
+      <!-- 状态文字 -->
+      <view class="status-text">
+        <text wx:if="{{testStatus === 'ready'}}">准备开始测试</text>
+        <text wx:if="{{testStatus === 'running'}}">正在执行测试...</text>
+        <text wx:if="{{testStatus === 'completed'}}">测试完成</text>
+        <text wx:if="{{testStatus === 'failed'}}">测试失败</text>
+      </view>
+      
+      <!-- 当前测试项目 -->
+      <view class="current-test" wx:if="{{currentTest}}">{{currentTest}}</view>
+    </view>
+
+    <!-- 进度条 -->
+    <view class="progress-container" wx:if="{{testStatus === 'running'}}">
+      <view class="progress-bar">
+        <view class="progress-fill" style="width: {{progress}}%"></view>
+      </view>
+      <view class="progress-text">{{progress}}%</view>
+    </view>
+
+    <!-- 开始测试按钮 -->
+    <button 
+      class="btn btn-primary {{testStatus === 'running' ? 'btn-disabled' : ''}}" 
+      wx:if="{{testStatus === 'ready' || testStatus === 'failed'}}"
+      bindtap="startCompatibilityTest"
+      disabled="{{testStatus === 'running'}}">
+      {{testStatus === 'failed' ? '重新测试' : '开始测试'}}
+    </button>
+
+    <!-- 重新测试按钮 -->
+    <button 
+      class="btn btn-secondary" 
+      wx:if="{{testStatus === 'completed'}}"
+      bindtap="retryTest">
+      重新测试
+    </button>
+  </view>
+
+  <!-- 测试结果区域 -->
+  <view class="test-results" wx:if="{{testResults}}">
+    <view class="results-title">测试结果</view>
+    
+    <!-- 结果概览 -->
+    <view class="results-summary">
+      <view class="summary-item">
+        <view class="summary-number">{{testResults.summary.totalTests}}</view>
+        <view class="summary-label">总测试</view>
+      </view>
+      <view class="summary-item">
+        <view class="summary-number" style="color: #4CAF50;">{{testResults.summary.passedTests}}</view>
+        <view class="summary-label">通过</view>
+      </view>
+      <view class="summary-item">
+        <view class="summary-number" style="color: #f44336;">{{testResults.summary.failedTests}}</view>
+        <view class="summary-label">失败</view>
+      </view>
+      <view class="summary-item">
+        <view class="summary-number">{{testResults.summary.successRate}}%</view>
+        <view class="summary-label">成功率</view>
+      </view>
+    </view>
+
+    <!-- 总体评分 -->
+    <view class="grade-display grade-{{testResults.summary.overallGrade.toLowerCase()}}">
+      <view class="grade-text">{{testResults.summary.overallGrade}}</view>
+      <view class="grade-desc">
+        <text wx:if="{{testResults.summary.overallGrade === 'A'}}">优秀 - 完全兼容</text>
+        <text wx:if="{{testResults.summary.overallGrade === 'B'}}">良好 - 基本兼容</text>
+        <text wx:if="{{testResults.summary.overallGrade === 'C'}}">一般 - 部分兼容</text>
+        <text wx:if="{{testResults.summary.overallGrade === 'D'}}">较差 - 兼容性问题</text>
+      </view>
+    </view>
+
+    <!-- 分类测试结果 -->
+    <view class="category-results">
+      <view 
+        class="category-item category-{{item.failed > 0 ? 'error' : (item.passed === item.total ? 'success' : 'warning')}}"
+        wx:for="{{testResults.categoryStats}}" 
+        wx:key="category">
+        <view class="category-name">
+          <text wx:if="{{item.category === 'basic'}}">基础兼容性</text>
+          <text wx:if="{{item.category === 'functional'}}">功能兼容性</text>
+          <text wx:if="{{item.category === 'performance'}}">性能兼容性</text>
+          <text wx:if="{{item.category === 'visual'}}">视觉兼容性</text>
+          <text wx:if="{{item.category === 'interaction'}}">交互兼容性</text>
+        </view>
+        <view class="category-stats">{{item.passed}}/{{item.total}}</view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-buttons">
+      <button class="btn btn-primary" bindtap="viewDetailedReport">查看详细报告</button>
+      <button class="btn btn-secondary" bindtap="shareTestResults">分享结果</button>
+    </view>
+  </view>
+
+  <!-- 测试耗时显示 -->
+  <view class="test-duration" wx:if="{{testResults}}">
+    <text>测试耗时: {{testResults.summary.duration}}</text>
+  </view>
+</view>

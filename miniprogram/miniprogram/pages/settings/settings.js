@@ -1467,6 +1467,14 @@ Page({
   },
 
   // 联系我们
+  // 兼容性测试
+  runCompatibilityTest() {
+    wx.navigateTo({
+      url: '/pages/compatibility-test/compatibility-test'
+    });
+  },
+
+  // 联系我们
   contactUs() {
     wx.showModal({
       title: '联系我们',
