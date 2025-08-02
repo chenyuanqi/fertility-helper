@@ -650,12 +650,37 @@ Page({
   },
 
   /**
+  /**
    * 显示周期开始日期设置模态框
    */
-  showCycleStartModal() {
-    this.setData({
-      showCycleStartModal: true
-    });
+  async showCycleStartModal() {
+    try {
+      // 获取最新的周期数据，设置为默认日期
+      const cycles = await FertilityStorage.getCycles();
+      let defaultDate = DateUtils.getToday(); // 默认为今天
+      
+      if (cycles && cycles.length > 0) {
+        // 按开始日期排序，获取最新的周期
+        const sortedCycles = cycles.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+        const lastCycle = sortedCycles[0];
+        if (lastCycle && lastCycle.startDate) {
+          defaultDate = lastCycle.startDate; // 使用上次设置的日期
+          console.log('使用上次设置的周期开始日期:', defaultDate);
+        }
+      }
+      
+      this.setData({
+        showCycleStartModal: true,
+        cycleStartDate: defaultDate
+      });
+    } catch (error) {
+      console.error('显示周期设置模态框失败:', error);
+      // 出错时使用今天作为默认日期
+      this.setData({
+        showCycleStartModal: true,
+        cycleStartDate: DateUtils.getToday()
+      });
+    }
   },
 
   /**
@@ -713,18 +738,54 @@ Page({
       };
 
       // 获取现有周期数据
+      // 获取现有周期数据
       let cycles = await FertilityStorage.getCycles() || [];
       console.log('现有周期数据:', cycles);
       
-      // 检查是否已存在相同日期的周期，如果存在则更新，否则添加
-      const existingIndex = cycles.findIndex(cycle => cycle.startDate === this.data.cycleStartDate);
-      if (existingIndex >= 0) {
-        cycles[existingIndex] = newCycle;
-        console.log('更新现有周期记录');
-      } else {
+      // 重新设置周期开始时间的逻辑：
+      // 1. 如果是第一次设置（没有周期数据），直接添加
+      // 2. 如果已有周期数据，则替换最新的周期记录，避免重复
+      if (cycles.length === 0) {
+        // 第一次设置周期
         cycles.push(newCycle);
-        console.log('添加新周期记录');
+        console.log('第一次设置周期，添加新记录');
+      } else {
+        // 已有周期数据，按日期排序找到最新的周期
+        cycles.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+        const latestCycle = cycles[0];
+        
+        // 检查是否是同一个日期的重复设置
+        if (latestCycle.startDate === this.data.cycleStartDate) {
+          // 相同日期，更新现有记录
+          cycles[0] = newCycle;
+          console.log('更新相同日期的周期记录');
+        } else {
+          // 不同日期，需要结束上一个周期并开始新周期
+          const selectedDate = new Date(this.data.cycleStartDate);
+          const latestDate = new Date(latestCycle.startDate);
+          
+          if (selectedDate > latestDate) {
+            // 新日期在最新周期之后，正常的新周期
+            // 结束上一个周期
+            const daysDifference = DateUtils.getDaysDifference(latestCycle.startDate, this.data.cycleStartDate);
+            cycles[0].endDate = DateUtils.subtractDays(this.data.cycleStartDate, 1);
+            cycles[0].length = daysDifference;
+            cycles[0].updatedAt = DateUtils.formatISO(new Date());
+            
+            // 添加新周期
+            cycles.unshift(newCycle);
+            console.log('结束上一个周期，开始新周期');
+          } else {
+            // 新日期在最新周期之前，替换最新周期（用户修正周期开始时间）
+            cycles[0] = newCycle;
+            console.log('修正周期开始时间，替换最新周期');
+          }
+        }
       }
+      
+      // 保存周期数据
+      // 重新计算周期范围（如果修改了现有周期的开始时间）
+      await this.recalculateCycleRanges(cycles);
       
       // 保存周期数据
       await FertilityStorage.saveCycles(cycles);
@@ -996,6 +1057,72 @@ Page({
    */
   generateId() {
     return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  },
+
+  /**
+  /**
+   * 重新计算周期范围
+   * 当修改周期开始时间时，需要重新计算所有周期的结束日期和长度
+   */
+  async recalculateCycleRanges(cycles) {
+    try {
+      console.log('开始重新计算周期范围');
+      
+      if (!cycles || cycles.length === 0) {
+        return;
+      }
+      
+      // 获取用户设置的平均周期长度
+      const userSettings = await FertilityStorage.getUserSettings();
+      const averageCycleLength = userSettings?.personalInfo?.averageCycleLength || 28;
+      
+      // 按开始日期排序
+      cycles.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+      
+      // 重新计算每个周期的结束日期和长度
+      for (let i = 0; i < cycles.length; i++) {
+        const currentCycle = cycles[i];
+        const nextCycle = cycles[i + 1];
+        
+        if (nextCycle) {
+          // 如果有下一个周期，当前周期的结束日期是下一个周期开始的前一天
+          const nextStartDate = new Date(nextCycle.startDate);
+          const currentEndDate = new Date(nextStartDate);
+          currentEndDate.setDate(currentEndDate.getDate() - 1);
+          
+          currentCycle.endDate = DateUtils.formatDate(currentEndDate);
+          currentCycle.length = DateUtils.getDaysDifference(currentCycle.startDate, currentCycle.endDate) + 1;
+          
+          console.log(`重新计算周期 ${i + 1}:`, {
+            startDate: currentCycle.startDate,
+            endDate: currentCycle.endDate,
+            length: currentCycle.length
+          });
+        } else {
+          // 最后一个周期，使用平均周期长度计算结束日期
+          const startDate = new Date(currentCycle.startDate);
+          const endDate = new Date(startDate);
+          endDate.setDate(endDate.getDate() + averageCycleLength - 1);
+          
+          currentCycle.endDate = DateUtils.formatDate(endDate);
+          currentCycle.length = averageCycleLength;
+          
+          console.log(`重新计算最后周期:`, {
+            startDate: currentCycle.startDate,
+            endDate: currentCycle.endDate,
+            length: currentCycle.length
+          });
+        }
+        
+        // 更新修改时间
+        currentCycle.updatedAt = DateUtils.formatISO(new Date());
+      }
+      
+      console.log('周期范围重新计算完成');
+    } catch (error) {
+      console.error('重新计算周期范围失败:', error);
+      // 不抛出错误，避免影响主流程
+    }
   },
 
   /**
