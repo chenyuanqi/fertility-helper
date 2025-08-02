@@ -110,6 +110,13 @@ Page({
    */
   onShow() {
     console.log('=== Index page onShow - 页面显示时刷新数据 ===');
+    
+    // 如果数据刚刚被更新，跳过这次刷新，避免覆盖刚保存的数据
+    if (this.dataJustUpdated) {
+      console.log('数据刚刚更新，跳过onShow刷新');
+      return;
+    }
+    
     // 页面显示时刷新数据，确保获取最新的周期信息
     this.loadPageData();
   },
@@ -724,7 +731,15 @@ Page({
         return;
       }
 
-      console.log('开始保存周期数据，日期:', this.data.cycleStartDate);
+      console.log('=== 开始保存周期数据 ===');
+      console.log('设置日期:', this.data.cycleStartDate);
+      console.log('月经量:', this.data.cycleStartFlow);
+
+      // 显示加载提示
+      wx.showLoading({
+        title: '保存中...',
+        mask: true
+      });
 
       // 创建新的周期记录
       const newCycle = {
@@ -737,7 +752,6 @@ Page({
         updatedAt: DateUtils.formatISO(new Date())
       };
 
-      // 获取现有周期数据
       // 获取现有周期数据
       let cycles = await FertilityStorage.getCycles() || [];
       console.log('现有周期数据:', cycles);
@@ -783,21 +797,32 @@ Page({
         }
       }
       
-      // 保存周期数据
       // 重新计算周期范围（如果修改了现有周期的开始时间）
       await this.recalculateCycleRanges(cycles);
       
-      // 保存周期数据
+      // 保存周期数据 - 使用多重保存确保数据持久化
+      console.log('=== 开始保存周期数据到存储 ===');
       await FertilityStorage.saveCycles(cycles);
-      console.log('周期数据保存成功:', cycles);
+      
+      // 等待一段时间确保数据写入完成
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       // 验证数据是否保存成功
       const isDataSaved = await this.verifyCycleDataSaved(this.data.cycleStartDate);
       if (!isDataSaved) {
-        throw new Error('数据保存验证失败');
+        // 如果验证失败，再次尝试保存
+        console.log('第一次验证失败，重新保存数据');
+        await FertilityStorage.saveCycles(cycles);
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const isDataSavedRetry = await this.verifyCycleDataSaved(this.data.cycleStartDate);
+        if (!isDataSavedRetry) {
+          throw new Error('数据保存验证失败，请重试');
+        }
       }
       
       // 同时记录月经数据
+      console.log('=== 开始保存月经记录 ===');
       let dayRecords = await FertilityStorage.getDayRecords() || {};
       
       // 创建或更新当天的记录
@@ -820,25 +845,40 @@ Page({
       await FertilityStorage.saveDayRecords(dayRecords);
       console.log('日记录保存成功');
       
-      // 关闭模态框
+      // 设置一个标记，表示数据刚刚被更新，避免onShow时重新加载覆盖
+      this.dataJustUpdated = true;
+      
       // 关闭模态框
       this.setData({
         showCycleStartModal: false
       });
       
+      // 隐藏加载提示
+      wx.hideLoading();
+      
       // 强制刷新页面数据 - 确保使用最新保存的数据
-      console.log('周期数据保存完成，开始刷新页面显示');
+      console.log('=== 周期数据保存完成，开始刷新页面显示 ===');
       await this.loadPageData();
+      
+      // 清除更新标记
+      setTimeout(() => {
+        this.dataJustUpdated = false;
+      }, 1000);
       
       wx.showToast({
         title: '周期设置成功',
-        icon: 'success'
+        icon: 'success',
+        duration: 2000
       });
+      
+      console.log('=== 周期设置流程完成 ===');
     } catch (error) {
       console.error('设置周期开始日期失败:', error);
+      wx.hideLoading();
       wx.showToast({
         title: '设置失败: ' + error.message,
-        icon: 'none'
+        icon: 'none',
+        duration: 3000
       });
     }
   },
@@ -1130,27 +1170,56 @@ Page({
    */
   async verifyCycleDataSaved(expectedDate) {
     try {
-      console.log('验证周期数据是否保存成功，期望日期:', expectedDate);
+      console.log('=== 开始验证周期数据保存 ===');
+      console.log('期望日期:', expectedDate);
       
       // 等待一小段时间确保数据已写入
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 150));
       
-      const cycles = await FertilityStorage.getCycles();
-      console.log('验证时获取的周期数据:', cycles);
-      
-      if (!cycles || cycles.length === 0) {
-        console.error('验证失败：没有找到任何周期数据');
-        return false;
+      // 多次尝试验证，确保数据读取的可靠性
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        console.log(`第${attempt}次验证尝试`);
+        
+        const cycles = await FertilityStorage.getCycles();
+        console.log(`第${attempt}次获取的周期数据:`, cycles);
+        
+        if (!cycles || cycles.length === 0) {
+          console.error(`第${attempt}次验证失败：没有找到任何周期数据`);
+          if (attempt < 3) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            continue;
+          }
+          return false;
+        }
+        
+        const foundCycle = cycles.find(cycle => cycle.startDate === expectedDate);
+        if (!foundCycle) {
+          console.error(`第${attempt}次验证失败：没有找到指定日期的周期数据`);
+          console.error('现有周期日期:', cycles.map(c => c.startDate));
+          if (attempt < 3) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            continue;
+          }
+          return false;
+        }
+        
+        console.log(`第${attempt}次验证成功：找到周期数据`, foundCycle);
+        
+        // 额外验证：检查数据完整性
+        if (!foundCycle.id || !foundCycle.createdAt) {
+          console.error(`第${attempt}次验证失败：数据不完整`);
+          if (attempt < 3) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            continue;
+          }
+          return false;
+        }
+        
+        console.log('=== 数据验证完全成功 ===');
+        return true;
       }
       
-      const foundCycle = cycles.find(cycle => cycle.startDate === expectedDate);
-      if (!foundCycle) {
-        console.error('验证失败：没有找到指定日期的周期数据');
-        return false;
-      }
-      
-      console.log('验证成功：找到周期数据', foundCycle);
-      return true;
+      return false;
     } catch (error) {
       console.error('验证周期数据时出错:', error);
       return false;

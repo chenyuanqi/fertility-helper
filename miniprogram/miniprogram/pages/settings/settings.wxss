@@ -405,3 +405,19 @@
   flex: none;
 }
 
+/* 调试模式指示器 */
+.debug-indicator {
+  margin-top: 16rpx;
+  padding: 12rpx 20rpx;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8rpx;
+  display: inline-block;
+}
+
+.debug-text {
+  font-size: 24rpx;
+  color: #856404;
+  font-weight: 500;
+}
+

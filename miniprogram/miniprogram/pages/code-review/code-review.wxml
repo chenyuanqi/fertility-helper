@@ -1,0 +1,209 @@
+<!--代码审查页面模板-->
+<view class="container">
+  <!-- 页面头部 -->
+  <view class="header">
+    <view class="title">代码审查</view>
+    <view class="subtitle">确保代码质量，为发布做好准备</view>
+  </view>
+
+  <!-- 审查状态卡片 -->
+  <view class="review-status">
+    <!-- 准备状态 -->
+    <view wx:if="{{reviewStatus === 'ready'}}" class="status-ready">
+      <view class="status-icon">🔍</view>
+      <view class="status-text">准备开始代码审查</view>
+      <view class="current-step">点击下方按钮开始全面的代码质量检查</view>
+      <button class="btn btn-primary" bindtap="startReview">开始审查</button>
+    </view>
+
+    <!-- 运行状态 -->
+    <view wx:elif="{{reviewStatus === 'running'}}" class="status-running">
+      <view class="status-icon">⚙️</view>
+      <view class="status-text">正在执行代码审查</view>
+      <view class="current-step">{{currentStep}}</view>
+      
+      <view class="progress-container">
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{progress}}%"></view>
+        </view>
+        <view class="progress-text">{{progress}}% 完成</view>
+      </view>
+    </view>
+
+    <!-- 完成状态 -->
+    <view wx:elif="{{reviewStatus === 'completed'}}" class="status-completed">
+      <view class="status-icon">✅</view>
+      <view class="status-text">代码审查完成</view>
+      <view class="current-step">审查结果已生成，请查看详细报告</view>
+    </view>
+
+    <!-- 失败状态 -->
+    <view wx:elif="{{reviewStatus === 'failed'}}" class="status-failed">
+      <view class="status-icon">❌</view>
+      <view class="status-text">审查失败</view>
+      <view class="current-step">审查过程中出现错误，请重试</view>
+      <button class="btn btn-warning" bindtap="restartReview">重新审查</button>
+    </view>
+  </view>
+
+  <!-- 审查结果 -->
+  <view wx:if="{{reviewStatus === 'completed' && reviewResults}}" class="review-results fade-in">
+    <view class="results-header">
+      <view class="results-title">审查报告</view>
+      <view class="share-btn" bindtap="shareReport">分享</view>
+    </view>
+
+    <!-- 总体评分 -->
+    <view class="score-display">
+      <view class="score-circle" style="background: {{getScoreColor(summary.score)}}">
+        <view class="score-text">{{summary.score}}</view>
+      </view>
+      <view class="grade-text">{{summary.grade}}级 - {{getGradeDescription(summary.grade)}}</view>
+      <view class="release-recommendation">{{summary.releaseRecommendation}}</view>
+    </view>
+
+    <!-- 统计概览 -->
+    <view class="stats-grid">
+      <view class="stat-card">
+        <view class="stat-number">{{summary.totalFiles}}</view>
+        <view class="stat-label">总文件数</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-number">{{summary.totalLines}}</view>
+        <view class="stat-label">代码行数</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-number">{{summary.totalIssues}}</view>
+        <view class="stat-label">发现问题</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-number">{{recommendations.length}}</view>
+        <view class="stat-label">改进建议</view>
+      </view>
+    </view>
+
+    <!-- 详细信息标签页 -->
+    <view class="tab-container">
+      <view class="tab-header">
+        <view class="tab-item {{activeTab === 'overview' ? 'active' : ''}}" 
+              data-tab="overview" bindtap="switchTab">概览</view>
+        <view class="tab-item {{activeTab === 'issues' ? 'active' : ''}}" 
+              data-tab="issues" bindtap="switchTab">问题</view>
+        <view class="tab-item {{activeTab === 'recommendations' ? 'active' : ''}}" 
+              data-tab="recommendations" bindtap="switchTab">建议</view>
+        <view class="tab-item {{activeTab === 'files' ? 'active' : ''}}" 
+              data-tab="files" bindtap="switchTab">文件</view>
+      </view>
+
+      <view class="tab-content">
+        <!-- 概览标签页 -->
+        <view wx:if="{{activeTab === 'overview'}}">
+          <view class="stats-grid">
+            <view class="stat-card">
+              <view class="stat-number" style="color: #F44336">{{statistics.severityStats['严重'] || 0}}</view>
+              <view class="stat-label">严重问题</view>
+            </view>
+            <view class="stat-card">
+              <view class="stat-number" style="color: #FF9800">{{statistics.severityStats['重要'] || 0}}</view>
+              <view class="stat-label">重要问题</view>
+            </view>
+            <view class="stat-card">
+              <view class="stat-number" style="color: #2196F3">{{statistics.severityStats['一般'] || 0}}</view>
+              <view class="stat-label">一般问题</view>
+            </view>
+            <view class="stat-card">
+              <view class="stat-number" style="color: #4CAF50">{{statistics.severityStats['建议'] || 0}}</view>
+              <view class="stat-label">建议优化</view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 问题标签页 -->
+        <view wx:elif="{{activeTab === 'issues'}}">
+          <!-- 问题筛选 -->
+          <view class="issue-filters">
+            <view class="filter-btn {{selectedSeverity === 'all' ? 'active' : ''}}" 
+                  data-severity="all" bindtap="filterIssues">全部</view>
+            <view class="filter-btn {{selectedSeverity === '严重' ? 'active' : ''}}" 
+                  data-severity="严重" bindtap="filterIssues">严重</view>
+            <view class="filter-btn {{selectedSeverity === '重要' ? 'active' : ''}}" 
+                  data-severity="重要" bindtap="filterIssues">重要</view>
+            <view class="filter-btn {{selectedSeverity === '一般' ? 'active' : ''}}" 
+                  data-severity="一般" bindtap="filterIssues">一般</view>
+            <view class="filter-btn {{selectedSeverity === '建议' ? 'active' : ''}}" 
+                  data-severity="建议" bindtap="filterIssues">建议</view>
+          </view>
+
+          <!-- 问题列表 -->
+          <view class="issue-list">
+            <view wx:for="{{filteredIssues}}" wx:key="index" 
+                  class="issue-item severity-{{item.severity}}"
+                  data-index="{{index}}" bindtap="viewIssueDetail">
+              <view class="issue-header">
+                <view class="issue-severity severity-{{item.severity}}">{{item.severity}}</view>
+                <view class="issue-category">{{item.category}}</view>
+              </view>
+              <view class="issue-description">{{item.description}}</view>
+              <view class="issue-file">{{item.file}}{{item.line ? ':' + item.line : ''}}</view>
+            </view>
+            
+            <view wx:if="{{filteredIssues.length === 0}}" class="empty-state">
+              <view class="empty-icon">🎉</view>
+              <view class="empty-text">没有发现{{selectedSeverity === 'all' ? '' : selectedSeverity}}问题</view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 建议标签页 -->
+        <view wx:elif="{{activeTab === 'recommendations'}}">
+          <view class="recommendation-list">
+            <view wx:for="{{recommendations}}" wx:key="index" class="recommendation-item">
+              <view class="recommendation-header">
+                <view class="recommendation-priority">{{item.priority}}</view>
+                <view class="recommendation-category">{{item.category}}</view>
+              </view>
+              <view class="recommendation-description">{{item.description}}</view>
+              <view class="recommendation-action">建议: {{item.action}}</view>
+            </view>
+            
+            <view wx:if="{{recommendations.length === 0}}" class="empty-state">
+              <view class="empty-icon">👍</view>
+              <view class="empty-text">暂无改进建议</view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 文件标签页 -->
+        <view wx:elif="{{activeTab === 'files'}}">
+          <view class="file-stats">
+            <view class="file-stat-item">
+              <view class="file-stat-label">JavaScript文件</view>
+              <view class="file-stat-value">{{statistics.jsFiles}}</view>
+            </view>
+            <view class="file-stat-item">
+              <view class="file-stat-label">模板文件</view>
+              <view class="file-stat-value">{{statistics.wxmlFiles}}</view>
+            </view>
+            <view class="file-stat-item">
+              <view class="file-stat-label">样式文件</view>
+              <view class="file-stat-value">{{statistics.wxssFiles}}</view>
+            </view>
+            <view class="file-stat-item">
+              <view class="file-stat-label">配置文件</view>
+              <view class="file-stat-value">{{statistics.jsonFiles}}</view>
+            </view>
+            <view class="file-stat-item">
+              <view class="file-stat-label">总代码行数</view>
+              <view class="file-stat-value">{{statistics.totalLines}}</view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-buttons">
+      <button class="btn btn-secondary" bindtap="restartReview">重新审查</button>
+    </view>
+  </view>
+</view>

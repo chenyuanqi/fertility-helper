@@ -127,22 +127,57 @@ class FertilityStorage {
    * 保存周期数据
    */
   static async saveCycles(cycles) {
-    console.log('FertilityStorage.saveCycles 开始保存周期数据:', cycles);
+    console.log('=== FertilityStorage.saveCycles 开始保存周期数据 ===');
+    console.log('要保存的数据:', cycles);
+    console.log('数据数量:', cycles ? cycles.length : 0);
+    
     try {
+      // 数据验证
+      if (!Array.isArray(cycles)) {
+        throw new Error('周期数据必须是数组格式');
+      }
+      
+      // 使用同步存储确保数据立即写入
+      wx.setStorageSync(STORAGE_KEYS.CYCLES, cycles);
+      console.log('同步存储完成');
+      
+      // 再次使用异步存储作为备份
       await StorageManager.setItem(STORAGE_KEYS.CYCLES, cycles);
+      console.log('异步存储完成');
       
       // 验证数据是否保存成功
       const savedData = await StorageManager.getItem(STORAGE_KEYS.CYCLES, []);
-      console.log('FertilityStorage.saveCycles 保存后验证数据:', savedData);
+      console.log('保存后验证数据:', savedData);
+      console.log('验证数据数量:', savedData ? savedData.length : 0);
       
       if (!savedData || savedData.length !== cycles.length) {
-        throw new Error('数据保存验证失败');
+        console.error('数据长度不匹配:', {
+          original: cycles.length,
+          saved: savedData ? savedData.length : 0
+        });
+        throw new Error('数据保存验证失败：长度不匹配');
       }
       
-      console.log('FertilityStorage.saveCycles 保存成功');
+      // 验证关键字段
+      for (let i = 0; i < cycles.length; i++) {
+        const original = cycles[i];
+        const saved = savedData[i];
+        
+        if (!saved || saved.startDate !== original.startDate || saved.id !== original.id) {
+          console.error('数据内容不匹配:', {
+            index: i,
+            original: original,
+            saved: saved
+          });
+          throw new Error(`数据保存验证失败：第${i}项内容不匹配`);
+        }
+      }
+      
+      console.log('=== FertilityStorage.saveCycles 保存成功 ===');
       return true;
     } catch (error) {
-      console.error('FertilityStorage.saveCycles 保存失败:', error);
+      console.error('=== FertilityStorage.saveCycles 保存失败 ===');
+      console.error('错误详情:', error);
       throw error;
     }
   }

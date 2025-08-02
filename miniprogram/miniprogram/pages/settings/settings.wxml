@@ -112,7 +112,7 @@
       </view>
     </view>
     
-    <view class="settings-item" bindtap="testReminder">
+    <view class="settings-item" bindtap="testReminder" wx:if="{{debugMode}}">
       <view class="item-icon">🧪</view>
       <view class="item-content">
         <view class="item-title">测试提醒</view>
@@ -182,6 +182,9 @@
     <view class="group-header">
       <view class="group-title">应用设置</view>
       <view class="group-description">应用相关设置和信息</view>
+      <view class="debug-indicator" wx:if="{{debugMode}}">
+        <text class="debug-text">🔧 调试模式已开启</text>
+      </view>
     </view>
     
     <view class="settings-item" bindtap="checkUpdate">
@@ -190,7 +193,7 @@
         <view class="item-title">检查更新</view>
         <view class="item-description">查看是否有新版本</view>
       </view>
-      <view class="item-value">v1.0.0</view>
+      <view class="item-value" bindtap="onVersionTap">v1.0.0</view>
       <view class="item-arrow">›</view>
     </view>
     
@@ -212,11 +215,20 @@
       <view class="item-arrow">›</view>
     </view>
     
-    <view class="settings-item" bindtap="runCompatibilityTest">
+    <view class="settings-item" bindtap="runCompatibilityTest" wx:if="{{debugMode}}">
       <view class="item-icon">🔧</view>
       <view class="item-content">
         <view class="item-title">兼容性测试</view>
         <view class="item-description">检测设备兼容性</view>
+      </view>
+      <view class="item-arrow">></view>
+    </view>
+
+    <view class="settings-item" bindtap="runCodeReview" wx:if="{{debugMode}}">
+      <view class="item-icon">🔍</view>
+      <view class="item-content">
+        <view class="item-title">代码审查</view>
+        <view class="item-description">检查代码质量和规范</view>
       </view>
       <view class="item-arrow">></view>
     </view>

@@ -5,6 +5,7 @@
     "pages/chart/chart",
     "pages/calendar/calendar",
     "pages/settings/settings",
+    "pages/code-review/code-review",
     "pages/compatibility-test/compatibility-test"
   ],
   "subPackages": [
