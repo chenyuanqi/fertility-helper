@@ -4,12 +4,55 @@
   width: 100%;
   height: 100%;
   position: relative;
+  background: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
 }
 
 .simple-chart-canvas {
   width: 100%;
-  height: 100%;
   display: block;
+}
+
+/* 图例样式 */
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20rpx;
+  background: #f8f9fa;
+  border-top: 1rpx solid #e6e6e6;
+  gap: 40rpx;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.legend-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  border: 2rpx solid #fff;
+}
+
+.temperature-dot {
+  background: #ff6b9d;
+}
+
+.menstrual-dot {
+  background: #e74c3c;
+}
+
+.intercourse-dot {
+  background: #4ecdc4;
+}
+
+.legend-text {
+  font-size: 24rpx;
+  color: #666;
 }
 
 /* 无数据状态 */

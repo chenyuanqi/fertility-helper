@@ -161,8 +161,13 @@ Page({
         if (record.menstrual && 
             record.menstrual.flow && 
             ['light', 'medium', 'heavy'].includes(record.menstrual.flow)) {
-          dayData.menstrual = record.menstrual.flow;
+          dayData.menstrual = {
+            flow: record.menstrual.flow,
+            isStart: record.menstrual.isStart || false,
+            isEnd: record.menstrual.isEnd || false
+          };
           dayData.hasData = true;
+          console.log(`${date} 月经数据:`, dayData.menstrual);
         }
         
         // 同房数据 - 只有实际同房才标记
@@ -173,8 +178,9 @@ Page({
             (!item.type || item.type !== 'none')
           );
           if (validIntercourse.length > 0) {
-            dayData.intercourse = validIntercourse.length;
+            dayData.intercourse = validIntercourse;
             dayData.hasData = true;
+            console.log(`${date} 同房数据:`, validIntercourse);
           }
         }
       }
@@ -432,6 +438,7 @@ Page({
             createdAt: DateUtils.formatISO(new Date()),
             updatedAt: DateUtils.formatISO(new Date())
           };
+          console.log(`生成月经数据 ${date}:`, dayRecord.menstrual);
         }
         
         // 生成同房数据（25%概率，在排卵期前后概率更高）
@@ -448,10 +455,16 @@ Page({
             createdAt: DateUtils.formatISO(new Date()),
             updatedAt: DateUtils.formatISO(new Date())
           }];
+          console.log(`生成同房数据 ${date}:`, dayRecord.intercourse);
         }
         
         dayRecords[date] = dayRecord;
       });
+      
+      console.log('=== 测试数据生成完成 ===');
+      console.log('总记录数:', Object.keys(dayRecords).length);
+      console.log('月经记录数:', Object.values(dayRecords).filter(r => r.menstrual).length);
+      console.log('同房记录数:', Object.values(dayRecords).filter(r => r.intercourse).length);
       
       await FertilityStorage.saveDayRecords(dayRecords);
       

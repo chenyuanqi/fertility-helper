@@ -39,7 +39,16 @@ Component({
   },
 
   observers: {
-    'chartData, viewMode': function() {
+    'chartData, viewMode': function(chartData, viewMode) {
+      console.log('=== simple-chart 数据更新 ===');
+      console.log('图表数据长度:', chartData ? chartData.length : 0);
+      console.log('显示模式:', viewMode);
+      
+      if (chartData && chartData.length > 0) {
+        const sampleData = chartData.slice(0, 3);
+        console.log('前3条数据样本:', sampleData);
+      }
+      
       setTimeout(() => {
         this.drawChart();
       }, 100);
@@ -92,8 +101,8 @@ Component({
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, width, height);
       
-      // 增加顶部空间以容纳月经和同房标记
-      const padding = { top: 60, right: 20, bottom: 60, left: 40 };
+      // 调整padding，为图例留出空间
+      const padding = { top: 40, right: 20, bottom: 50, left: 50 };
       const chartWidth = width - padding.left - padding.right;
       const chartHeight = height - padding.top - padding.bottom;
       
@@ -204,75 +213,37 @@ Component({
       const dataLength = this.data.chartData.length;
       const tempRange = maxTemp - minTemp;
       
+      // 调试日志
+      console.log('=== 图表数据调试 ===');
+      console.log('总数据点数:', dataLength);
+      
+      // 统计各类数据
+      let tempCount = 0, menstrualCount = 0, intercourseCount = 0;
+      this.data.chartData.forEach((day, index) => {
+        if (day.temperature) tempCount++;
+        if (this.hasMenstrualData(day)) {
+          menstrualCount++;
+          console.log(`第${index + 1}天有月经数据:`, day.menstrual);
+        }
+        if (this.hasIntercourseData(day)) {
+          intercourseCount++;
+          console.log(`第${index + 1}天有同房数据:`, day.intercourse);
+        }
+      });
+      
+      console.log(`数据统计 - 体温:${tempCount}, 月经:${menstrualCount}, 同房:${intercourseCount}`);
+      console.log('=== 图表数据调试结束 ===');
+      
       // 收集体温点坐标用于连线
       const temperaturePoints = [];
       
+      // 先绘制体温连线
       this.data.chartData.forEach((day, index) => {
         const x = padding.left + (index / Math.max(1, dataLength - 1)) * chartWidth;
         
-        // 绘制体温点
         if (day.temperature) {
           const y = padding.top + chartHeight - ((day.temperature - minTemp) / tempRange) * chartHeight;
           temperaturePoints.push({ x, y, temp: day.temperature });
-          
-          // 体温点
-          ctx.fillStyle = '#ff6b9d';
-          ctx.beginPath();
-          ctx.arc(x, y, 4, 0, 2 * Math.PI);
-          ctx.fill();
-          
-          // 白色边框
-          ctx.strokeStyle = '#fff';
-          ctx.lineWidth = 2;
-          ctx.stroke();
-          
-          // 体温标签
-          ctx.fillStyle = '#ff6b9d';
-          ctx.font = '10px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(`${day.temperature.toFixed(1)}`, x, y - 10);
-        }
-        
-        // 在全部数据模式下绘制月经和同房标记 - 标记在日期上方
-        if (this.data.viewMode === 'all') {
-          // 月经标记 - 在图表顶部上方
-          if (day.menstrual) {
-            const colors = { light: '#ffcccb', medium: '#ff6b6b', heavy: '#e74c3c' };
-            const markY = padding.top - 30;
-            
-            // 绘制月经标记矩形
-            ctx.fillStyle = colors[day.menstrual] || '#ff6b6b';
-            ctx.fillRect(x - 5, markY, 10, 8);
-            
-            // 白色边框
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x - 5, markY, 10, 8);
-          }
-          
-          // 同房标记 - 在图表顶部上方，如果有月经记录则在更上方
-          if (day.intercourse) {
-            const markY = day.menstrual ? padding.top - 45 : padding.top - 30;
-            
-            // 绘制同房标记圆形
-            ctx.fillStyle = '#4ecdc4';
-            ctx.beginPath();
-            ctx.arc(x, markY + 4, 5, 0, 2 * Math.PI);
-            ctx.fill();
-            
-            // 白色边框
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-            
-            // 如果有多次同房，显示数字
-            if (day.intercourse > 1) {
-              ctx.fillStyle = '#fff';
-              ctx.font = '7px sans-serif';
-              ctx.textAlign = 'center';
-              ctx.fillText(day.intercourse.toString(), x, markY + 6);
-            }
-          }
         }
       });
       
@@ -293,6 +264,170 @@ Component({
         
         ctx.stroke();
       }
+      
+      // 然后绘制数据点（新的设计）
+      this.data.chartData.forEach((day, index) => {
+        const x = padding.left + (index / Math.max(1, dataLength - 1)) * chartWidth;
+        
+        // 收集当天的所有指标
+        const indicators = [];
+        
+        // 体温指标
+        if (day.temperature) {
+          const y = padding.top + chartHeight - ((day.temperature - minTemp) / tempRange) * chartHeight;
+          indicators.push({
+            type: 'temperature',
+            x: x,
+            y: y,
+            color: '#ff6b9d',
+            value: day.temperature
+          });
+        }
+        
+        // 月经指标 - 显示在体温线上
+        if (this.data.viewMode === 'all' && this.hasMenstrualData(day)) {
+          const y = day.temperature ? 
+            padding.top + chartHeight - ((day.temperature - minTemp) / tempRange) * chartHeight :
+            padding.top + chartHeight * 0.5;
+          indicators.push({
+            type: 'menstrual',
+            x: x,
+            y: y,
+            color: '#e74c3c',
+            value: this.getMenstrualValue(day)
+          });
+        }
+        
+        // 同房指标 - 显示在体温线上
+        if (this.data.viewMode === 'all' && this.hasIntercourseData(day)) {
+          const y = day.temperature ? 
+            padding.top + chartHeight - ((day.temperature - minTemp) / tempRange) * chartHeight :
+            padding.top + chartHeight * 0.5;
+          indicators.push({
+            type: 'intercourse',
+            x: x,
+            y: y,
+            color: '#4ecdc4',
+            value: this.getIntercourseValue(day)
+          });
+        }
+        
+        // 根据指标数量绘制不同的显示方式
+        if (indicators.length === 0) {
+          return;
+        } else if (indicators.length === 1) {
+          // 单个指标，直接绘制圆点
+          const indicator = indicators[0];
+          this.drawSingleIndicator(ctx, indicator);
+        } else {
+          // 多个指标，绘制组合圆圈
+          this.drawMultipleIndicators(ctx, indicators);
+        }
+      });
+    },
+
+    /**
+     * 绘制单个指标
+     */
+    drawSingleIndicator(ctx, indicator) {
+      ctx.fillStyle = indicator.color;
+      ctx.beginPath();
+      ctx.arc(indicator.x, indicator.y, 6, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // 白色边框
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    },
+
+    /**
+     * 绘制多个指标的组合显示
+     */
+    drawMultipleIndicators(ctx, indicators) {
+      const centerX = indicators[0].x;
+      const centerY = indicators[0].y;
+      
+      // 绘制外圈
+      ctx.strokeStyle = '#666';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 12, 0, 2 * Math.PI);
+      ctx.stroke();
+      
+      // 根据指标数量安排小圆点位置
+      const radius = 6;
+      const angleStep = (2 * Math.PI) / indicators.length;
+      
+      indicators.forEach((indicator, index) => {
+        let offsetX, offsetY;
+        
+        if (indicators.length === 2) {
+          // 两个指标，左右排列
+          offsetX = index === 0 ? -4 : 4;
+          offsetY = 0;
+        } else if (indicators.length === 3) {
+          // 三个指标，三角形排列
+          const angle = index * angleStep - Math.PI / 2;
+          offsetX = Math.cos(angle) * radius;
+          offsetY = Math.sin(angle) * radius;
+        } else {
+          // 更多指标，圆形排列
+          const angle = index * angleStep - Math.PI / 2;
+          offsetX = Math.cos(angle) * radius;
+          offsetY = Math.sin(angle) * radius;
+        }
+        
+        // 绘制小圆点
+        ctx.fillStyle = indicator.color;
+        ctx.beginPath();
+        ctx.arc(centerX + offsetX, centerY + offsetY, 3, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // 白色边框
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+    },
+
+    /**
+     * 检查是否有月经数据
+     */
+    hasMenstrualData(day) {
+      return day.menstrual && 
+             typeof day.menstrual === 'object' && 
+             day.menstrual.flow && 
+             ['light', 'medium', 'heavy'].includes(day.menstrual.flow);
+    },
+
+    /**
+     * 获取月经数据值
+     */
+    getMenstrualValue(day) {
+      if (this.hasMenstrualData(day)) {
+        return day.menstrual.flow;
+      }
+      return null;
+    },
+
+    /**
+     * 检查是否有同房数据
+     */
+    hasIntercourseData(day) {
+      return day.intercourse && 
+             Array.isArray(day.intercourse) && 
+             day.intercourse.length > 0;
+    },
+
+    /**
+     * 获取同房数据值
+     */
+    getIntercourseValue(day) {
+      if (this.hasIntercourseData(day)) {
+        return day.intercourse.length;
+      }
+      return 0;
     },
 
     /**
