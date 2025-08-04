@@ -39,10 +39,14 @@ Page({
     }
   },
 
-  onShow() {
+  async onShow() {
     try {
-      console.log('图表页面显示');
-      this.loadCurrentCycleData();
+      console.log('图表页面显示，重新加载数据');
+      // 重新加载周期数据，以防有新的周期被创建
+      await this.loadCycles();
+      // 重新加载当前周期数据，确保获取最新的记录
+      await this.loadCurrentCycleData();
+      console.log('图表页面数据刷新完成');
     } catch (error) {
       console.error('图表页面显示时加载数据失败:', error);
     }
@@ -134,6 +138,10 @@ Page({
    * 构建图表数据
    */
   buildChartData(startDate, endDate, dayRecords) {
+    console.log('=== buildChartData 开始构建图表数据 ===');
+    console.log('周期范围:', startDate, '至', endDate);
+    console.log('原始记录数量:', dayRecords ? Object.keys(dayRecords).length : 0);
+    
     const dates = DateUtils.getDateRange(startDate, endDate);
     const chartData = [];
     
@@ -147,6 +155,7 @@ Page({
       
       if (dayRecords && dayRecords[date]) {
         const record = dayRecords[date];
+        console.log(`${date} 原始记录:`, record);
         
         // 体温数据
         if (record.temperature && 
@@ -155,6 +164,7 @@ Page({
             record.temperature.temperature < 45) {
           dayData.temperature = record.temperature.temperature;
           dayData.hasData = true;
+          console.log(`${date} 体温数据:`, dayData.temperature);
         }
         
         // 月经数据 - 只有实际月经才标记
@@ -187,6 +197,15 @@ Page({
       
       chartData.push(dayData);
     });
+    
+    // 统计最终数据
+    const tempCount = chartData.filter(d => d.temperature).length;
+    const menstrualCount = chartData.filter(d => d.menstrual).length;
+    const intercourseCount = chartData.filter(d => d.intercourse).length;
+    
+    console.log('=== buildChartData 构建完成 ===');
+    console.log(`最终数据统计 - 体温:${tempCount}, 月经:${menstrualCount}, 同房:${intercourseCount}`);
+    console.log('总数据点:', chartData.length);
     
     return chartData;
   },
