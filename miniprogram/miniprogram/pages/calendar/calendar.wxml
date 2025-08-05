@@ -45,7 +45,10 @@
     </view>
 
     <!-- 日历网格 -->
-    <view class="calendar-container">
+    <view class="calendar-container" 
+          bindtouchstart="onTouchStart" 
+          bindtouchmove="onTouchMove" 
+          bindtouchend="onTouchEnd">
       <!-- 星期标题 -->
       <view class="weekday-header">
         <view wx:for="{{weekDays}}" wx:key="*this" class="weekday-item">{{item}}</view>

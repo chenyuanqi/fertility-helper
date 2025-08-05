@@ -33,7 +33,15 @@ Page({
     weekDays: ['日', '一', '二', '三', '四', '五', '六'],
     
     // 是否正在加载
-    isLoading: false
+    isLoading: false,
+    
+    // 触摸滑动相关
+    touchStartX: 0,
+    touchStartY: 0,
+    touchEndX: 0,
+    touchEndY: 0,
+    minSwipeDistance: 50, // 最小滑动距离
+    isSwipeProcessing: false // 防止重复处理滑动
   },
 
   onLoad(options) {
@@ -509,6 +517,65 @@ Page({
    */
   getDayOfWeekName(dateStr) {
     return DateUtils.getDayOfWeekName(dateStr);
+  },
+
+  /**
+   * 触摸开始
+   */
+  onTouchStart(e) {
+    if (this.data.isSwipeProcessing) return;
+    
+    const touch = e.touches[0];
+    this.setData({
+      touchStartX: touch.clientX,
+      touchStartY: touch.clientY
+    });
+  },
+
+  /**
+   * 触摸移动
+   */
+  onTouchMove(e) {
+    if (this.data.isSwipeProcessing) return;
+    
+    const touch = e.touches[0];
+    this.setData({
+      touchEndX: touch.clientX,
+      touchEndY: touch.clientY
+    });
+  },
+
+  /**
+   * 触摸结束
+   */
+  onTouchEnd(e) {
+    if (this.data.isSwipeProcessing) return;
+    
+    const { touchStartX, touchStartY, touchEndX, touchEndY, minSwipeDistance } = this.data;
+    
+    // 计算滑动距离
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+    
+    // 判断是否为有效的水平滑动（水平距离大于垂直距离，且超过最小距离）
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
+      this.setData({ isSwipeProcessing: true });
+      
+      if (deltaX > 0) {
+        // 向右滑动 - 上一个月
+        console.log('向右滑动，切换到上一个月');
+        this.onPrevMonth();
+      } else {
+        // 向左滑动 - 下一个月
+        console.log('向左滑动，切换到下一个月');
+        this.onNextMonth();
+      }
+      
+      // 延迟重置滑动处理状态，防止快速连续滑动
+      setTimeout(() => {
+        this.setData({ isSwipeProcessing: false });
+      }, 300);
+    }
   },
 
   /**
