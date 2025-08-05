@@ -226,7 +226,16 @@ Page({
     const menstrualDays = chartData.filter(day => day.menstrual).length;
     
     // 计算同房次数
-    const intercourseCount = chartData.reduce((sum, day) => sum + (day.intercourse || 0), 0);
+    const intercourseCount = chartData.reduce((sum, day) => {
+      if (day.intercourse && Array.isArray(day.intercourse)) {
+        console.log(`${day.date} 同房数据:`, day.intercourse, '数量:', day.intercourse.length);
+        return sum + day.intercourse.length;
+      }
+      return sum;
+    }, 0);
+    
+    console.log('=== 周期统计信息计算 ===');
+    console.log('同房总次数:', intercourseCount);
     
     // 预测排卵日（简化算法：周期开始后14天）
     const predictedOvulation = DateUtils.addDays(cycle.startDate, 13);

@@ -35,9 +35,12 @@ Page({
     showCycleModal: false,
     selectedPhase: 'unknown',
     // 授权相关
-    hasUserInfo: false,
+    hasUserInfo: true,
     canIUseGetUserProfile: false,
-    userInfo: null,
+    userInfo: {
+      nickName: '用户',
+      avatarUrl: '/images/default-avatar.png'
+    },
     // 周期开始日期设置
     showCycleStartModal: false,
     cycleStartDate: '',
@@ -560,77 +563,48 @@ Page({
    * 检查用户授权状态
    */
   checkUserAuth() {
-    wx.getSetting({
-      success: (res) => {
-        if (res.authSetting['scope.userInfo']) {
-          // 已经授权，可以直接调用 getUserInfo 获取头像昵称
-          wx.getUserInfo({
-            success: (res) => {
-              this.setData({
-                userInfo: res.userInfo,
-                hasUserInfo: true
-              });
-            }
-          });
-        }
+    // 新版本不再需要用户授权，直接设置为已授权状态
+    this.setData({
+      hasUserInfo: true,
+      userInfo: {
+        nickName: '用户',
+        avatarUrl: '/images/default-avatar.png'
       }
     });
   },
 
   /**
-   * 获取用户信息（新接口）
+   * 获取用户信息（使用新的方式）
    */
   getUserProfile() {
-    wx.getUserProfile({
-      desc: '用于完善会员资料', // 声明获取用户个人信息后的用途
-      success: (res) => {
-        console.log('获取用户信息成功:', res);
-        this.setData({
-          userInfo: res.userInfo,
-          hasUserInfo: true
-        });
-        
-        // 保存用户信息到全局
-        const app = getApp();
-        if (app.globalData) {
-          app.globalData.userInfo = res.userInfo;
-        }
-        
-        // 更新用户设置
-        this.updateUserSettings(res.userInfo);
-      },
-      fail: (err) => {
-        console.error('获取用户信息失败:', err);
-        wx.showToast({
-          title: '授权失败',
-          icon: 'none'
-        });
+    // 不再使用废弃的getUserProfile API
+    // 直接设置默认用户信息或跳过用户信息获取
+    this.setData({
+      hasUserInfo: true,
+      userInfo: {
+        nickName: '用户',
+        avatarUrl: '/images/default-avatar.png'
       }
+    });
+    
+    wx.showToast({
+      title: '欢迎使用',
+      icon: 'success'
     });
   },
 
   /**
-   * 获取用户信息（旧接口，兼容）
+   * 获取用户信息（兼容处理）
    */
   getUserInfo(e) {
-    if (e.detail.userInfo) {
-      console.log('获取用户信息成功:', e.detail);
-      this.setData({
-        userInfo: e.detail.userInfo,
-        hasUserInfo: true
-      });
-      
-      // 保存用户信息到全局
-      const app = getApp();
-      if (app.globalData) {
-        app.globalData.userInfo = e.detail.userInfo;
+    // 兼容处理，直接设置为已授权
+    this.setData({
+      hasUserInfo: true,
+      userInfo: {
+        nickName: '用户',
+        avatarUrl: '/images/default-avatar.png'
       }
-      
-      // 更新用户设置
-      this.updateUserSettings(e.detail.userInfo);
-    } else {
-      console.log('用户拒绝授权');
-    }
+    });
   },
 
   /**
