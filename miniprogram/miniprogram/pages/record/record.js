@@ -37,7 +37,12 @@ Page({
     todayDate: '',
     formattedDate: '',
     isLoading: false,
-    todayRecord: null
+    todayRecord: null,
+    
+    // 自动保存相关
+    hasUnsavedChanges: false,
+    autoSaveTimer: null,
+    autoSaveCountdown: 0
   },
 
   onLoad(options) {
@@ -211,6 +216,112 @@ Page({
     return `${weekDay} ${DateUtils.formatDate(date)}`;
   },
 
+  // ==================== 自动保存相关方法 ====================
+  
+  /**
+   * 标记有未保存的更改
+   */
+  markUnsavedChanges() {
+    this.setData({ hasUnsavedChanges: true });
+    
+    // 清除之前的定时器
+    if (this.data.autoSaveTimer) {
+      clearTimeout(this.data.autoSaveTimer);
+    }
+
+    // 用户停止操作3秒后开始倒计时
+    const delayTimer = setTimeout(() => {
+      this.startAutoSaveTimer();
+    }, 3000);
+
+    this.setData({ autoSaveTimer: delayTimer });
+  },
+
+  /**
+   * 开始自动保存倒计时
+   */
+  startAutoSaveTimer() {
+    this.setData({ autoSaveCountdown: 10 });
+
+    const timer = setInterval(() => {
+      const countdown = this.data.autoSaveCountdown - 1;
+      this.setData({ autoSaveCountdown: countdown });
+
+      if (countdown <= 0) {
+        clearInterval(timer);
+        this.autoSaveCurrentRecord();
+      }
+    }, 1000);
+
+    this.setData({ autoSaveTimer: timer });
+  },
+
+  /**
+   * 取消自动保存
+   */
+  cancelAutoSave() {
+    if (this.data.autoSaveTimer) {
+      clearInterval(this.data.autoSaveTimer);
+      this.setData({
+        autoSaveTimer: null,
+        hasUnsavedChanges: false,
+        autoSaveCountdown: 0
+      });
+    }
+  },
+
+  /**
+   * 手动保存当前记录
+   */
+  async manualSaveCurrentRecord() {
+    this.cancelAutoSave();
+    await this.saveCurrentRecord();
+  },
+
+  /**
+   * 自动保存当前记录
+   */
+  async autoSaveCurrentRecord() {
+    this.setData({
+      autoSaveTimer: null,
+      hasUnsavedChanges: false,
+      autoSaveCountdown: 0
+    });
+    await this.saveCurrentRecord();
+  },
+
+  /**
+   * 保存当前记录（根据记录类型）
+   */
+  async saveCurrentRecord() {
+    const { recordType } = this.data;
+    
+    try {
+      switch (recordType) {
+        case 'temperature':
+          await this.saveTemperatureRecord();
+          break;
+        case 'menstrual':
+          await this.saveMenstrualRecord();
+          break;
+        case 'intercourse':
+          await this.saveIntercourseRecord();
+          break;
+      }
+    } catch (error) {
+      console.error('保存记录失败:', error);
+    }
+  },
+
+  /**
+   * 页面卸载时清理定时器
+   */
+  onUnload() {
+    if (this.data.autoSaveTimer) {
+      clearInterval(this.data.autoSaveTimer);
+    }
+  },
+
   // ==================== 体温记录相关方法 ====================
   
   /**
@@ -225,6 +336,7 @@ Page({
         temperatureIndex: index,
         temperatureValue: selectedOption.value.toFixed(1)
       });
+      this.markUnsavedChanges();
     }
   },
 
@@ -233,6 +345,7 @@ Page({
    */
   onTemperatureTimeChange(e) {
     this.setData({ temperatureTime: e.detail.value });
+    this.markUnsavedChanges();
   },
 
   /**
@@ -240,6 +353,7 @@ Page({
    */
   onTemperatureNoteInput(e) {
     this.setData({ temperatureNote: e.detail.value });
+    this.markUnsavedChanges();
   },
 
   /**
@@ -268,6 +382,7 @@ Page({
       
       if (result.success) {
         wx.showToast({ title: '保存成功', icon: 'success' });
+        this.setData({ hasUnsavedChanges: false });
         await this.loadTodayRecord();
       } else {
         throw new Error(result.error?.message || '保存失败');
@@ -288,6 +403,7 @@ Page({
   onFlowOptionTap(e) {
     const value = e.currentTarget.dataset.value;
     this.setData({ menstrualFlow: value });
+    this.markUnsavedChanges();
   },
 
   /**
@@ -299,6 +415,7 @@ Page({
       isStartPeriod: isStart,
       isEndPeriod: isStart ? false : this.data.isEndPeriod
     });
+    this.markUnsavedChanges();
   },
 
   onPeriodEndChange(e) {
@@ -307,6 +424,7 @@ Page({
       isEndPeriod: isEnd,
       isStartPeriod: isEnd ? false : this.data.isStartPeriod
     });
+    this.markUnsavedChanges();
   },
 
   /**
@@ -314,6 +432,7 @@ Page({
    */
   onMenstrualNoteInput(e) {
     this.setData({ menstrualNote: e.detail.value });
+    this.markUnsavedChanges();
   },
 
   /**
@@ -338,6 +457,7 @@ Page({
       
       if (result.success) {
         wx.showToast({ title: '保存成功', icon: 'success' });
+        this.setData({ hasUnsavedChanges: false });
         await this.loadTodayRecord();
       } else {
         throw new Error(result.error?.message || '保存失败');
@@ -357,6 +477,7 @@ Page({
    */
   onIntercourseTimeChange(e) {
     this.setData({ intercourseTime: e.detail.value });
+    this.markUnsavedChanges();
   },
 
   /**
@@ -364,6 +485,7 @@ Page({
    */
   onProtectionChange(e) {
     this.setData({ hasProtection: e.detail.value });
+    this.markUnsavedChanges();
   },
 
   /**
@@ -371,6 +493,7 @@ Page({
    */
   onIntercourseNoteInput(e) {
     this.setData({ intercourseNote: e.detail.value });
+    this.markUnsavedChanges();
   },
 
   /**
@@ -385,6 +508,7 @@ Page({
       hasProtection: false,
       intercourseNote: ''
     });
+    this.markUnsavedChanges();
   },
 
   /**
@@ -412,6 +536,7 @@ Page({
         
         if (result.success) {
           wx.showToast({ title: '保存成功', icon: 'success' });
+          this.setData({ hasUnsavedChanges: false });
           await this.loadTodayRecord();
         } else {
           throw new Error(result.error?.message || '保存失败');
@@ -436,6 +561,7 @@ Page({
       
       if (result.success) {
         wx.showToast({ title: '保存成功', icon: 'success' });
+        this.setData({ hasUnsavedChanges: false });
         await this.loadTodayRecord();
       } else {
         throw new Error(result.error?.message || '保存失败');

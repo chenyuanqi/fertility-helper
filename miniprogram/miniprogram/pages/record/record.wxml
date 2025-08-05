@@ -5,6 +5,18 @@
     <text class="page-title-date">{{formattedDate}}</text>
   </view>
 
+  <!-- 自动保存提示 -->
+  <view class="auto-save-tip" wx:if="{{hasUnsavedChanges}}">
+    <view class="tip-content">
+      <text class="tip-text" wx:if="{{autoSaveCountdown > 0}}">{{autoSaveCountdown}}秒后自动保存</text>
+      <text class="tip-text" wx:else>有未保存的更改</text>
+      <view class="tip-actions">
+        <text class="tip-btn save-btn" bindtap="manualSaveCurrentRecord">保存</text>
+        <text class="tip-btn cancel-btn" bindtap="cancelAutoSave">取消</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 记录类型切换 -->
   <view class="record-type-tabs">
     <view class="tab-item {{recordType === 'temperature' ? 'active' : ''}}" 
@@ -61,13 +73,9 @@
       </textarea>
     </view>
 
-    <view class="button-group">
-      <button class="save-button" bindtap="saveTemperatureRecord" disabled="{{isLoading}}">
-        {{isLoading ? '保存中...' : '保存体温记录'}}
-      </button>
-      <button class="delete-button" bindtap="deleteRecord" data-type="temperature" 
-              wx:if="{{todayRecord && todayRecord.temperature}}">
-        删除记录
+    <view class="button-group" wx:if="{{todayRecord && todayRecord.temperature}}">
+      <button class="delete-button-full" bindtap="deleteRecord" data-type="temperature">
+        删除体温记录
       </button>
     </view>
   </view>
@@ -118,13 +126,9 @@
       </textarea>
     </view>
 
-    <view class="button-group">
-      <button class="save-button" bindtap="saveMenstrualRecord" disabled="{{isLoading}}">
-        {{isLoading ? '保存中...' : '保存经量记录'}}
-      </button>
-      <button class="delete-button" bindtap="deleteRecord" data-type="menstrual" 
-              wx:if="{{todayRecord && todayRecord.menstrual}}">
-        删除记录
+    <view class="button-group" wx:if="{{todayRecord && todayRecord.menstrual}}">
+      <button class="delete-button-full" bindtap="deleteRecord" data-type="menstrual">
+        删除经量记录
       </button>
     </view>
   </view>
@@ -172,13 +176,9 @@
       </view>
     </view>
 
-    <view class="button-group">
-      <button class="save-button" bindtap="saveIntercourseRecord" disabled="{{isLoading}}">
-        {{isLoading ? '保存中...' : '保存同房记录'}}
-      </button>
-      <button class="delete-button" bindtap="deleteRecord" data-type="intercourse" 
-              wx:if="{{todayRecord && todayRecord.intercourse}}">
-        删除记录
+    <view class="button-group" wx:if="{{todayRecord && todayRecord.intercourse}}">
+      <button class="delete-button-full" bindtap="deleteRecord" data-type="intercourse">
+        删除同房记录
       </button>
     </view>
   </view>

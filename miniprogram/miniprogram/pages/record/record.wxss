@@ -36,6 +36,83 @@
   display: block;
 }
 
+/* 自动保存提示样式 */
+.auto-save-tip {
+  background: linear-gradient(135deg, #fff9e6, #fff3d3);
+  margin: 20rpx;
+  border-radius: 20rpx;
+  padding: 20rpx 24rpx;
+  box-shadow: 0 2rpx 16rpx rgba(255, 193, 7, 0.15);
+  border: 1rpx solid rgba(255, 193, 7, 0.2);
+  animation: slideDown 0.3s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.auto-save-tip::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6rpx;
+  background: linear-gradient(to bottom, #ffc107, #ffb300);
+  border-radius: 0 6rpx 6rpx 0;
+}
+
+.tip-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+}
+
+.tip-text {
+  font-size: 26rpx;
+  color: #8b6914;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.tip-text::before {
+  content: '⏰';
+  margin-right: 8rpx;
+  font-size: 24rpx;
+}
+
+.tip-actions {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.tip-btn {
+  padding: 8rpx 12rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+  transition: opacity 0.2s ease;
+  background: none;
+  border: none;
+}
+
+.tip-btn.save-btn {
+  color: #28a745;
+}
+
+.tip-btn.save-btn:active {
+  opacity: 0.7;
+}
+
+.tip-btn.cancel-btn {
+  color: #6c757d;
+}
+
+.tip-btn.cancel-btn:active {
+  opacity: 0.7;
+}
+
 /* 记录类型切换标签 */
 .record-type-tabs {
   display: flex;
@@ -347,6 +424,26 @@
 }
 
 .delete-button:active {
+  transform: scale(0.98);
+  background: #c82333;
+}
+
+/* 占满整行的删除按钮样式 */
+.delete-button-full {
+  background: #dc3545;
+  color: white;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  padding: 24rpx;
+  border: none;
+  box-shadow: 0 4rpx 16rpx rgba(220, 53, 69, 0.3);
+  transition: all 0.3s ease;
+  width: 100%;
+  margin: 0;
+}
+
+.delete-button-full:active {
   transform: scale(0.98);
   background: #c82333;
 }
@@ -752,28 +849,7 @@
   gap: 16rpx;
 }
 
-.save-btn {
-  background: linear-gradient(135deg, #ff6b9d, #ff8fab);
-  color: white;
-  border-radius: 16rpx;
-  font-size: 32rpx;
-  font-weight: bold;
-  padding: 28rpx;
-  border: none;
-  box-shadow: 0 4rpx 16rpx rgba(255, 107, 157, 0.3);
-  transition: all 0.3s ease;
-}
-
-.save-btn:active {
-  transform: scale(0.98);
-  box-shadow: 0 2rpx 8rpx rgba(255, 107, 157, 0.4);
-}
-
-.save-btn[disabled] {
-  background: #dee2e6;
-  color: #6c757d;
-  box-shadow: none;
-}
+/* 这个样式规则被移除，因为它会覆盖 .tip-btn.save-btn 的样式 */
 
 .delete-btn {
   background: #dc3545;
