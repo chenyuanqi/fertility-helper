@@ -17,6 +17,25 @@
   box-shadow: 0 8rpx 24rpx rgba(255, 107, 157, 0.2);
 }
 
+/* 头像按钮样式 */
+.avatar-button {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-bottom: 24rpx;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.avatar-button::after {
+  border: none;
+}
+
+.avatar-button:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
 .profile-avatar {
   position: relative;
   width: 120rpx;

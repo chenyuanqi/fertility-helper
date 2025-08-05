@@ -1010,9 +1010,9 @@ Page({
   },
 
   // 选择微信头像
-  async onChooseAvatar(e) {
+  async onChooseWechatAvatar(e) {
     try {
-      wx.showLoading({ title: '获取微信头像...' });
+      wx.showLoading({ title: '设置头像中...' });
       
       const { avatarUrl } = e.detail;
       
@@ -1022,21 +1022,21 @@ Page({
         
         wx.hideLoading();
         wx.showToast({
-          title: '头像更新成功',
+          title: '头像设置成功',
           icon: 'success'
         });
       } else {
         wx.hideLoading();
         wx.showToast({
-          title: '获取微信头像失败',
+          title: '获取头像失败',
           icon: 'none'
         });
       }
     } catch (error) {
       wx.hideLoading();
-      console.error('获取微信头像失败:', error);
+      console.error('设置头像失败:', error);
       wx.showToast({
-        title: '获取微信头像失败',
+        title: '设置头像失败',
         icon: 'error'
       });
     }
@@ -1045,6 +1045,7 @@ Page({
   // 保存图片到本地
   saveImageToLocal(tempFilePath) {
     return new Promise((resolve, reject) => {
+      // 如果是网络图片，先下载
       if (tempFilePath.startsWith('http://') || tempFilePath.startsWith('https://')) {
         wx.downloadFile({
           url: tempFilePath,
@@ -1060,6 +1061,7 @@ Page({
           }
         });
       } else {
+        // 本地临时文件，直接复制
         this.copyImageToLocal(tempFilePath, resolve, reject);
       }
     });
@@ -1068,16 +1070,33 @@ Page({
   // 复制图片到本地存储
   copyImageToLocal(srcPath, resolve, reject) {
     const fs = wx.getFileSystemManager();
-    const fileName = `avatar_${Date.now()}.jpg`;
+    const timestamp = Date.now();
+    const fileName = `avatar_${timestamp}.jpg`;
     const savedPath = `${wx.env.USER_DATA_PATH}/${fileName}`;
     
+    // 确保目录存在
+    try {
+      fs.accessSync(wx.env.USER_DATA_PATH);
+    } catch (error) {
+      try {
+        fs.mkdirSync(wx.env.USER_DATA_PATH, true);
+      } catch (mkdirError) {
+        console.error('创建目录失败:', mkdirError);
+        reject(mkdirError);
+        return;
+      }
+    }
+    
+    // 复制文件
     fs.copyFile({
       srcPath: srcPath,
       destPath: savedPath,
       success: () => {
+        console.log('头像保存成功:', savedPath);
         resolve(savedPath);
       },
       fail: (error) => {
+        console.error('复制头像文件失败:', error);
         reject(error);
       }
     });

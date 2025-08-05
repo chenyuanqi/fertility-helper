@@ -2,20 +2,22 @@
 <view class="container">
   <!-- 个人资料 -->
   <view class="profile-section">
-    <view class="avatar-wrapper">
+    <button 
+      class="avatar-button"
+      open-type="chooseAvatar"
+      bind:chooseavatar="onChooseWechatAvatar"
+    >
       <avatar 
         src="{{userSettings.avatar}}"
         size="{{160}}"
-        editable="{{true}}"
+        editable="{{false}}"
         userName="{{userSettings.nickname || '小龙'}}"
         showBorder="{{true}}"
         borderColor="#ff6b9d"
-        bind:avatarTap="onAvatarTap"
-        bind:imageSelected="onImageSelected"
         bind:load="onAvatarLoad"
         bind:error="onAvatarError"
       />
-    </view>
+    </button>
     <view class="profile-name">{{userSettings.nickname || '小龙'}}</view>
     <view class="profile-stats">
       <text>已使用 {{statistics.daysUsed}} 天</text>
