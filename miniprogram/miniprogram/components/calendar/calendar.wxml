@@ -40,7 +40,7 @@
           
           <!-- 同房标记 -->
           <view wx:if="{{dayItem.data.hasIntercourse}}" class="intercourse-mark">
-            <text class="intercourse-icon">💕</text>
+            <text class="intercourse-icon" style="color: #6a0dad;">💕</text>
             <text wx:if="{{dayItem.data.intercourseCount > 1}}" class="intercourse-count">{{dayItem.data.intercourseCount}}</text>
           </view>
         </view>
@@ -63,7 +63,7 @@
       <text class="legend-text">经期</text>
     </view>
     <view class="legend-item">
-      <text class="legend-symbol intercourse-icon">💕</text>
+      <text class="legend-symbol intercourse-icon" style="color: #6a0dad;">💕</text>
       <text class="legend-text">同房</text>
     </view>
   </view>

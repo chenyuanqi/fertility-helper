@@ -310,9 +310,9 @@
 }
 
 .temperature-point {
-  background: #ff6b9d;
+  background: #ff6347;
   border: 3rpx solid #ffffff;
-  box-shadow: 0 2rpx 8rpx rgba(255, 107, 157, 0.4);
+  box-shadow: 0 2rpx 8rpx rgba(255, 99, 71, 0.4);
 }
 
 .no-temp-point {
@@ -340,10 +340,10 @@
 
 /* 同房标记 */
 .intercourse-marker {
-  background: #9b59b6;
+  background: #6a0dad;
   top: -4rpx;
   right: -4rpx;
-  box-shadow: 0 1rpx 3rpx rgba(155, 89, 182, 0.5);
+  box-shadow: 0 1rpx 3rpx rgba(106, 13, 173, 0.5);
 }
 
 /* 排卵预测标记 */
@@ -440,7 +440,7 @@
 }
 
 .legend-icon.temperature {
-  background: #ff6b6b;
+  background: #ff6347;
 }
 
 .legend-icon.menstruation {
@@ -448,7 +448,7 @@
 }
 
 .legend-icon.intimacy {
-  background: #9b59b6;
+  background: #6a0dad;
 }
 
 .legend-icon.ovulation {
@@ -763,9 +763,9 @@
 }
 
 .fullscreen-temperature-point {
-  background: #ff6b9d;
+  background: #ff6347;
   border: 3rpx solid #ffffff;
-  box-shadow: 0 2rpx 8rpx rgba(255, 107, 157, 0.4);
+  box-shadow: 0 2rpx 8rpx rgba(255, 99, 71, 0.4);
 }
 
 .fullscreen-no-temp-point {
@@ -790,10 +790,10 @@
 }
 
 .fullscreen-intercourse-marker {
-  background: #9b59b6;
+  background: #6a0dad;
   top: -5rpx;
   right: -5rpx;
-  box-shadow: 0 1rpx 3rpx rgba(155, 89, 182, 0.5);
+  box-shadow: 0 1rpx 3rpx rgba(106, 13, 173, 0.5);
 }
 
 .fullscreen-ovulation-marker {

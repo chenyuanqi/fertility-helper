@@ -162,11 +162,11 @@
 }
 
 .temp-indicator.normal-temp {
-  background: #ff6b9d;
+  background: #ff6347;
 }
 
 .temp-indicator.high-temp {
-  background: #ff3333;
+  background: #ff4500;
 }
 
 /* 经期背景 */
@@ -181,15 +181,15 @@
 }
 
 .menstrual-bg.menstrual-light {
-  background: rgba(255, 182, 193, 0.4);
+  background: rgba(220, 20, 60, 0.3);
 }
 
 .menstrual-bg.menstrual-medium {
-  background: rgba(255, 160, 160, 0.5);
+  background: rgba(220, 20, 60, 0.5);
 }
 
 .menstrual-bg.menstrual-heavy {
-  background: rgba(255, 102, 102, 0.6);
+  background: rgba(220, 20, 60, 0.7);
 }
 
 /* 同房标记 */

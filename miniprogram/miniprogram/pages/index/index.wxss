@@ -576,11 +576,11 @@
 }
 
 .fab-temperature {
-  background: linear-gradient(135deg, #ff6b9d, #ff8a80);
+  background: linear-gradient(135deg, #ff6347, #ff4500);
 }
 
-.fab-menstrual {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
+.fab-intercourse {
+  background: linear-gradient(135deg, #6a0dad, #8a2be2);
 }
 
 .fab-intercourse {
