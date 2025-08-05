@@ -72,29 +72,158 @@ Page({
   /**
    * 经期标记点击处理
    */
-  onPeriodMarkerTap(e) {
+  async onPeriodMarkerTap(e) {
     const type = e.currentTarget.dataset.type;
+    
     if (type === 'start') {
-      this.setData({ isStartPeriod: !this.data.isStartPeriod });
+      // 检查是否可以设置经期开始
+      const canSetStart = await this.validatePeriodStart();
+      if (!canSetStart) {
+        return;
+      }
+      
+      // 经期开始和结束只能二选一
+      this.setData({ 
+        isStartPeriod: !this.data.isStartPeriod,
+        isEndPeriod: false // 清除经期结束标记
+      });
     } else if (type === 'end') {
-      this.setData({ isEndPeriod: !this.data.isEndPeriod });
+      // 检查是否可以设置经期结束
+      const canSetEnd = await this.validatePeriodEnd();
+      if (!canSetEnd) {
+        return;
+      }
+      
+      // 经期开始和结束只能二选一
+      this.setData({ 
+        isEndPeriod: !this.data.isEndPeriod,
+        isStartPeriod: false // 清除经期开始标记
+      });
     }
     this.markUnsavedChanges();
   },
 
   /**
+   * 验证是否可以设置经期开始
+   */
+  async validatePeriodStart() {
+    try {
+      // 获取前一天的日期
+      const currentDate = new Date(this.data.selectedDate);
+      const previousDate = new Date(currentDate);
+      previousDate.setDate(previousDate.getDate() - 1);
+      const previousDateStr = DateUtils.formatDate(previousDate);
+      
+      // 检查前一天是否有月经记录
+      const dataManager = DataManager.getInstance();
+      const result = await dataManager.getDayRecord(previousDateStr);
+      
+      if (result.success && result.data && result.data.menstrual) {
+        const menstrualData = result.data.menstrual;
+        // 如果前一天有月经记录且不是经期结束，则不允许设置经期开始
+        if (menstrualData.flow && menstrualData.flow !== 'none' && !menstrualData.isEnd) {
+          wx.showToast({
+            title: '前一天已有月经记录，无法设置经期开始',
+            icon: 'none',
+            duration: 2000
+          });
+          return false;
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('验证经期开始失败:', error);
+      return true; // 验证失败时允许设置，避免阻塞用户操作
+    }
+  },
+
+  /**
+   * 验证是否可以设置经期结束
+   */
+  async validatePeriodEnd() {
+    try {
+      // 获取后一天的日期
+      const currentDate = new Date(this.data.selectedDate);
+      const nextDate = new Date(currentDate);
+      nextDate.setDate(nextDate.getDate() + 1);
+      const nextDateStr = DateUtils.formatDate(nextDate);
+      
+      // 检查后一天是否有月经记录
+      const dataManager = DataManager.getInstance();
+      const result = await dataManager.getDayRecord(nextDateStr);
+      
+      if (result.success && result.data && result.data.menstrual) {
+        const menstrualData = result.data.menstrual;
+        // 如果后一天有月经记录且不是经期开始，则不允许设置经期结束
+        if (menstrualData.flow && menstrualData.flow !== 'none' && !menstrualData.isStart) {
+          wx.showToast({
+            title: '后一天已有月经记录，无法设置经期结束',
+            icon: 'none',
+            duration: 2000
+          });
+          return false;
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('验证经期结束失败:', error);
+      return true; // 验证失败时允许设置，避免阻塞用户操作
+    }
+  },
+
+  /**
    * 经期开始状态变化（保留兼容性）
    */
-  onPeriodStartChange(e) {
-    this.setData({ isStartPeriod: e.detail.value });
+  async onPeriodStartChange(e) {
+    const isStart = e.detail.value;
+    
+    if (isStart) {
+      // 检查是否可以设置经期开始
+      const canSetStart = await this.validatePeriodStart();
+      if (!canSetStart) {
+        // 恢复原状态
+        this.setData({ isStartPeriod: false });
+        return;
+      }
+      
+      // 经期开始和结束只能二选一
+      this.setData({ 
+        isStartPeriod: true,
+        isEndPeriod: false
+      });
+    } else {
+      this.setData({ isStartPeriod: false });
+    }
+    
     this.markUnsavedChanges();
   },
 
   /**
    * 经期结束状态变化（保留兼容性）
    */
-  onPeriodEndChange(e) {
-    this.setData({ isEndPeriod: e.detail.value });
+  async onPeriodEndChange(e) {
+    const isEnd = e.detail.value;
+    
+    if (isEnd) {
+      // 检查是否可以设置经期结束
+      const canSetEnd = await this.validatePeriodEnd();
+      if (!canSetEnd) {
+        // 恢复原状态
+        this.setData({ isEndPeriod: false });
+        return;
+      }
+      
+      // 经期开始和结束只能二选一
+      this.setData({ 
+        isEndPeriod: true,
+        isStartPeriod: false
+      });
+    } else {
+      this.setData({ isEndPeriod: false });
+    }
+    
     this.markUnsavedChanges();
   },
 
@@ -434,26 +563,6 @@ Page({
     this.markUnsavedChanges();
   },
 
-  /**
-   * 经期开始/结束切换
-   */
-  onPeriodStartChange(e) {
-    const isStart = e.detail.value;
-    this.setData({ 
-      isStartPeriod: isStart,
-      isEndPeriod: isStart ? false : this.data.isEndPeriod
-    });
-    this.markUnsavedChanges();
-  },
-
-  onPeriodEndChange(e) {
-    const isEnd = e.detail.value;
-    this.setData({ 
-      isEndPeriod: isEnd,
-      isStartPeriod: isEnd ? false : this.data.isStartPeriod
-    });
-    this.markUnsavedChanges();
-  },
 
   /**
    * 经量备注输入
