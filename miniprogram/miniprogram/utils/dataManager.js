@@ -401,11 +401,26 @@ class DataManager {
       const dayRecords = await FertilityStorage.getDayRecords();
       const dayRecord = dayRecords[record.date] || { date: record.date };
 
-      // 更新同房记录（支持一天多次）
+      // 检查是否已有同房记录
       if (!dayRecord.intercourse) {
         dayRecord.intercourse = [];
       }
-      dayRecord.intercourse.push(fullRecord);
+
+      // 检查是否是编辑现有记录（如果当天已有记录，则替换而不是添加）
+      const existingRecords = dayRecord.intercourse.filter(item => item.type !== 'none');
+      
+      if (existingRecords.length > 0) {
+        // 如果已有同房记录，替换第一条记录，保持只有一条有效记录
+        const recordIndex = dayRecord.intercourse.findIndex(item => item.type !== 'none');
+        if (recordIndex !== -1) {
+          dayRecord.intercourse[recordIndex] = fullRecord;
+        } else {
+          dayRecord.intercourse.push(fullRecord);
+        }
+      } else {
+        // 如果没有同房记录，直接添加
+        dayRecord.intercourse.push(fullRecord);
+      }
 
       // 保存到存储
       dayRecords[record.date] = dayRecord;
@@ -481,7 +496,7 @@ class DataManager {
       const dayRecords = await FertilityStorage.getDayRecords();
       const dayRecord = dayRecords[record.date] || { date: record.date };
 
-      // 保存无同房标记（清空之前的同房记录，保存无同房标记）
+      // 保存无同房标记（替换所有同房记录为无同房标记）
       dayRecord.intercourse = [fullRecord];
 
       // 保存到存储
