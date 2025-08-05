@@ -70,19 +70,32 @@ Page({
   },
 
   /**
-   * 生成体温选项
+   * 经期标记点击处理
    */
-  generateTemperatureOptions() {
-    const options = [];
-    // 生成35.0°C到42.0°C的体温选项，步长0.1°C
-    for (let temp = 35.0; temp <= 42.0; temp += 0.1) {
-      const tempValue = Math.round(temp * 10) / 10; // 确保精度
-      options.push({
-        value: tempValue,
-        label: `${tempValue.toFixed(1)}°C`
-      });
+  onPeriodMarkerTap(e) {
+    const type = e.currentTarget.dataset.type;
+    if (type === 'start') {
+      this.setData({ isStartPeriod: !this.data.isStartPeriod });
+    } else if (type === 'end') {
+      this.setData({ isEndPeriod: !this.data.isEndPeriod });
     }
-    return options;
+    this.markUnsavedChanges();
+  },
+
+  /**
+   * 经期开始状态变化（保留兼容性）
+   */
+  onPeriodStartChange(e) {
+    this.setData({ isStartPeriod: e.detail.value });
+    this.markUnsavedChanges();
+  },
+
+  /**
+   * 经期结束状态变化（保留兼容性）
+   */
+  onPeriodEndChange(e) {
+    this.setData({ isEndPeriod: e.detail.value });
+    this.markUnsavedChanges();
   },
 
   /**
@@ -320,6 +333,21 @@ Page({
     if (this.data.autoSaveTimer) {
       clearInterval(this.data.autoSaveTimer);
     }
+  },
+
+  /**
+   * 生成体温选项数组
+   */
+  generateTemperatureOptions() {
+    const options = [];
+    // 体温范围：35.0°C - 42.0°C，步长0.1°C
+    for (let temp = 35.0; temp <= 42.0; temp += 0.1) {
+      options.push({
+        value: Math.round(temp * 10) / 10, // 确保精度
+        label: temp.toFixed(1) + '°C'
+      });
+    }
+    return options;
   },
 
   // ==================== 体温记录相关方法 ====================

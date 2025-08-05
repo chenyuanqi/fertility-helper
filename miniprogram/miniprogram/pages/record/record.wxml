@@ -89,14 +89,29 @@
 
     <view class="form-group">
       <view class="form-label">经期标记</view>
-      <view class="switch-group">
-        <view class="switch-item">
-          <text class="switch-label">经期开始</text>
-          <switch checked="{{isStartPeriod}}" bindchange="onPeriodStartChange" color="#ff6b9d"/>
+      <view class="period-markers-new">
+        <view class="period-marker-item {{isStartPeriod ? 'active' : ''}}" 
+              data-type="start" bindtap="onPeriodMarkerTap">
+          <view class="marker-icon">🌸</view>
+          <view class="marker-content">
+            <text class="marker-title">经期开始</text>
+            <text class="marker-desc">标记月经周期开始</text>
+          </view>
+          <view class="marker-check {{isStartPeriod ? 'checked' : ''}}">
+            <text class="check-icon">✓</text>
+          </view>
         </view>
-        <view class="switch-item">
-          <text class="switch-label">经期结束</text>
-          <switch checked="{{isEndPeriod}}" bindchange="onPeriodEndChange" color="#ff6b9d"/>
+        
+        <view class="period-marker-item {{isEndPeriod ? 'active' : ''}}" 
+              data-type="end" bindtap="onPeriodMarkerTap">
+          <view class="marker-icon">🌺</view>
+          <view class="marker-content">
+            <text class="marker-title">经期结束</text>
+            <text class="marker-desc">标记月经周期结束</text>
+          </view>
+          <view class="marker-check {{isEndPeriod ? 'checked' : ''}}">
+            <text class="check-icon">✓</text>
+          </view>
         </view>
       </view>
     </view>
