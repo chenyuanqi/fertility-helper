@@ -420,6 +420,31 @@ Page({
   },
 
   /**
+   * 下拉刷新
+   */
+  async onPullDownRefresh() {
+    try {
+      console.log('图表页面下拉刷新开始');
+      await this.loadCycles();
+      await this.loadCurrentCycleData();
+      console.log('图表页面下拉刷新完成');
+      wx.showToast({
+        title: '刷新成功',
+        icon: 'success',
+        duration: 1500
+      });
+    } catch (error) {
+      console.error('图表页面下拉刷新失败:', error);
+      wx.showToast({
+        title: '刷新失败',
+        icon: 'none'
+      });
+    } finally {
+      wx.stopPullDownRefresh();
+    }
+  },
+
+  /**
    * 生成测试数据（开发用）
    */
   async generateTestData() {
