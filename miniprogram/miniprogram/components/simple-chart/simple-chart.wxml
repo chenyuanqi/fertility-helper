@@ -10,15 +10,15 @@
   <!-- 图例 -->
   <view wx:if="{{chartData && chartData.length > 0}}" class="chart-legend">
     <view class="legend-item">
-      <view class="legend-dot temperature-dot"></view>
+      <text class="legend-icon">🌡️</text>
       <text class="legend-text">基础体温</text>
     </view>
     <view class="legend-item">
-      <view class="legend-dot menstrual-dot"></view>
+      <text class="legend-icon">🩸</text>
       <text class="legend-text">月经记录</text>
     </view>
     <view class="legend-item">
-      <view class="legend-dot intercourse-dot"></view>
+      <text class="legend-icon">💕</text>
       <text class="legend-text">同房记录</text>
     </view>
   </view>

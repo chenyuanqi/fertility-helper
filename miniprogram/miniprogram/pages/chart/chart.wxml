@@ -102,15 +102,15 @@
       <view class="legend-title">图表说明</view>
       <view class="legend-items">
         <view class="legend-item">
-          <view class="legend-dot temperature"></view>
+          <text class="legend-emoji">🌡️</text>
           <text class="legend-text">基础体温</text>
         </view>
         <view class="legend-item" wx:if="{{viewMode === 'all'}}">
-          <view class="legend-dot menstrual"></view>
+          <text class="legend-emoji">🩸</text>
           <text class="legend-text">月经记录</text>
         </view>
         <view class="legend-item" wx:if="{{viewMode === 'all'}}">
-          <view class="legend-dot intercourse"></view>
+          <text class="legend-emoji">💕</text>
           <text class="legend-text">同房记录</text>
         </view>
         <view class="legend-item">

@@ -249,7 +249,7 @@ Component({
       
       // 绘制体温连线
       if (temperaturePoints.length > 1) {
-        ctx.strokeStyle = '#ff6b9d';
+        ctx.strokeStyle = '#ff69b4'; // 与体温指标颜色保持一致
         ctx.lineWidth = 2;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -272,19 +272,19 @@ Component({
         // 收集当天的所有指标
         const indicators = [];
         
-        // 体温指标
+        // 体温指标 - 使用温度计的粉色
         if (day.temperature) {
           const y = padding.top + chartHeight - ((day.temperature - minTemp) / tempRange) * chartHeight;
           indicators.push({
             type: 'temperature',
             x: x,
             y: y,
-            color: '#ff6b9d',
+            color: '#ff69b4', // 调整为更接近温度计emoji的粉色
             value: day.temperature
           });
         }
         
-        // 月经指标 - 显示在体温线上
+        // 月经指标 - 使用血滴的红色
         if (this.data.viewMode === 'all' && this.hasMenstrualData(day)) {
           const y = day.temperature ? 
             padding.top + chartHeight - ((day.temperature - minTemp) / tempRange) * chartHeight :
@@ -293,12 +293,12 @@ Component({
             type: 'menstrual',
             x: x,
             y: y,
-            color: '#e74c3c',
+            color: '#dc143c', // 调整为更接近血滴emoji的深红色
             value: this.getMenstrualValue(day)
           });
         }
         
-        // 同房指标 - 显示在体温线上
+        // 同房指标 - 使用爱心的粉红色
         if (this.data.viewMode === 'all' && this.hasIntercourseData(day)) {
           const y = day.temperature ? 
             padding.top + chartHeight - ((day.temperature - minTemp) / tempRange) * chartHeight :
@@ -307,7 +307,7 @@ Component({
             type: 'intercourse',
             x: x,
             y: y,
-            color: '#4ecdc4',
+            color: '#ff1493', // 调整为更接近爱心emoji的深粉色
             value: this.getIntercourseValue(day)
           });
         }

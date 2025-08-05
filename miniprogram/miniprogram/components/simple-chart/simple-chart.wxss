@@ -31,28 +31,15 @@
   gap: 8rpx;
 }
 
-.legend-dot {
-  width: 16rpx;
-  height: 16rpx;
-  border-radius: 50%;
-  border: 2rpx solid #fff;
-}
-
-.temperature-dot {
-  background: #ff6b9d;
-}
-
-.menstrual-dot {
-  background: #e74c3c;
-}
-
-.intercourse-dot {
-  background: #4ecdc4;
+.legend-icon {
+  font-size: 28rpx;
+  line-height: 1;
 }
 
 .legend-text {
   font-size: 24rpx;
   color: #666;
+  font-weight: 500;
 }
 
 /* 无数据状态 */
