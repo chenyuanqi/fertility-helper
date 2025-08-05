@@ -228,13 +228,13 @@
     </view>
   </view>
 
-  <!-- 浮动操作按钮 -->
+  <!-- 浮动操作按钮 - 暂时隐藏 -->
+  <!-- 
   <view class="fab-container">
     <view class="fab-main {{showFabMenu ? 'fab-active' : ''}}" bindtap="toggleFabMenu">
       <text class="fab-icon">{{showFabMenu ? '✕' : '✚'}}</text>
     </view>
     
-    <!-- FAB菜单 -->
     <view class="fab-menu {{showFabMenu ? 'fab-menu-show' : ''}}">
       <view class="fab-item fab-temperature" bindtap="quickRecordTemperature">
         <text class="fab-item-icon">🌡️</text>
@@ -250,6 +250,7 @@
       </view>
     </view>
   </view>
+  -->
 </view>
 
 <!-- 周期阶段设置模态框 -->
