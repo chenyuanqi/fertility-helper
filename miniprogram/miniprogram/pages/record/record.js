@@ -7,10 +7,11 @@ Page({
     recordType: 'temperature', // temperature, menstrual, intercourse
     
     // 体温记录相关
-    showTemperatureKeyboard: false,
     temperatureValue: '',
     temperatureTime: '',
     temperatureNote: '',
+    temperatureIndex: -1,
+    temperatureOptions: [],
     
     // 经量记录相关
     menstrualFlow: 0,
@@ -34,6 +35,7 @@ Page({
     // 通用
     selectedDate: '',
     todayDate: '',
+    formattedDate: '',
     isLoading: false,
     todayRecord: null
   },
@@ -46,18 +48,38 @@ Page({
       recordType = options.type;
     }
     
+    const selectedDate = options.date || today;
+    
     this.setData({
       recordType,
-      selectedDate: options.date || today,
+      selectedDate: selectedDate,
       todayDate: today,
-      temperatureTime: DateUtils.getCurrentTime(),
-      intercourseTime: DateUtils.getCurrentTime()
+      formattedDate: this.formatSelectedDate(selectedDate),
+      temperatureTime: '08:00', // 默认8点
+      intercourseTime: '22:00', // 默认22点
+      noIntercourseToday: true, // 默认无同房
+      temperatureOptions: this.generateTemperatureOptions()
     });
     
     this.loadTodayRecord();
   },
 
   /**
+   * 生成体温选项
+   */
+  generateTemperatureOptions() {
+    const options = [];
+    // 生成35.0°C到42.0°C的体温选项，步长0.1°C
+    for (let temp = 35.0; temp <= 42.0; temp += 0.1) {
+      const tempValue = Math.round(temp * 10) / 10; // 确保精度
+      options.push({
+        value: tempValue,
+        label: `${tempValue.toFixed(1)}°C`
+      });
+    }
+    return options;
+  },
+
   /**
    * 加载选中日期的已有记录
    */
@@ -74,9 +96,16 @@ Page({
         
         // 填充已有的体温数据
         if (record.temperature) {
-          updateData.temperatureValue = record.temperature.temperature.toString();
+          const tempValue = record.temperature.temperature;
+          updateData.temperatureValue = tempValue.toFixed(1);
           updateData.temperatureTime = record.temperature.time;
           updateData.temperatureNote = record.temperature.note || '';
+          
+          // 找到对应的体温选项索引
+          const tempIndex = this.data.temperatureOptions.findIndex(option => 
+            Math.abs(option.value - tempValue) < 0.01
+          );
+          updateData.temperatureIndex = tempIndex >= 0 ? tempIndex : -1;
         }
         
         // 填充已有的经量数据
@@ -135,7 +164,6 @@ Page({
   },
 
   /**
-  /**
    * 切换记录类型
    */
   onRecordTypeChange(e) {
@@ -148,7 +176,10 @@ Page({
    */
   onDateChange(e) {
     const selectedDate = e.detail.value;
-    this.setData({ selectedDate });
+    this.setData({ 
+      selectedDate: selectedDate,
+      formattedDate: this.formatSelectedDate(selectedDate)
+    });
     this.loadTodayRecord();
   },
 
@@ -183,28 +214,18 @@ Page({
   // ==================== 体温记录相关方法 ====================
   
   /**
-   * 显示体温键盘
+   * 体温选择变化
    */
-  showTemperatureInput() {
-    this.setData({ showTemperatureKeyboard: true });
-  },
-
-  /**
-   * 体温键盘确认
-   */
-  onTemperatureConfirm(e) {
-    const temperature = e.detail.value;
-    this.setData({
-      temperatureValue: temperature.toString(),
-      showTemperatureKeyboard: false
-    });
-  },
-
-  /**
-   * 体温键盘取消
-   */
-  onTemperatureCancel() {
-    this.setData({ showTemperatureKeyboard: false });
+  onTemperatureChange(e) {
+    const index = e.detail.value;
+    const selectedOption = this.data.temperatureOptions[index];
+    
+    if (selectedOption) {
+      this.setData({
+        temperatureIndex: index,
+        temperatureValue: selectedOption.value.toFixed(1)
+      });
+    }
   },
 
   /**
@@ -228,7 +249,7 @@ Page({
     const { temperatureValue, temperatureTime, temperatureNote, selectedDate } = this.data;
     
     if (!temperatureValue) {
-      wx.showToast({ title: '请输入体温', icon: 'none' });
+      wx.showToast({ title: '请选择体温', icon: 'none' });
       return;
     }
     
@@ -262,10 +283,11 @@ Page({
   // ==================== 经量记录相关方法 ====================
   
   /**
-   * 经量滑条变化
+   * 经量选项点击
    */
-  onFlowSliderChange(e) {
-    this.setData({ menstrualFlow: e.detail.value });
+  onFlowOptionTap(e) {
+    const value = e.currentTarget.dataset.value;
+    this.setData({ menstrualFlow: value });
   },
 
   /**

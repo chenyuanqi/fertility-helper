@@ -1,270 +1,192 @@
 <!--pages/record/record.wxml-->
 <view class="container">
-  <!-- 加载状态 -->
-  <loading wx:if="{{isLoading}}" text="正在保存..." />
-  
-  <!-- 顶部标题和日期 -->
-  <view class="header">
-    <view class="title">数据记录</view>
-    <picker mode="date" 
-            value="{{selectedDate}}" 
-            end="{{todayDate}}"
-            bindchange="onDateChange">
-      <view class="date-picker">
-        <text class="date-text">{{formatSelectedDate(selectedDate)}}</text>
-        <text class="date-icon">📅</text>
-      </view>
-    </picker>
-    
-    <!-- 当前选中日期显示 -->
-    <view class="current-date-display">
-      <text class="current-date-label">记录日期</text>
-      <text class="current-date-value">{{selectedDate}}</text>
+  <!-- 页面标题显示日期 -->
+  <view class="page-title-bar">
+    <text class="page-title-date">{{formattedDate}}</text>
+  </view>
+
+  <!-- 记录类型切换 -->
+  <view class="record-type-tabs">
+    <view class="tab-item {{recordType === 'temperature' ? 'active' : ''}}" 
+          data-type="temperature" bindtap="onRecordTypeChange">
+      <text class="tab-icon">🌡️</text>
+      <text class="tab-text">体温</text>
+    </view>
+    <view class="tab-item {{recordType === 'menstrual' ? 'active' : ''}}" 
+          data-type="menstrual" bindtap="onRecordTypeChange">
+      <text class="tab-icon">🩸</text>
+      <text class="tab-text">经量</text>
+    </view>
+    <view class="tab-item {{recordType === 'intercourse' ? 'active' : ''}}" 
+          data-type="intercourse" bindtap="onRecordTypeChange">
+      <text class="tab-icon">💕</text>
+      <text class="tab-text">同房</text>
     </view>
   </view>
-  
-  <!-- 记录类型切换 - 横向Tab -->
-  <view class="record-types">
-    <view class="type-item {{recordType === 'temperature' ? 'active' : ''}}" 
-          bindtap="onRecordTypeChange" data-type="temperature">
-      <text class="type-icon">🌡️</text>
-      <text class="type-label">体温</text>
+
+  <!-- 体温记录 -->
+  <view class="record-section" wx:if="{{recordType === 'temperature'}}">
+    <view class="section-title">
+      <text class="title-text">体温记录</text>
+      <text class="title-desc">选择基础体温</text>
     </view>
-    <view class="type-item {{recordType === 'menstrual' ? 'active' : ''}}" 
-          bindtap="onRecordTypeChange" data-type="menstrual">
-      <text class="type-icon">🩸</text>
-      <text class="type-label">经量</text>
-    </view>
-    <view class="type-item {{recordType === 'intercourse' ? 'active' : ''}}" 
-          bindtap="onRecordTypeChange" data-type="intercourse">
-      <text class="type-icon">💕</text>
-      <text class="type-label">同房</text>
-    </view>
-  </view>
-  
-  <!-- 体温记录表单 -->
-  <view class="record-form" wx:if="{{recordType === 'temperature'}}">
-    <view class="form-title">
-      <text class="form-icon">🌡️</text>
-      基础体温记录
-    </view>
-    
-    <!-- 体温输入 -->
-    <view class="form-item">
-      <view class="label">体温 (°C)</view>
-      <view class="input-wrapper">
-        <view class="temperature-display" bindtap="showTemperatureInput">
-          <text class="value">{{temperatureValue || '点击输入'}}</text>
-          <text class="unit">°C</text>
+
+    <view class="form-group">
+      <view class="form-label">体温值</view>
+      <picker range="{{temperatureOptions}}" range-key="label" value="{{temperatureIndex}}" bindchange="onTemperatureChange">
+        <view class="picker-input {{temperatureValue ? 'has-value' : ''}}">
+          <text class="picker-text">{{temperatureValue ? temperatureValue + '°C' : '请选择体温'}}</text>
+          <text class="picker-arrow">▼</text>
         </view>
-      </view>
-    </view>
-    
-    <!-- 测量时间 -->
-    <view class="form-item">
-      <view class="label">测量时间</view>
-      <picker mode="time" value="{{temperatureTime}}" bindchange="onTemperatureTimeChange">
-        <view class="picker-display">{{temperatureTime}}</view>
       </picker>
     </view>
-    
-    <!-- 备注 -->
-    <view class="form-item">
-      <view class="label">备注 (可选)</view>
-      <textarea class="note-input" 
-                placeholder="症状、睡眠质量等备注" 
+
+    <view class="form-group">
+      <view class="form-label">测量时间</view>
+      <picker mode="time" value="{{temperatureTime}}" bindchange="onTemperatureTimeChange">
+        <view class="picker-input has-value">
+          <text class="picker-text">{{temperatureTime}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <view class="form-label">备注</view>
+      <textarea class="textarea-input" 
+                placeholder="记录特殊情况，如感冒、熬夜等" 
                 value="{{temperatureNote}}"
                 bindinput="onTemperatureNoteInput"
-                maxlength="100"
-                show-confirm-bar="{{false}}"></textarea>
+                maxlength="100">
+      </textarea>
     </view>
-    
-    <!-- 操作按钮 -->
-    <view class="form-actions">
-      <button class="save-btn" bindtap="saveTemperatureRecord" disabled="{{isLoading}}">
-        保存体温记录
+
+    <view class="button-group">
+      <button class="save-button" bindtap="saveTemperatureRecord" disabled="{{isLoading}}">
+        {{isLoading ? '保存中...' : '保存体温记录'}}
       </button>
-      <button wx:if="{{todayRecord && todayRecord.temperature}}" 
-              class="delete-btn" 
-              bindtap="deleteRecord" 
-              data-type="temperature">
+      <button class="delete-button" bindtap="deleteRecord" data-type="temperature" 
+              wx:if="{{todayRecord && todayRecord.temperature}}">
         删除记录
       </button>
     </view>
   </view>
-  
-  <!-- 经量记录表单 -->
-  <view class="record-form" wx:if="{{recordType === 'menstrual'}}">
-    <view class="form-title">
-      <text class="form-icon">🩸</text>
-      月经经量记录
+
+  <!-- 经量记录 -->
+  <view class="record-section" wx:if="{{recordType === 'menstrual'}}">
+    <view class="section-title">
+      <text class="title-text">经量记录</text>
+      <text class="title-desc">记录月经流量</text>
     </view>
-    
-    <!-- 经量选择滑条 -->
-    <view class="form-item">
-      <view class="label">经量</view>
-      <slider title="经量选择"
-              value="{{menstrualFlow}}"
-              options="{{flowOptions}}"
-              bindchange="onFlowSliderChange"
-              bindconfirm="onFlowSliderChange"></slider>
-    </view>
-    
-    <!-- 经期开始/结束标记 -->
-    <view class="form-item">
-      <view class="label">经期标记</view>
-      <view class="period-markers">
-        <view class="marker-item">
-          <switch checked="{{isStartPeriod}}" bindchange="onPeriodStartChange"></switch>
-          <text>经期开始</text>
+
+    <view class="form-group">
+      <view class="form-label">经期标记</view>
+      <view class="switch-group">
+        <view class="switch-item">
+          <text class="switch-label">经期开始</text>
+          <switch checked="{{isStartPeriod}}" bindchange="onPeriodStartChange" color="#ff6b9d"/>
         </view>
-        <view class="marker-item">
-          <switch checked="{{isEndPeriod}}" bindchange="onPeriodEndChange"></switch>
-          <text>经期结束</text>
+        <view class="switch-item">
+          <text class="switch-label">经期结束</text>
+          <switch checked="{{isEndPeriod}}" bindchange="onPeriodEndChange" color="#ff6b9d"/>
         </view>
       </view>
     </view>
-    
-    <!-- 备注 -->
-    <view class="form-item">
-      <view class="label">备注 (可选)</view>
-      <textarea class="note-input" 
-                placeholder="痛经程度、颜色等备注" 
+
+    <view class="form-group">
+      <view class="form-label">经量程度</view>
+      <view class="flow-selector">
+        <view class="flow-labels">
+          <view class="flow-option {{menstrualFlow === item.value ? 'active' : ''}}" 
+                wx:for="{{flowOptions}}" wx:key="value"
+                data-value="{{item.value}}"
+                bindtap="onFlowOptionTap">
+            <text class="flow-label">{{item.label}}</text>
+            <text class="flow-desc">{{item.description}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="form-group">
+      <view class="form-label">备注</view>
+      <textarea class="textarea-input" 
+                placeholder="记录经期相关情况" 
                 value="{{menstrualNote}}"
                 bindinput="onMenstrualNoteInput"
-                maxlength="100"
-                show-confirm-bar="{{false}}"></textarea>
+                maxlength="100">
+      </textarea>
     </view>
-    
-    <!-- 操作按钮 -->
-    <view class="form-actions">
-      <button class="save-btn" bindtap="saveMenstrualRecord" disabled="{{isLoading}}">
-        保存经量记录
+
+    <view class="button-group">
+      <button class="save-button" bindtap="saveMenstrualRecord" disabled="{{isLoading}}">
+        {{isLoading ? '保存中...' : '保存经量记录'}}
       </button>
-      <button wx:if="{{todayRecord && todayRecord.menstrual}}" 
-              class="delete-btn" 
-              bindtap="deleteRecord" 
-              data-type="menstrual">
+      <button class="delete-button" bindtap="deleteRecord" data-type="menstrual" 
+              wx:if="{{todayRecord && todayRecord.menstrual}}">
         删除记录
       </button>
     </view>
   </view>
-  
-  <!-- 同房记录表单 -->
-  <view class="record-form" wx:if="{{recordType === 'intercourse'}}">
-    <view class="form-title">
-      <text class="form-icon">💕</text>
-      同房记录
+
+  <!-- 同房记录 -->
+  <view class="record-section" wx:if="{{recordType === 'intercourse'}}">
+    <view class="section-title">
+      <text class="title-text">同房记录</text>
+      <text class="title-desc">记录同房情况</text>
     </view>
-    
-    <!-- 今日无同房选项 -->
-    <view class="form-item">
-      <view class="label">今日同房情况</view>
-      <view class="no-intercourse-item">
-        <switch checked="{{noIntercourseToday}}" bindchange="onNoIntercourseChange"></switch>
-        <text>今日无同房</text>
+
+    <view class="form-group">
+      <view class="switch-item no-intercourse">
+        <text class="switch-label">今日无同房</text>
+        <switch checked="{{noIntercourseToday}}" bindchange="onNoIntercourseChange" color="#4ecdc4"/>
       </view>
     </view>
-    
-    <!-- 同房信息 (仅当有同房时显示) -->
-    <view wx:if="{{!noIntercourseToday}}">
-      <!-- 时间选择 -->
-      <view class="form-item">
-        <view class="label">时间</view>
+
+    <view class="intercourse-form" wx:if="{{!noIntercourseToday}}">
+      <view class="form-group">
+        <view class="form-label">时间</view>
         <picker mode="time" value="{{intercourseTime}}" bindchange="onIntercourseTimeChange">
-          <view class="picker-display">{{intercourseTime}}</view>
+          <view class="picker-input {{intercourseTime ? 'has-value' : ''}}">
+            <text class="picker-text">{{intercourseTime || '请选择时间'}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
         </picker>
       </view>
-      
-      <!-- 避孕措施 -->
-      <view class="form-item">
-        <view class="label">避孕措施</view>
-        <view class="protection-item">
-          <switch checked="{{hasProtection}}" bindchange="onProtectionChange"></switch>
-          <text>采取了避孕措施</text>
+
+      <view class="form-group">
+        <view class="switch-item">
+          <text class="switch-label">采取避孕措施</text>
+          <switch checked="{{hasProtection}}" bindchange="onProtectionChange" color="#4ecdc4"/>
         </view>
       </view>
-      
-      <!-- 备注 -->
-      <view class="form-item">
-        <view class="label">备注 (可选)</view>
-        <textarea class="note-input" 
-                  placeholder="其他备注信息" 
+
+      <view class="form-group">
+        <view class="form-label">备注</view>
+        <textarea class="textarea-input" 
+                  placeholder="记录相关情况" 
                   value="{{intercourseNote}}"
                   bindinput="onIntercourseNoteInput"
-                  maxlength="100"
-                  show-confirm-bar="{{false}}"></textarea>
+                  maxlength="100">
+        </textarea>
       </view>
     </view>
-    
-    <!-- 操作按钮 -->
-    <view class="form-actions">
-      <button class="save-btn" bindtap="saveIntercourseRecord" disabled="{{isLoading}}">
-        保存同房记录
+
+    <view class="button-group">
+      <button class="save-button" bindtap="saveIntercourseRecord" disabled="{{isLoading}}">
+        {{isLoading ? '保存中...' : '保存同房记录'}}
       </button>
-      <button wx:if="{{todayRecord && todayRecord.intercourse && todayRecord.intercourse.length > 0}}" 
-              class="delete-btn" 
-              bindtap="deleteRecord" 
-              data-type="intercourse">
+      <button class="delete-button" bindtap="deleteRecord" data-type="intercourse" 
+              wx:if="{{todayRecord && todayRecord.intercourse}}">
         删除记录
       </button>
     </view>
   </view>
-  
-  <!-- 今日记录预览 -->
-  <view class="today-records" wx:if="{{todayRecord}}">
-    <view class="records-title">今日已有记录</view>
-    
-    <!-- 体温记录预览 -->
-    <view class="record-preview" wx:if="{{todayRecord.temperature}}">
-      <view class="preview-icon">🌡️</view>
-      <view class="preview-content">
-        <view class="preview-label">体温</view>
-        <view class="preview-value">{{todayRecord.temperature.temperature}}°C ({{todayRecord.temperature.time}})</view>
-      </view>
-    </view>
-    
-    <!-- 经量记录预览 -->
-    <view class="record-preview" wx:if="{{todayRecord.menstrual}}">
-      <view class="preview-icon">🩸</view>
-      <view class="preview-content">
-        <view class="preview-label">经量</view>
-        <view class="preview-value">
-          {{todayRecord.menstrual.flow === 'light' ? '少量' : 
-            todayRecord.menstrual.flow === 'medium' ? '中等' : 
-            todayRecord.menstrual.flow === 'heavy' ? '较多' : '无'}}
-          <text wx:if="{{todayRecord.menstrual.isStart}}" class="period-tag">开始</text>
-          <text wx:if="{{todayRecord.menstrual.isEnd}}" class="period-tag">结束</text>
-        </view>
-      </view>
-    </view>
-    
-    <!-- 同房记录预览 -->
-    <view class="record-preview" wx:if="{{todayRecord.intercourse && todayRecord.intercourse.length > 0}}">
-      <view class="preview-icon">💕</view>
-      <view class="preview-content">
-        <view class="preview-label">同房</view>
-        <view class="preview-value">
-          <text wx:if="{{todayRecord.intercourse[0].type === 'none'}}">今日无同房</text>
-          <block wx:else>
-            {{todayRecord.intercourse.length}}次 
-            <text wx:if="{{todayRecord.intercourse[0].protection}}" class="protection-tag">有保护</text>
-          </block>
-        </view>
-      </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-overlay" wx:if="{{isLoading}}">
+    <view class="loading-content">
+      <text class="loading-text">处理中...</text>
     </view>
   </view>
 </view>
-
-<!-- 体温输入键盘 -->
-<keyboard 
-  visible="{{showTemperatureKeyboard}}"
-  title="请输入体温"
-  value="{{temperatureValue}}"
-  maxLength="5"
-  minValue="35.0"
-  maxValue="42.0"
-  decimalPlaces="1"
-  bindconfirm="onTemperatureConfirm"
-  bindcancel="onTemperatureCancel">
-</keyboard>
