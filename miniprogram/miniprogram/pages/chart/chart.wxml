@@ -102,19 +102,19 @@
       <view class="legend-title">图表说明</view>
       <view class="legend-items">
         <view class="legend-item">
-          <text class="legend-emoji">🌡️</text>
+          <view class="legend-dot" style="background-color: #4a90e2;"></view>
           <text class="legend-text">基础体温</text>
         </view>
-        <view class="legend-item" wx:if="{{viewMode === 'all'}}">
-          <text class="legend-emoji">🩸</text>
+        <view class="legend-item">
+          <view class="legend-dot" style="background-color: #dc143c;"></view>
           <text class="legend-text">月经记录</text>
         </view>
-        <view class="legend-item" wx:if="{{viewMode === 'all'}}">
-          <text class="legend-emoji">💕</text>
+        <view class="legend-item">
+          <view class="legend-dot" style="background-color: #8e44ad;"></view>
           <text class="legend-text">同房记录</text>
         </view>
         <view class="legend-item">
-          <view class="legend-line"></view>
+          <view class="legend-line" style="background-color: #4a90e2;"></view>
           <text class="legend-text">体温连线</text>
         </view>
       </view>

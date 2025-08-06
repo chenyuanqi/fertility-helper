@@ -294,15 +294,15 @@
 }
 
 .indicator-icon.temperature {
-  color: #ff6347;
+  color: #4a90e2;
 }
 
 .indicator-icon.temperature.high-temp {
-  color: #ff4500;
+  color: #2171b5;
 }
 
 .legend-dot.temperature {
-  background: #ff6347;
+  background: #4a90e2;
 }
 
 .indicator-icon.intimacy {

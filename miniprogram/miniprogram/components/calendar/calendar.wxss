@@ -162,11 +162,11 @@
 }
 
 .temp-indicator.normal-temp {
-  background: #ff6347;
+  background: #4a90e2;
 }
 
 .temp-indicator.high-temp {
-  background: #ff4500;
+  background: #2171b5;
 }
 
 /* 经期背景 */

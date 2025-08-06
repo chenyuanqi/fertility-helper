@@ -63,7 +63,7 @@
               wx:if="{{item.hasIntercourse}}"
               class="intercourse-marker"
               style="left: {{(index / (processedData.length - 1)) * 100}}%;">
-            <text class="marker-icon" style="color: #6a0dad;">💕</text>
+            <text class="marker-icon" style="color: #8e44ad;">●</text>
           <text wx:if="{{item.intercourseCount > 1}}" class="marker-count">{{item.intercourseCount}}</text>
         </view>
       </view>

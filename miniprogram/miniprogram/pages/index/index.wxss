@@ -576,11 +576,11 @@
 }
 
 .fab-temperature {
-  background: linear-gradient(135deg, #ff6347, #ff4500);
+  background: linear-gradient(135deg, #4a90e2, #2171b5);
 }
 
 .fab-intercourse {
-  background: linear-gradient(135deg, #6a0dad, #8a2be2);
+  background: linear-gradient(135deg, #8e44ad, #9b59b6);
 }
 
 .fab-intercourse {

@@ -135,17 +135,17 @@
   position: absolute;
   width: 16rpx;
   height: 16rpx;
-  background: #ff6347;
+  background: #4a90e2;
   border: 4rpx solid white;
   border-radius: 50%;
   transform: translate(-50%, 50%);
   cursor: pointer;
   z-index: 10;
-  box-shadow: 0 2rpx 8rpx rgba(255, 99, 71, 0.3);
+  box-shadow: 0 2rpx 8rpx rgba(74, 144, 226, 0.3);
 }
 
 .temperature-point.high-temp {
-  background: #ff4500;
+  background: #2171b5;
 }
 
 .temperature-point.above-coverline {
