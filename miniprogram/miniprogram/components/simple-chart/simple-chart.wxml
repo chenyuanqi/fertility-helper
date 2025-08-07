@@ -4,24 +4,8 @@
     id="simpleChart"
     type="2d"
     class="simple-chart-canvas"
-    style="width: {{width}}rpx; height: {{height - 80}}rpx;">
+    style="width: {{width}}rpx; height: {{height}}rpx;">
   </canvas>
-  
-  <!-- 图例 -->
-  <view wx:if="{{chartData && chartData.length > 0}}" class="chart-legend">
-    <view class="legend-item">
-      <text class="legend-icon">🌡️</text>
-      <text class="legend-text">基础体温</text>
-    </view>
-    <view class="legend-item">
-      <text class="legend-icon">🩸</text>
-      <text class="legend-text">月经记录</text>
-    </view>
-    <view class="legend-item">
-      <text class="legend-icon">💕</text>
-      <text class="legend-text">同房记录</text>
-    </view>
-  </view>
   
   <!-- 无数据提示 -->
   <view wx:if="{{!chartData || chartData.length === 0}}" class="no-data">

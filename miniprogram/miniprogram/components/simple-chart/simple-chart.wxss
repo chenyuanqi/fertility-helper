@@ -7,39 +7,17 @@
   background: #fff;
   border-radius: 16rpx;
   overflow: hidden;
+  padding: 20rpx 20rpx 40rpx 20rpx;
+  box-sizing: border-box;
 }
 
 .simple-chart-canvas {
   width: 100%;
+  height: calc(100% - 20rpx);
   display: block;
-}
-
-/* 图例样式 */
-.chart-legend {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20rpx;
-  background: #f8f9fa;
-  border-top: 1rpx solid #e6e6e6;
-  gap: 40rpx;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-}
-
-.legend-icon {
-  font-size: 28rpx;
-  line-height: 1;
-}
-
-.legend-text {
-  font-size: 24rpx;
-  color: #666;
-  font-weight: 500;
+  border-radius: 12rpx;
+  background: #fafafa;
+  border: 1rpx solid #f0f0f0;
 }
 
 /* 无数据状态 */
