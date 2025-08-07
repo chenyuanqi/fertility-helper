@@ -70,7 +70,13 @@ Page({
    */
   async loadCalendarData() {
     try {
-      this.setData({ isLoading: true });
+      this.setData({ 
+        isLoading: true,
+        // 加载新数据时清除之前的选中状态
+        showDetails: false,
+        selectedDate: '',
+        selectedData: null
+      });
       
       const dataManager = DataManager.getInstance();
       const { currentYear, currentMonth } = this.data;
@@ -252,7 +258,9 @@ Page({
       const clickedDate = new Date(date);
       this.setData({
         currentYear: clickedDate.getFullYear(),
-        currentMonth: clickedDate.getMonth() + 1
+        currentMonth: clickedDate.getMonth() + 1,
+        showDetails: false,
+        selectedDate: ''
       });
       this.loadCalendarData();
       return;
@@ -273,7 +281,7 @@ Page({
       return;
     }
     
-    // 选中当前日期
+    // 选中当前日期 - 只有在点击当前显示月份的日期时才显示详情
     const dayInfo = this.data.calendarGrid.find(item => item.date === date);
     
     this.setData({
@@ -288,6 +296,14 @@ Page({
    */
   onPrevMonth() {
     console.log('onPrevMonth clicked');
+    
+    // 先关闭详情弹框和清除选中状态
+    this.setData({
+      showDetails: false,
+      selectedDate: '',
+      selectedData: null
+    });
+    
     let { currentYear, currentMonth } = this.data;
     currentMonth--;
     
@@ -298,9 +314,7 @@ Page({
     
     this.setData({
       currentYear,
-      currentMonth,
-      showDetails: false,
-      selectedDate: ''
+      currentMonth
     });
     
     this.loadCalendarData();
@@ -311,6 +325,14 @@ Page({
    */
   onNextMonth() {
     console.log('onNextMonth clicked');
+    
+    // 先关闭详情弹框和清除选中状态
+    this.setData({
+      showDetails: false,
+      selectedDate: '',
+      selectedData: null
+    });
+    
     let { currentYear, currentMonth } = this.data;
     currentMonth++;
     
@@ -321,9 +343,7 @@ Page({
     
     this.setData({
       currentYear,
-      currentMonth,
-      showDetails: false,
-      selectedDate: ''
+      currentMonth
     });
     
     this.loadCalendarData();
@@ -334,11 +354,17 @@ Page({
    */
   onToday() {
     const today = new Date();
+    
+    // 先关闭详情弹框和清除选中状态
+    this.setData({
+      showDetails: false,
+      selectedDate: '',
+      selectedData: null
+    });
+    
     this.setData({
       currentYear: today.getFullYear(),
-      currentMonth: today.getMonth() + 1,
-      showDetails: false,
-      selectedDate: ''
+      currentMonth: today.getMonth() + 1
     });
     
     this.loadCalendarData();

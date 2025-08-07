@@ -164,7 +164,7 @@ Component({
         });
       } else {
         // 点击当前月日期，触发日期选择事件
-        this.setData({ selectedDate: date });
+        // 不再设置selectedDate，避免触发不必要的更新
         this.triggerEvent('dateSelect', {
           date,
           data: this.findDayData(date)
