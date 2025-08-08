@@ -162,6 +162,7 @@
   opacity: 0.8;
   align-self: center;
   min-width: 120rpx;
+  display: none; /* 隐藏测试按钮 */
 }
 
 .test-button:active {
