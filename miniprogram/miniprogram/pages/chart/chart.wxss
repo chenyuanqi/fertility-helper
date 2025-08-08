@@ -113,8 +113,8 @@
 /* 2. 图表控制 */
 .chart-controls {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 16rpx;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10rpx);
   border-radius: 20rpx;
@@ -127,16 +127,23 @@
   background: #f8f9fa;
   border-radius: 16rpx;
   padding: 6rpx;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .tab-button {
-  padding: 16rpx 24rpx;
+  flex: 1;
+  padding: 16rpx 20rpx;
   font-size: 24rpx;
   border: none;
   border-radius: 12rpx;
   background: transparent;
   color: #666;
   transition: all 0.3s ease;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tab-button.active {
@@ -146,13 +153,15 @@
 }
 
 .test-button {
-  padding: 16rpx 24rpx;
+  padding: 12rpx 20rpx;
   font-size: 22rpx;
   background: #ff6b9d;
   color: white;
   border: none;
   border-radius: 12rpx;
   opacity: 0.8;
+  align-self: center;
+  min-width: 120rpx;
 }
 
 .test-button:active {
@@ -362,4 +371,56 @@
   font-size: 20rpx;
   color: #bbb;
   margin-top: 8rpx;
+}
+
+/* 响应式适配 */
+@media (max-width: 375px) {
+  .chart-page {
+    padding: 16rpx;
+  }
+  
+  .cycle-header {
+    padding: 24rpx;
+  }
+  
+  .chart-controls {
+    padding: 16rpx 24rpx;
+  }
+  
+  .tab-button {
+    padding: 14rpx 16rpx;
+    font-size: 22rpx;
+  }
+  
+  .test-button {
+    padding: 10rpx 16rpx;
+    font-size: 20rpx;
+    min-width: 100rpx;
+  }
+  
+  .stat-value {
+    font-size: 24rpx;
+  }
+  
+  .stat-label {
+    font-size: 20rpx;
+  }
+}
+
+/* 超小屏幕适配 */
+@media (max-width: 320px) {
+  .chart-controls {
+    padding: 12rpx 20rpx;
+  }
+  
+  .tab-button {
+    padding: 12rpx 14rpx;
+    font-size: 20rpx;
+  }
+  
+  .test-button {
+    padding: 8rpx 14rpx;
+    font-size: 18rpx;
+    min-width: 80rpx;
+  }
 }
