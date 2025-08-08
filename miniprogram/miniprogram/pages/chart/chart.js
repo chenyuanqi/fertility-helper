@@ -167,17 +167,19 @@ Page({
           console.log(`${date} 体温数据:`, dayData.temperature);
         }
         
-        // 月经数据 - 只有实际月经才标记
-        if (record.menstrual && 
-            record.menstrual.flow && 
-            ['light', 'medium', 'heavy'].includes(record.menstrual.flow)) {
-          dayData.menstrual = {
-            flow: record.menstrual.flow,
-            isStart: record.menstrual.isStart || false,
-            isEnd: record.menstrual.isEnd || false
-          };
-          dayData.hasData = true;
-          console.log(`${date} 月经数据:`, dayData.menstrual);
+        // 月经数据（基于 padCount） - 只有 padCount>0 才标记
+        if (record.menstrual && typeof record.menstrual.padCount === 'number') {
+          const count = Number(record.menstrual.padCount || 0);
+          if (count > 0) {
+            dayData.menstrual = {
+              padCount: count,
+              color: record.menstrual.color || '',
+              isStart: !!record.menstrual.isStart,
+              isEnd: !!record.menstrual.isEnd
+            };
+            dayData.hasData = true;
+            console.log(`${date} 月经数据:`, dayData.menstrual);
+          }
         }
         
         // 同房数据 - 只有实际同房才标记

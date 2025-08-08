@@ -365,14 +365,9 @@
         
         // 更新经量
         if (record.menstruation) {
-          const flowMap = {
-            'light': '少量',
-            'medium': '中量',
-            'heavy': '大量',
-            'none': '无'
-          };
-          overviewItems[1].querySelector('.overview-value').textContent = 
-            flowMap[record.menstruation.flow] || '无';
+          const count = Number(record.menstruation.padCount || 0);
+          const label = count === 0 ? '无' : (count === 1 ? '少量' : (count === 2 ? '中量' : '大量'));
+          overviewItems[1].querySelector('.overview-value').textContent = label;
         }
         
         // 更新同房

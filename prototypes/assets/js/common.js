@@ -11,13 +11,13 @@ const mockData = {
     {
       date: '2024-01-15',
       temperature: { value: 36.5, time: '07:00', method: 'oral' },
-      menstruation: { padCount: 3 },
+      menstruation: { padCount: 3, color: 'dark_red' },
       intimacy: [{ time: '22:00' }]
     },
     {
       date: '2024-01-16',
       temperature: { value: 36.6, time: '07:00', method: 'oral' },
-      menstruation: { padCount: 2 }
+      menstruation: { padCount: 2, color: 'bright_red' }
     },
     {
       date: '2024-01-17',

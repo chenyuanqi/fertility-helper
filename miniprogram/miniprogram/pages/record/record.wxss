@@ -336,6 +336,122 @@
   opacity: 0.8;
 }
 
+/* 卫生巾选择样式 */
+.pad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 16rpx;
+}
+
+.pad-item {
+  background: #fff;
+  border: 2rpx solid #eaeaea;
+  border-radius: 12rpx;
+  padding: 24rpx 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.pad-item.active {
+  border-color: #4ecdc4;
+  background: #e6fffb;
+}
+
+.pad-icon {
+  display: none;
+}
+
+.pad-text {
+  font-size: 24rpx;
+  color: #333;
+}
+
+.pad-tip {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #888;
+}
+
+/* 颜色选择样式 */
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 16rpx;
+}
+
+.color-item {
+  background: #fff;
+  border: 2rpx solid #eaeaea;
+  border-radius: 12rpx;
+  padding: 16rpx 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.color-item.active {
+  border-color: #4ecdc4;
+  background: #e6fffb;
+}
+
+.color-dot {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+  margin-bottom: 8rpx;
+}
+
+.color-text {
+  font-size: 24rpx;
+  color: #333;
+}
+
+/* 卫生巾可视化（纯样式绘制，不用表情） */
+.pad-icons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  margin-bottom: 8rpx;
+}
+
+.pad-visual {
+  width: 28rpx;
+  height: 16rpx;
+  background: #fff;
+  border: 2rpx solid #ff6b9d;
+  border-radius: 8rpx 8rpx 12rpx 12rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.pad-visual .pad-visual-inner {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 6rpx;
+  background: #ff6b9d;
+  border-radius: 0 0 10rpx 10rpx;
+}
+
+.pad-visual.empty {
+  border-color: #d9d9d9;
+}
+
+.pad-visual.empty .pad-visual-inner {
+  display: none;
+}
+
+.pad-plus {
+  font-size: 22rpx;
+  color: #ff6b9d;
+  margin-left: 2rpx;
+}
+
 /* 开关组样式 */
 .switch-group {
   display: flex;

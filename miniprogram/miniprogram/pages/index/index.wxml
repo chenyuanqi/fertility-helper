@@ -159,15 +159,16 @@
           </view>
           
           <view class="record-item">
-            <text class="record-icon">🩸</text>
+            <view class="record-icon pad-icons">
+              <view class="pad-visual small"></view>
+            </view>
             <view class="record-content">
               <text class="record-label">月经</text>
               <text class="record-value">
                 {{todayRecord && todayRecord.menstrual ? 
-                  (todayRecord.menstrual.flow === 'none' ? '无月经' :
-                   todayRecord.menstrual.flow === 'light' ? '少量' : 
-                   todayRecord.menstrual.flow === 'medium' ? '中等' : 
-                   todayRecord.menstrual.flow === 'heavy' ? '大量' : '未知') : '未记录'}}
+                  ((todayRecord.menstrual.padCount || 0) === 0 ? '无月经' :
+                   (todayRecord.menstrual.padCount === 1 ? '少量' : 
+                   (todayRecord.menstrual.padCount === 2 ? '中等' : '大量'))) : '未记录'}}
               </text>
             </view>
             <view class="record-action" bindtap="quickRecordMenstrual">
@@ -261,9 +262,11 @@
     </view>
     <view class="modal-body">
       <view class="phase-options">
-        <view class="phase-option {{selectedPhase === 'menstrual' ? 'active' : ''}}" 
+          <view class="phase-option {{selectedPhase === 'menstrual' ? 'active' : ''}}" 
               bindtap="selectPhase" data-phase="menstrual">
-          <view class="phase-icon menstrual-icon">🩸</view>
+          <view class="phase-icon menstrual-icon">
+            <view class="pad-visual small"></view>
+          </view>
           <view class="phase-info">
             <text class="phase-name">月经期</text>
             <text class="phase-desc">月经来潮期间</text>
@@ -330,15 +333,15 @@
         <text class="flow-selector-title">月经量</text>
         <view class="flow-options">
           <view class="flow-option {{cycleStartFlow === 'light' ? 'active' : ''}}" bindtap="selectFlow" data-flow="light">
-            <text class="flow-icon">💧</text>
+            <view class="pad-visual small"></view>
             <text class="flow-label">少量</text>
           </view>
           <view class="flow-option {{cycleStartFlow === 'medium' ? 'active' : ''}}" bindtap="selectFlow" data-flow="medium">
-            <text class="flow-icon">💧💧</text>
+            <view class="pad-visual small"></view><view class="pad-visual small"></view>
             <text class="flow-label">中等</text>
           </view>
           <view class="flow-option {{cycleStartFlow === 'heavy' ? 'active' : ''}}" bindtap="selectFlow" data-flow="heavy">
-            <text class="flow-icon">💧💧💧</text>
+            <view class="pad-visual small"></view><view class="pad-visual small"></view><view class="pad-visual small"></view>
             <text class="flow-label">大量</text>
           </view>
         </view>

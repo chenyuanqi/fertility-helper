@@ -66,6 +66,28 @@ class DataManager {
       // 首次安装，无需迁移
       return;
     }
+
+    // 兼容旧的经量记录（flow -> padCount）
+    try {
+      const dayRecords = await FertilityStorage.getDayRecords();
+      let changed = false;
+      for (const [date, record] of Object.entries(dayRecords)) {
+        if (record.menstrual) {
+          const m = record.menstrual;
+          if (m.flow && m.padCount === undefined) {
+            const map = { none: 0, light: 1, medium: 2, heavy: 3 };
+            m.padCount = map[m.flow] ?? 0;
+            delete m.flow;
+            changed = true;
+          }
+        }
+      }
+      if (changed) {
+        await FertilityStorage.saveDayRecords(dayRecords);
+      }
+    } catch (e) {
+      console.warn('经量数据迁移失败（可忽略）:', e);
+    }
   }
 
   /**
@@ -122,6 +144,26 @@ class DataManager {
     if (!cycles || cycles.length === 0) {
       await FertilityStorage.saveCycles([]);
     }
+  }
+
+  /**
+   * 兼容并规范化月经记录（flow -> padCount）
+   */
+  normalizeMenstrualRecord(record) {
+    if (!record) return null;
+    if (typeof record.padCount === 'number') return record;
+    // flow 映射
+    const map = { none: 0, light: 1, medium: 2, heavy: 3 };
+    const padCount = map[record.flow] ?? 0;
+    const normalized = {
+      date: record.date,
+      padCount,
+      color: record.color,
+      isStart: !!record.isStart,
+      isEnd: !!record.isEnd,
+      note: record.note,
+    };
+    return normalized;
   }
 
   /**
@@ -262,8 +304,9 @@ class DataManager {
    */
   async saveMenstrualRecord(record) {
     try {
-      // 数据验证
-      const validation = this.validateMenstrualRecord(record);
+      // 数据验证（兼容旧数据结构）
+      const normalized = this.normalizeMenstrualRecord(record);
+      const validation = this.validateMenstrualRecord(normalized);
 
       if (!validation.valid) {
         return {
@@ -278,12 +321,12 @@ class DataManager {
 
       // 获取当天记录
       const dayRecords = await FertilityStorage.getDayRecords();
-      const dayRecord = dayRecords[record.date] || { date: record.date };
+      const dayRecord = dayRecords[normalized.date] || { date: normalized.date };
 
       // 如果是"无月经"，保存无月经的标记记录
-      if (record.flow === 'none') {
+      if (normalized.padCount === 0) {
         const fullRecord = {
-          ...record,
+          ...normalized,
           id: this.generateId(),
           createdAt: DateUtils.formatISO(new Date()),
           updatedAt: DateUtils.formatISO(new Date()),
@@ -291,11 +334,11 @@ class DataManager {
 
         // 保存"无月经"记录
         dayRecord.menstrual = fullRecord;
-        dayRecords[record.date] = dayRecord;
+        dayRecords[normalized.date] = dayRecord;
       } else {
         // 创建完整的记录
         const fullRecord = {
-          ...record,
+          ...normalized,
           id: this.generateId(),
           createdAt: DateUtils.formatISO(new Date()),
           updatedAt: DateUtils.formatISO(new Date()),
@@ -305,10 +348,10 @@ class DataManager {
         dayRecord.menstrual = fullRecord;
 
         // 保存到存储
-        dayRecords[record.date] = dayRecord;
+        dayRecords[normalized.date] = dayRecord;
 
         // 如果是经期开始或结束，更新周期数据
-        if (record.isStart || record.isEnd) {
+        if (normalized.isStart || normalized.isEnd) {
           await this.updateMenstrualCycles(fullRecord);
         }
       }
@@ -317,13 +360,13 @@ class DataManager {
       await FertilityStorage.saveDayRecords(dayRecords);
 
       // 清除相关缓存
-      this.clearCache(`dayRecord_${record.date}`);
+      this.clearCache(`dayRecord_${normalized.date}`);
       this.clearCache('allDayRecords');
       this.clearCache('cycles');
 
       return {
         success: true,
-        data: record.flow === 'none' ? null : record,
+        data: normalized.padCount === 0 ? null : normalized,
       };
     } catch (error) {
       return {
@@ -351,10 +394,10 @@ class DataManager {
       valid = false;
     }
 
-    // 验证经量
-    const flowValidation = Validator.validateMenstrualFlow(record.flow);
-    if (!flowValidation.valid) {
-      errors.flow = flowValidation.message;
+    // 验证经量（padCount + color）
+    const menValidation = Validator.validateMenstrualRecord({ padCount: record.padCount, color: record.color });
+    if (!menValidation.valid) {
+      errors.menstrual = menValidation.message;
       valid = false;
     }
 

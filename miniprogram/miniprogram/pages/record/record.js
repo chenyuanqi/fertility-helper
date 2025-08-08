@@ -13,18 +13,13 @@ Page({
     temperatureIndex: -1,
     temperatureOptions: [],
     
-    // 经量记录相关
-    menstrualFlow: 0,
+    // 经量记录相关（改为卫生巾数量 + 颜色）
+    menstrualPadCount: 0,
+    menstrualColor: '',
     isStartPeriod: false,
     isEndPeriod: false,
     menstrualNote: '',
-    flowOptions: [
-      { value: 0, label: '无', description: '无月经', position: 0 },
-      { value: 1, label: '少量', description: '1-2片卫生巾，颜色较淡', position: 25 },
-      { value: 2, label: '中等', description: '3-4片卫生巾，正常颜色', position: 50 },
-      { value: 3, label: '较多', description: '5-6片卫生巾，颜色较深', position: 75 },
-      { value: 4, label: '大量', description: '7片以上卫生巾，颜色深红', position: 100 }
-    ],
+    // 预留：可在 UI 上动态生成 pad 选项与颜色选项
     
     // 同房记录相关
     intercourseTime: '',
@@ -255,12 +250,13 @@ Page({
           updateData.temperatureIndex = tempIndex >= 0 ? tempIndex : -1;
         }
         
-        // 填充已有的经量数据
+        // 填充已有的经量数据（padCount + color）
         if (record.menstrual) {
-          const flowValue = this.getFlowValue(record.menstrual.flow);
-          updateData.menstrualFlow = flowValue;
-          updateData.isStartPeriod = record.menstrual.isStart;
-          updateData.isEndPeriod = record.menstrual.isEnd;
+          const padCount = typeof record.menstrual.padCount === 'number' ? record.menstrual.padCount : 0;
+          updateData.menstrualPadCount = padCount;
+          updateData.menstrualColor = record.menstrual.color || '';
+          updateData.isStartPeriod = !!record.menstrual.isStart;
+          updateData.isEndPeriod = !!record.menstrual.isEnd;
           updateData.menstrualNote = record.menstrual.note || '';
         }
         
@@ -297,17 +293,20 @@ Page({
   /**
    * 转换经量值
    */
-  getFlowValue(flow) {
-    const flowMap = { light: 1, medium: 2, heavy: 3 };
-    return flowMap[flow] || 0;
+  // 由 padCount 生成标签（用于内部展示，0无、1少量、2中量、>=3大量）
+  getPadLabel(count) {
+    if (!count) return '无';
+    if (count === 1) return '少量';
+    if (count === 2) return '中量';
+    return '大量';
   },
 
   /**
    * 转换经量类型
    */
+  // 保留兼容（不再使用 flowType）
   getFlowType(value) {
-    const typeMap = { 0: 'none', 1: 'light', 2: 'medium', 3: 'heavy', 4: 'heavy' };
-    return typeMap[value] || 'none';
+    return 'none';
   },
 
   /**
@@ -557,9 +556,17 @@ Page({
   /**
    * 经量选项点击
    */
-  onFlowOptionTap(e) {
-    const value = e.currentTarget.dataset.value;
-    this.setData({ menstrualFlow: value });
+  // 卫生巾数量选择
+  onPadOptionTap(e) {
+    const count = Number(e.currentTarget.dataset.count || 0);
+    this.setData({ menstrualPadCount: count });
+    this.markUnsavedChanges();
+  },
+
+  // 颜色选择
+  onColorOptionTap(e) {
+    const color = e.currentTarget.dataset.color || '';
+    this.setData({ menstrualColor: color });
     this.markUnsavedChanges();
   },
 
@@ -576,7 +583,7 @@ Page({
    * 保存经量记录
    */
   async saveMenstrualRecord() {
-    const { menstrualFlow, isStartPeriod, isEndPeriod, menstrualNote, selectedDate } = this.data;
+    const { menstrualPadCount, menstrualColor, isStartPeriod, isEndPeriod, menstrualNote, selectedDate } = this.data;
     
     try {
       this.setData({ isLoading: true });
@@ -584,9 +591,10 @@ Page({
       const dataManager = DataManager.getInstance();
       const record = {
         date: selectedDate,
-        flow: this.getFlowType(menstrualFlow),
-        isStart: isStartPeriod,
-        isEnd: isEndPeriod,
+        padCount: Number(menstrualPadCount || 0),
+        color: menstrualColor || undefined,
+        isStart: !!isStartPeriod,
+        isEnd: !!isEndPeriod,
         note: menstrualNote
       };
       

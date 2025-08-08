@@ -257,6 +257,26 @@
   box-shadow: 0 1rpx 3rpx rgba(0, 0, 0, 0.2);
 }
 
+/* 卫生巾图例 */
+.legend-pad {
+  width: 26rpx;
+  height: 14rpx;
+  background: #fff;
+  border: 2rpx solid #ff6b9d;
+  border-radius: 6rpx 6rpx 10rpx 10rpx;
+  position: relative;
+}
+.legend-pad::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5rpx;
+  background: #ff6b9d;
+  border-radius: 0 0 8rpx 8rpx;
+}
+
 .legend-line {
   width: 24rpx;
   height: 3rpx;

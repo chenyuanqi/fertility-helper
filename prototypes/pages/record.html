@@ -423,6 +423,29 @@
             </div>
           </div>
           
+          <!-- 经血颜色选择 -->
+          <div class="color-selector" id="colorSelector" style="margin-top:12px;">
+            <div class="flow-description" style="margin-bottom:8px;">选择经血颜色（可选）</div>
+            <div class="pad-options" style="grid-template-columns: repeat(4, 1fr);">
+              <button class="pad-option color-option" data-color="bright_red">
+                <div class="pad-icon" style="color:#ff4d4f;">●</div>
+                <div class="pad-label">鲜红</div>
+              </button>
+              <button class="pad-option color-option" data-color="dark_red">
+                <div class="pad-icon" style="color:#a8071a;">●</div>
+                <div class="pad-label">暗红</div>
+              </button>
+              <button class="pad-option color-option" data-color="brown">
+                <div class="pad-icon" style="color:#8B4513;">●</div>
+                <div class="pad-label">褐色</div>
+              </button>
+              <button class="pad-option color-option" data-color="pink">
+                <div class="pad-icon" style="color:#ff85c0;">●</div>
+                <div class="pad-label">粉色</div>
+              </button>
+            </div>
+          </div>
+
           <div class="flow-options">
             <button class="option-btn" data-start="true">经期开始</button>
             <button class="option-btn" data-end="true">经期结束</button>
@@ -522,7 +545,7 @@
     let currentDate = new Date();
     let currentRecord = {
       temperature: null,
-      menstruation: { flow: 'none' },
+      menstruation: { padCount: 0, color: undefined },
       intimacy: [],
       symptoms: ''
     };
@@ -538,6 +561,7 @@
       updateDateDisplay();
       initializeTemperatureOptions();
       initializePadSelector();
+      initializeColorSelector();
       initializeMenstruationOptions();
       loadTodayRecord();
     }
@@ -668,6 +692,19 @@
       });
     }
 
+    // 经血颜色选择
+    function initializeColorSelector() {
+      const colorOptions = document.querySelectorAll('.color-option');
+      colorOptions.forEach(option => {
+        option.onclick = function() {
+          colorOptions.forEach(o => o.classList.remove('active'));
+          this.classList.add('active');
+          const color = this.dataset.color;
+          currentRecord.menstruation.color = color;
+        };
+      });
+    }
+
     function initializeMenstruationOptions() {
       const options = document.querySelectorAll('.menstruation-section [data-start], .menstruation-section [data-end]');
       options.forEach(option => {
@@ -728,6 +765,16 @@
             padOption.click(); // 触发点击事件来更新状态
           }
         }
+
+        // 颜色恢复
+        if (existingRecord.menstruation && existingRecord.menstruation.color) {
+          const colorBtn = document.querySelector(`.color-option[data-color="${existingRecord.menstruation.color}"]`);
+          if (colorBtn) {
+            document.querySelectorAll('.color-option').forEach(o => o.classList.remove('active'));
+            colorBtn.classList.add('active');
+            colorBtn.click();
+          }
+        }
         
         if (existingRecord.intimacy && existingRecord.intimacy.length > 0) {
           document.getElementById('intimacySwitch').classList.add('active');
@@ -744,7 +791,7 @@
     function resetForm() {
       currentRecord = {
         temperature: null,
-        menstruation: { padCount: 0 },
+        menstruation: { padCount: 0, color: undefined },
         intimacy: [],
         symptoms: ''
       };
@@ -759,6 +806,8 @@
       document.querySelector('[data-count="0"]').classList.add('active');
       document.getElementById('padDescription').textContent = '无经血';
       document.getElementById('menstruationStatus').textContent = '无';
+      // 重置颜色
+      document.querySelectorAll('.color-option').forEach(o => o.classList.remove('active'));
       
       document.getElementById('intimacySwitch').classList.remove('active');
       document.getElementById('intimacyDetails').classList.remove('show');

@@ -293,6 +293,31 @@
   justify-content: center;
 }
 
+/* 卫生巾小图标（日历） */
+.pad-visual {
+  width: 24rpx;
+  height: 12rpx;
+  background: #fff;
+  border: 2rpx solid #ff6b9d;
+  border-radius: 6rpx 6rpx 10rpx 10rpx;
+  position: relative;
+  overflow: hidden;
+}
+.pad-visual.tiny {
+  width: 20rpx;
+  height: 10rpx;
+}
+.pad-visual::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5rpx;
+  background: #ff6b9d;
+  border-radius: 0 0 8rpx 8rpx;
+}
+
 .indicator-icon.temperature {
   color: #4a90e2;
 }
@@ -402,6 +427,29 @@
 .detail-icon {
   font-size: 40rpx;
   margin-bottom: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 详情弹框中的卫生巾图标 */
+.detail-card .pad-visual {
+  width: 30rpx;
+  height: 16rpx;
+  background: #fff;
+  border: 2rpx solid #ff6b9d;
+  border-radius: 8rpx 8rpx 12rpx 12rpx;
+  position: relative;
+}
+.detail-card .pad-visual::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6rpx;
+  background: #ff6b9d;
+  border-radius: 0 0 10rpx 10rpx;
 }
 
 .detail-title {

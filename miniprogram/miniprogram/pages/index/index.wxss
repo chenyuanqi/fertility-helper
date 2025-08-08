@@ -652,8 +652,12 @@
 }
 
 .phase-icon {
-  font-size: 32rpx;
   margin-bottom: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48rpx;
+  height: 48rpx;
 }
 
 .phase-name {
@@ -758,14 +762,39 @@
 }
 
 .flow-icon {
-  font-size: 28rpx;
-  display: block;
-  margin-bottom: 8rpx;
+  display: none;
 }
 
 .flow-label {
   font-size: 24rpx;
   color: #2c3e50;
+}
+
+/* 卫生巾小图标（首页通用） */
+.pad-visual {
+  width: 28rpx;
+  height: 16rpx;
+  background: #fff;
+  border: 2rpx solid #ff6b9d;
+  border-radius: 8rpx 8rpx 12rpx 12rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.pad-visual.small {
+  width: 22rpx;
+  height: 14rpx;
+}
+
+.pad-visual::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6rpx;
+  background: #ff6b9d;
+  border-radius: 0 0 10rpx 10rpx;
 }
 
 .btn-outline {

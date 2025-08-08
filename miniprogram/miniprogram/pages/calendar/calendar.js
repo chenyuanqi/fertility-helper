@@ -176,8 +176,15 @@ Page({
         hasTemperature: !!(dayData && dayData.temperature && dayData.temperature.temperature),
         temperatureValue: dayData && dayData.temperature ? dayData.temperature.temperature : null,
         
-        hasMenstrual: !!(dayData && dayData.menstrual && dayData.menstrual.flow !== 'none'),
-        menstrualFlow: dayData && dayData.menstrual ? dayData.menstrual.flow : 'none',
+        hasMenstrual: !!(dayData && dayData.menstrual && typeof dayData.menstrual.padCount === 'number' && dayData.menstrual.padCount > 0),
+        menstrualPadCount: dayData && dayData.menstrual ? (Number(dayData.menstrual.padCount || 0)) : 0,
+        menstrualLabel: (() => {
+          const c = dayData && dayData.menstrual ? Number(dayData.menstrual.padCount || 0) : 0;
+          if (c === 0) return '无';
+          if (c === 1) return '少量';
+          if (c === 2) return '中量';
+          return '大量';
+        })(),
         
         hasIntercourse: !!(dayData && dayData.intercourse && dayData.intercourse.length > 0 && 
                           dayData.intercourse.some(record => record.type !== 'none')),
@@ -211,7 +218,7 @@ Page({
     // 计算有记录的天数
     stats.recordDays = calendarData.filter(item => 
       (item.temperature && item.temperature.temperature) ||
-      (item.menstrual && item.menstrual.flow !== 'none') ||
+      (item.menstrual && typeof item.menstrual.padCount === 'number' && item.menstrual.padCount > 0) ||
       (item.intercourse && item.intercourse.length > 0 && 
        item.intercourse.some(record => record.type !== 'none'))
     ).length;
@@ -426,8 +433,15 @@ Page({
                       hasTemperature: !!(dayData && dayData.temperature && dayData.temperature.temperature),
                       temperatureValue: dayData && dayData.temperature ? dayData.temperature.temperature : null,
                       
-                      hasMenstrual: !!(dayData && dayData.menstrual && dayData.menstrual.flow !== 'none'),
-                      menstrualFlow: dayData && dayData.menstrual ? dayData.menstrual.flow : 'none',
+                      hasMenstrual: !!(dayData && dayData.menstrual && typeof dayData.menstrual.padCount === 'number' && dayData.menstrual.padCount > 0),
+                      menstrualPadCount: dayData && dayData.menstrual ? Number(dayData.menstrual.padCount || 0) : 0,
+                      menstrualLabel: (() => {
+                        const c = dayData && dayData.menstrual ? Number(dayData.menstrual.padCount || 0) : 0;
+                        if (c === 0) return '无';
+                        if (c === 1) return '少量';
+                        if (c === 2) return '中量';
+                        return '大量';
+                      })(),
                       
                       hasIntercourse: !!(dayData && dayData.intercourse && dayData.intercourse.length > 0 && 
                                       dayData.intercourse.some(record => record.type !== 'none')),
@@ -481,8 +495,15 @@ Page({
                       hasTemperature: !!(dayData && dayData.temperature && dayData.temperature.temperature),
                       temperatureValue: dayData && dayData.temperature ? dayData.temperature.temperature : null,
                       
-                      hasMenstrual: !!(dayData && dayData.menstrual && dayData.menstrual.flow !== 'none'),
-                      menstrualFlow: dayData && dayData.menstrual ? dayData.menstrual.flow : 'none',
+                      hasMenstrual: !!(dayData && dayData.menstrual && typeof dayData.menstrual.padCount === 'number' && dayData.menstrual.padCount > 0),
+                      menstrualPadCount: dayData && dayData.menstrual ? Number(dayData.menstrual.padCount || 0) : 0,
+                      menstrualLabel: (() => {
+                        const c = dayData && dayData.menstrual ? Number(dayData.menstrual.padCount || 0) : 0;
+                        if (c === 0) return '无';
+                        if (c === 1) return '少量';
+                        if (c === 2) return '中量';
+                        return '大量';
+                      })(),
                       
                       hasIntercourse: !!(dayData && dayData.intercourse && dayData.intercourse.length > 0 && 
                                       dayData.intercourse.some(record => record.type !== 'none')),

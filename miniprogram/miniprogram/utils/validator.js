@@ -75,15 +75,20 @@ class Validator {
   }
 
   /**
-   * 验证经量类型
-   * @param {string} flow 经量类型
+   * 验证经量记录（改为 padCount + color）
+   * @param {Object} record { padCount: number, color?: string }
    */
-  static validateMenstrualFlow(flow) {
-    const validFlows = ['none', 'light', 'medium', 'heavy'];
-    if (!validFlows.includes(flow)) {
-      return { valid: false, message: '经量类型必须是 none、light、medium 或 heavy' };
+  static validateMenstrualRecord(record) {
+    if (!record || typeof record !== 'object') {
+      return { valid: false, message: '经量记录无效' };
     }
-    
+    const { padCount, color } = record;
+    if (typeof padCount !== 'number' || padCount < 0 || padCount > 10) {
+      return { valid: false, message: '卫生巾数量应为0-10之间的数字' };
+    }
+    if (color && !['bright_red', 'dark_red', 'brown', 'pink'].includes(color)) {
+      return { valid: false, message: '颜色不在允许范围内' };
+    }
     return { valid: true };
   }
 

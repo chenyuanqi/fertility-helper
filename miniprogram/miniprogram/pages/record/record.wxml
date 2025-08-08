@@ -117,16 +117,77 @@
     </view>
 
     <view class="form-group">
-      <view class="form-label">经量程度</view>
-      <view class="flow-selector">
-        <view class="flow-labels">
-          <view class="flow-option {{menstrualFlow === item.value ? 'active' : ''}}" 
-                wx:for="{{flowOptions}}" wx:key="value"
-                data-value="{{item.value}}"
-                bindtap="onFlowOptionTap">
-            <text class="flow-label">{{item.label}}</text>
-            <text class="flow-desc">{{item.description}}</text>
+      <view class="form-label">卫生巾数量</view>
+      <view class="pad-grid">
+        <view class="pad-item {{menstrualPadCount === 0 ? 'active' : ''}}" data-count="0" bindtap="onPadOptionTap">
+          <view class="pad-icons">
+            <view class="pad-visual empty"><view class="pad-visual-inner"></view></view>
           </view>
+          <view class="pad-text">无</view>
+        </view>
+        <view class="pad-item {{menstrualPadCount === 1 ? 'active' : ''}}" data-count="1" bindtap="onPadOptionTap">
+          <view class="pad-icons">
+            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
+          </view>
+          <view class="pad-text">1张</view>
+        </view>
+        <view class="pad-item {{menstrualPadCount === 2 ? 'active' : ''}}" data-count="2" bindtap="onPadOptionTap">
+          <view class="pad-icons">
+            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
+            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
+          </view>
+          <view class="pad-text">2张</view>
+        </view>
+        <view class="pad-item {{menstrualPadCount === 3 ? 'active' : ''}}" data-count="3" bindtap="onPadOptionTap">
+          <view class="pad-icons">
+            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
+            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
+            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
+          </view>
+          <view class="pad-text">3张</view>
+        </view>
+        <view class="pad-item {{menstrualPadCount === 4 ? 'active' : ''}}" data-count="4" bindtap="onPadOptionTap">
+          <view class="pad-icons">
+            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
+            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
+            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
+            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
+          </view>
+          <view class="pad-text">4张</view>
+        </view>
+        <view class="pad-item {{menstrualPadCount >= 5 ? 'active' : ''}}" data-count="5" bindtap="onPadOptionTap">
+          <view class="pad-icons">
+            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
+            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
+            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
+            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
+            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
+            <text class="pad-plus">+</text>
+          </view>
+          <view class="pad-text">5张+</view>
+        </view>
+      </view>
+      <view class="pad-tip">选择今天湿透的卫生巾数量</view>
+    </view>
+
+    <view class="form-group">
+      <view class="form-label">经血颜色（可选）</view>
+      <view class="color-grid">
+        <view class="color-item {{menstrualColor === 'bright_red' ? 'active' : ''}}" data-color="bright_red" bindtap="onColorOptionTap">
+          <view class="color-dot" style="background:#ff4d4f;"></view>
+          <view class="color-text">鲜红</view>
+        </view>
+        <view class="color-item {{menstrualColor === 'dark_red' ? 'active' : ''}}" data-color="dark_red" bindtap="onColorOptionTap">
+          <view class="color-dot" style="background:#a8071a;"></view>
+          <view class="color-text">暗红</view>
+        </view>
+        <view class="color-item {{menstrualColor === 'brown' ? 'active' : ''}}" data-color="brown" bindtap="onColorOptionTap">
+          <view class="color-dot" style="background:#8B4513;"></view>
+          <view class="color-text">褐色</view>
+        </view>
+        <view class="color-item {{menstrualColor === 'pink' ? 'active' : ''}}" data-color="pink" bindtap="onColorOptionTap">
+          <view class="color-dot" style="background:#ff85c0;"></view>
+          <view class="color-text">粉色</view>
         </view>
       </view>
     </view>

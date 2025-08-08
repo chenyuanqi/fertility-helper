@@ -73,10 +73,10 @@
               🌡️
             </view>
             
-            <!-- 经期指示器 -->
+            <!-- 经期指示器（卫生巾） -->
             <view wx:if="{{item.hasMenstrual}}" 
                   class="indicator-icon menstruation">
-              🩸
+              <view class="pad-visual tiny"></view>
             </view>
             
             <!-- 同房指示器 -->
@@ -116,10 +116,10 @@
           </view>
           
           <view class="detail-card">
-            <view class="detail-icon">🩸</view>
+            <view class="detail-icon"><view class="pad-visual"></view></view>
             <view class="detail-title">月经经量</view>
             <view class="detail-value {{selectedData.hasMenstrual ? '' : 'empty'}}">
-              {{selectedData.hasMenstrual ? (selectedData.menstrualFlow === 'light' ? '少量' : selectedData.menstrualFlow === 'medium' ? '中量' : '大量') : '无'}}
+              {{selectedData.hasMenstrual ? selectedData.menstrualLabel : '无'}}
             </view>
           </view>
           
@@ -160,7 +160,7 @@
           <text>基础体温</text>
         </view>
         <view class="legend-item">
-          <text class="legend-icon">🩸</text>
+          <view class="pad-visual tiny" style="margin-right:8rpx;"></view>
           <text>月经记录</text>
         </view>
         <view class="legend-item">

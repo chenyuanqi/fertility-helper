@@ -457,15 +457,15 @@
 
     // 模拟数据
     const calendarData = {
-      '2024-01-10': { temperature: 36.3, menstruation: 'medium', intimacy: 0, symptoms: '' },
-      '2024-01-11': { temperature: 36.4, menstruation: 'light', intimacy: 0, symptoms: '' },
-      '2024-01-12': { temperature: 36.5, menstruation: 'none', intimacy: 1, symptoms: '轻微腹痛' },
-      '2024-01-13': { temperature: 36.6, menstruation: 'none', intimacy: 0, symptoms: '' },
-      '2024-01-14': { temperature: 36.8, menstruation: 'none', intimacy: 1, symptoms: '' },
-      '2024-01-15': { temperature: 36.5, menstruation: 'none', intimacy: 1, symptoms: '正常' },
-      '2024-01-16': { temperature: 36.9, menstruation: 'none', intimacy: 0, symptoms: '' },
-      '2024-01-17': { temperature: 37.0, menstruation: 'none', intimacy: 0, symptoms: '' },
-      '2024-01-18': { temperature: 36.8, menstruation: 'none', intimacy: 1, symptoms: '' },
+      '2024-01-10': { temperature: 36.3, menstruation: { padCount: 2, color: 'bright_red' }, intimacy: 0, symptoms: '' },
+      '2024-01-11': { temperature: 36.4, menstruation: { padCount: 1, color: 'pink' }, intimacy: 0, symptoms: '' },
+      '2024-01-12': { temperature: 36.5, menstruation: { padCount: 0 }, intimacy: 1, symptoms: '轻微腹痛' },
+      '2024-01-13': { temperature: 36.6, menstruation: { padCount: 0 }, intimacy: 0, symptoms: '' },
+      '2024-01-14': { temperature: 36.8, menstruation: { padCount: 0 }, intimacy: 1, symptoms: '' },
+      '2024-01-15': { temperature: 36.5, menstruation: { padCount: 3, color: 'dark_red' }, intimacy: 1, symptoms: '正常' },
+      '2024-01-16': { temperature: 36.9, menstruation: { padCount: 2, color: 'bright_red' }, intimacy: 0, symptoms: '' },
+      '2024-01-17': { temperature: 37.0, menstruation: { padCount: 0 }, intimacy: 0, symptoms: '' },
+      '2024-01-18': { temperature: 36.8, menstruation: { padCount: 0 }, intimacy: 1, symptoms: '' },
     };
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -525,11 +525,11 @@
       const dateString = DateUtils.format(date);
       const dayData = calendarData[dateString];
       
-      if (dayData) {
+        if (dayData) {
         // 添加背景样式
-        if (dayData.menstruation !== 'none') {
-          dayElement.classList.add('menstruation');
-        }
+          if (dayData.menstruation && Number(dayData.menstruation.padCount || 0) > 0) {
+            dayElement.classList.add('menstruation');
+          }
         
         // 创建指示器
         const indicators = document.createElement('div');
@@ -541,7 +541,7 @@
           indicators.appendChild(tempIndicator);
         }
         
-        if (dayData.menstruation !== 'none') {
+        if (dayData.menstruation && Number(dayData.menstruation.padCount || 0) > 0) {
           const menIndicator = document.createElement('div');
           menIndicator.className = 'indicator menstruation';
           indicators.appendChild(menIndicator);
@@ -604,10 +604,13 @@
         document.getElementById('detailTemperature').className = 
           data.temperature ? 'detail-value' : 'detail-value empty';
         
-        const flowMap = { 'none': '无', 'light': '少量', 'medium': '中量', 'heavy': '大量' };
-        document.getElementById('detailMenstruation').textContent = flowMap[data.menstruation] || '无';
+        const count = data.menstruation ? Number(data.menstruation.padCount || 0) : 0;
+        const label = count === 0 ? '无' : (count === 1 ? '少量' : (count === 2 ? '中量' : '大量'));
+        const colorLabelMap = { bright_red: '鲜红', dark_red: '暗红', brown: '褐色', pink: '粉色' };
+        const colorText = data.menstruation && data.menstruation.color ? ` · 颜色：${colorLabelMap[data.menstruation.color] || ''}` : '';
+        document.getElementById('detailMenstruation').textContent = `${label}${colorText}`;
         document.getElementById('detailMenstruation').className = 
-          data.menstruation !== 'none' ? 'detail-value' : 'detail-value empty';
+          count > 0 ? 'detail-value' : 'detail-value empty';
         
         document.getElementById('detailIntimacy').textContent = 
           data.intimacy > 0 ? `${data.intimacy}次` : '无';

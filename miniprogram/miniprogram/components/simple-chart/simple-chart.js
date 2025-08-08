@@ -113,6 +113,9 @@ Component({
       // 绘制背景网格
       this.drawGrid(ctx, padding, chartWidth, chartHeight, minTemp, maxTemp);
       
+      // 绘制经量背景（基于 padCount）
+      this.drawMenstruationBackground(ctx, padding, chartWidth, chartHeight);
+
       // 绘制数据点和连线
       this.drawDataPoints(ctx, padding, chartWidth, chartHeight, minTemp, maxTemp);
       
@@ -284,8 +287,8 @@ Component({
           });
         }
         
-        // 月经指标 - 保持红色
-        if (this.data.viewMode === 'all' && this.hasMenstrualData(day)) {
+      // 月经指标 - 保持红色（基于padCount）
+      if (this.data.viewMode === 'all' && this.hasMenstrualData(day)) {
           const y = day.temperature ? 
             padding.top + chartHeight - ((day.temperature - minTemp) / tempRange) * chartHeight :
             padding.top + chartHeight * 0.5;
@@ -395,10 +398,10 @@ Component({
      * 检查是否有月经数据
      */
     hasMenstrualData(day) {
-      return day.menstrual && 
-             typeof day.menstrual === 'object' && 
-             day.menstrual.flow && 
-             ['light', 'medium', 'heavy'].includes(day.menstrual.flow);
+      return day.menstrual &&
+             typeof day.menstrual === 'object' &&
+             typeof day.menstrual.padCount === 'number' &&
+             day.menstrual.padCount > 0;
     },
 
     /**
@@ -406,9 +409,29 @@ Component({
      */
     getMenstrualValue(day) {
       if (this.hasMenstrualData(day)) {
-        return day.menstrual.flow;
+        const c = Number(day.menstrual.padCount || 0);
+        if (c === 1) return 'light';
+        if (c === 2) return 'medium';
+        return 'heavy';
       }
       return null;
+    },
+
+    /**
+     * 绘制经量背景（按 padCount 深浅）
+     */
+    drawMenstruationBackground(ctx, padding, chartWidth, chartHeight) {
+      const dataLength = this.data.chartData.length;
+      const colWidth = chartWidth / Math.max(1, dataLength - 1);
+      for (let i = 0; i < dataLength; i++) {
+        const day = this.data.chartData[i];
+        if (!day || !this.hasMenstrualData(day)) continue;
+        const x = padding.left + (i / Math.max(1, dataLength - 1)) * chartWidth - colWidth / 2;
+        const intensity = Number(day.menstrual.padCount || 0);
+        const alpha = Math.min(0.12 + intensity * 0.06, 0.35); // 由浅到深
+        ctx.fillStyle = `rgba(255, 107, 157, ${alpha})`;
+        ctx.fillRect(x, padding.top, colWidth, chartHeight);
+      }
     },
 
     /**
