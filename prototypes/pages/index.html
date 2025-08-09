@@ -195,6 +195,82 @@
     .record-tag.intimacy {
       background: var(--secondary-color);
     }
+
+    /* 语音快记：浮动按钮与面板 */
+    .voice-fab {
+      position: fixed;
+      right: 16px;
+      bottom: 88px; /* 避开底部tabbar */
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-medium);
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    .voice-panel-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 20;
+    }
+
+    .voice-panel {
+      width: 100%;
+      max-width: 480px;
+      background: #fff;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      padding: 16px;
+      box-shadow: var(--shadow-medium);
+      animation: slideUp .2s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .voice-header { display: flex; align-items: center; justify-content: space-between; }
+    .voice-title { font-weight: 600; }
+    .voice-close { cursor: pointer; font-size: 18px; }
+
+    .voice-stage {
+      margin-top: 12px;
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .rec-wave { height: 48px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }
+    .rec-button {
+      margin: 8px auto 0;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer;
+      box-shadow: var(--shadow-medium);
+    }
+
+    .stt-preview { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+    .parse-result { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .pill { background: #f6f7f9; border-radius: 10px; padding: 10px; text-align: center; }
+    .pill .label { font-size: 12px; color: var(--text-secondary); }
+    .pill .value { margin-top: 4px; font-weight: 600; color: var(--text-primary); }
+
+    .panel-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .btn-outline { flex: 1; border: 1px solid var(--border); background: #fff; padding: 10px; border-radius: 8px; }
+    .btn-primary { flex: 1; background: var(--primary-color); color: #fff; padding: 10px; border: none; border-radius: 8px; }
   </style>
 </head>
 <body>
@@ -297,6 +373,44 @@
       </div>
     </div>
 
+    <!-- 语音快记浮动按钮 -->
+    <div class="voice-fab" id="voiceFab" title="语音快记">🎤</div>
+
+    <!-- 语音快记面板（原型交互，不接入真实识别） -->
+    <div class="voice-panel-mask" id="voiceMask">
+      <div class="voice-panel">
+        <div class="voice-header">
+          <div class="voice-title">语音快记</div>
+          <div class="voice-close" id="voiceClose">✕</div>
+        </div>
+        <div class="voice-stage" id="stageRecording">
+          <div class="rec-wave">正在聆听... 请说：体温、月经情况、同房情况</div>
+          <div class="rec-button" id="recToggle">⏺</div>
+        </div>
+        <div class="voice-stage" id="stagePreview" style="display:none;">
+          <div class="stt-preview" id="sttText">“今天早上体温三十六点六，经量中等，晚上有一次同房。”</div>
+          <div class="parse-result" id="parseResult">
+            <div class="pill">
+              <div class="label">体温</div>
+              <div class="value" id="pillTemp">36.6°C</div>
+            </div>
+            <div class="pill">
+              <div class="label">经量</div>
+              <div class="value" id="pillMenstruation">中等</div>
+            </div>
+            <div class="pill">
+              <div class="label">同房</div>
+              <div class="value" id="pillIntimacy">1次</div>
+            </div>
+          </div>
+          <div class="panel-actions">
+            <button class="btn-outline" id="btnReRecord">重录</button>
+            <button class="btn-primary" id="btnConfirm">确认写入</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- TabBar 导航 -->
     <div class="tabbar">
       <a href="index.html" class="tab-item active" data-page="index">
@@ -331,6 +445,43 @@
       
       // 加载今日数据
       loadTodayData();
+
+      // 语音快记交互（原型模拟）
+      const voiceFab = document.getElementById('voiceFab');
+      const voiceMask = document.getElementById('voiceMask');
+      const voiceClose = document.getElementById('voiceClose');
+      const stageRecording = document.getElementById('stageRecording');
+      const stagePreview = document.getElementById('stagePreview');
+      const recToggle = document.getElementById('recToggle');
+      const btnReRecord = document.getElementById('btnReRecord');
+      const btnConfirm = document.getElementById('btnConfirm');
+
+      voiceFab.addEventListener('click', () => {
+        voiceMask.style.display = 'flex';
+        stageRecording.style.display = '';
+        stagePreview.style.display = 'none';
+      });
+      voiceClose.addEventListener('click', () => voiceMask.style.display = 'none');
+      voiceMask.addEventListener('click', (e) => { if (e.target === voiceMask) voiceMask.style.display = 'none'; });
+
+      recToggle.addEventListener('click', () => {
+        // 模拟：停止录音 → 展示识别文本与解析结果
+        setTimeout(() => {
+          stageRecording.style.display = 'none';
+          stagePreview.style.display = '';
+        }, 300);
+      });
+
+      btnReRecord.addEventListener('click', () => {
+        stageRecording.style.display = '';
+        stagePreview.style.display = 'none';
+      });
+
+      btnConfirm.addEventListener('click', () => {
+        // 原型中仅提示，不写入真实数据
+        Toast.show('已写入今日草稿（原型演示）');
+        voiceMask.style.display = 'none';
+      });
     });
 
     function updateCycleProgress() {
