@@ -118,6 +118,8 @@ Page({
     // 如果数据刚刚被更新，跳过这次刷新，避免覆盖刚保存的数据
     if (this.dataJustUpdated) {
       console.log('数据刚刚更新，跳过onShow刷新');
+      // 但仍然刷新用户设置，确保昵称等轻量信息同步
+      this.loadUserSettings().catch(() => {});
       return;
     }
     
@@ -168,7 +170,25 @@ Page({
    */
   async loadUserSettings() {
     try {
-      const userSettings = await FertilityStorage.getUserSettings();
+      let userSettings = await FertilityStorage.getUserSettings();
+      // 若尚未初始化，创建默认设置，避免首页拿不到昵称
+      if (!userSettings) {
+        userSettings = {
+          nickname: '小龙',
+          avatar: '',
+          personalInfo: { averageCycleLength: 28, averageLutealPhase: 14 },
+          reminders: {
+            morningTemperature: { enabled: true, time: '07:00' },
+            fertileWindow: { enabled: true },
+            periodPrediction: { enabled: true }
+          }
+        };
+        try { await FertilityStorage.saveUserSettings(userSettings); } catch (e) {}
+      }
+      // 兼容可能存在的 nickName 字段，统一为 nickname
+      if (userSettings && userSettings.nickName && !userSettings.nickname) {
+        userSettings.nickname = userSettings.nickName;
+      }
       this.setData({ userSettings });
     } catch (error) {
       console.error('加载用户设置失败:', error);
