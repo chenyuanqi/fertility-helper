@@ -310,11 +310,36 @@ Page({
   },
 
   /**
-   * 切换记录类型
+   * 切换记录类型：在切换前先保存当前类型的未保存更改
    */
-  onRecordTypeChange(e) {
-    const type = e.currentTarget.dataset.type;
-    this.setData({ recordType: type });
+  async onRecordTypeChange(e) {
+    const nextType = e.currentTarget.dataset.type;
+    if (!nextType || nextType === this.data.recordType) return;
+
+    try {
+      // 如果有未保存的更改，先保存当前类型
+      if (this.data.hasUnsavedChanges) {
+        wx.showLoading({ title: '正在保存...', mask: true });
+        // 立即取消自动保存计时器，避免重复触发
+        if (this.data.autoSaveTimer) {
+          clearInterval(this.data.autoSaveTimer);
+          this.setData({ autoSaveTimer: null });
+        }
+        await this.saveCurrentRecord();
+        this.notifyRecordSaved && this.notifyRecordSaved();
+        this.setData({ hasUnsavedChanges: false, autoSaveCountdown: 0 });
+      }
+    } catch (error) {
+      console.error('切换前保存失败:', error);
+      wx.hideLoading();
+      wx.showToast({ title: '保存失败，请稍后重试', icon: 'none' });
+      return; // 保存失败则不切换，避免丢失编辑
+    } finally {
+      wx.hideLoading();
+    }
+
+    // 切换到目标类型
+    this.setData({ recordType: nextType });
   },
 
   /**
