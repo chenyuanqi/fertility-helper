@@ -14,7 +14,9 @@ Page({
       dayCount: 0,
       averageTemp: 0,
       predictedOvulation: '',
-      temperatureCount: 0
+      temperatureCount: 0,
+      menstrualDays: 0,
+      intercourseCount: 0
     },
     
     // 图表数据
@@ -103,7 +105,9 @@ Page({
             dayCount: 0,
             averageTemp: 0,
             predictedOvulation: '',
-            temperatureCount: 0
+            temperatureCount: 0,
+            menstrualDays: 0,
+            intercourseCount: 0
           },
           isLoading: false 
         });

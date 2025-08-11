@@ -53,6 +53,8 @@
       </view>
     </view>
 
+    <!-- 仅在存在周期数据时展示图表与说明 -->
+    <view wx:if="{{cycles.length > 0}}">
     <!-- 2. 图表控制 -->
     <view class="chart-controls">
       <view class="view-mode-tabs">
@@ -133,6 +135,7 @@
           <text class="summary-text">同房次数：{{cycleInfo.intercourseCount}}次</text>
         </view>
       </view>
+    </view>
     </view>
   </view>
 </view>
