@@ -46,6 +46,19 @@ Page({
     beforeEditYear: null,
     beforeEditMonth: null
   },
+  
+  /**
+   * 查看备注全文
+   */
+  onNoteTap(e) {
+    const note = e.currentTarget.dataset.note || '';
+    if (!note) return;
+    wx.showModal({
+      title: '备注',
+      content: note,
+      showCancel: false
+    });
+  },
 
   onLoad(options) {
     const today = new Date();
@@ -195,8 +208,38 @@ Page({
           dayData.intercourse.filter(record => record.type !== 'none').length : 0,
         
         // 症状备注
-        hasSymptoms: !!(dayData && dayData.temperature && dayData.temperature.note),
-        symptoms: dayData && dayData.temperature ? dayData.temperature.note : '',
+        // 备注（分别记录）
+        hasSymptoms: !!(
+          (dayData && dayData.temperature && dayData.temperature.note) ||
+          (dayData && dayData.menstrual && dayData.menstrual.note) ||
+          (dayData && dayData.intercourse && dayData.intercourse.some(i => i && i.note))
+        ),
+        temperatureNote: dayData && dayData.temperature ? (dayData.temperature.note || '') : '',
+        menstrualNote: dayData && dayData.menstrual ? (dayData.menstrual.note || '') : '',
+        intercourseNote: (() => {
+          if (dayData && dayData.intercourse && dayData.intercourse.length > 0) {
+            const rec = dayData.intercourse.find(i => i && i.note);
+            return rec ? rec.note : '';
+          }
+          return '';
+        })(),
+        symptoms: (() => {
+          if (!dayData) return '';
+          return (dayData.temperature && dayData.temperature.note) || (dayData.menstrual && dayData.menstrual.note) ||
+                 ((dayData.intercourse && dayData.intercourse.find(i => i && i.note)) ? dayData.intercourse.find(i => i && i.note).note : '');
+        })(),
+        // 经量颜色
+        menstrualColor: dayData && dayData.menstrual ? (dayData.menstrual.color || '') : '',
+        menstrualColorHex: (() => {
+          const c = dayData && dayData.menstrual ? (dayData.menstrual.color || '') : '';
+          switch (c) {
+            case 'dark_red': return '#b30000';
+            case 'brown': return '#8b4513';
+            case 'pink': return '#ff8fab';
+            case 'bright_red': return '#ff4d4f';
+            default: return '';
+          }
+        })(),
         
         // 原始数据
         rawData: dayData

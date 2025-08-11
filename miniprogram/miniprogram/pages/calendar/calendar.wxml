@@ -113,13 +113,23 @@
             <view class="detail-value {{selectedData.hasTemperature ? '' : 'empty'}}">
               {{selectedData.hasTemperature ? selectedData.temperatureValue + '°C' : '未记录'}}
             </view>
+            <view wx:if="{{selectedData.temperatureNote}}" class="note-line" data-note="{{selectedData.temperatureNote}}" bindtap="onNoteTap">
+              <text class="note-text">{{selectedData.temperatureNote}}</text>
+              <text class="note-more" wx:if="{{selectedData.temperatureNote.length > 16}}"> 查看</text>
+            </view>
           </view>
           
           <view class="detail-card">
-            <view class="detail-icon"><view class="pad-visual"></view></view>
+            <view class="detail-icon">
+              <view class="pad-visual" style="border-color: {{selectedData.menstrualColorHex || '#ff6b9d'}}"></view>
+            </view>
             <view class="detail-title">月经经量</view>
             <view class="detail-value {{selectedData.hasMenstrual ? '' : 'empty'}}">
               {{selectedData.hasMenstrual ? selectedData.menstrualLabel : '无'}}
+            </view>
+            <view wx:if="{{selectedData.menstrualNote}}" class="note-line" data-note="{{selectedData.menstrualNote}}" bindtap="onNoteTap">
+              <text class="note-text">{{selectedData.menstrualNote}}</text>
+              <text class="note-more" wx:if="{{selectedData.menstrualNote.length > 16}}"> 查看</text>
             </view>
           </view>
           
@@ -128,6 +138,10 @@
             <view class="detail-title">同房记录</view>
             <view class="detail-value {{selectedData.hasIntercourse ? '' : 'empty'}}">
               {{selectedData.hasIntercourse ? selectedData.intercourseCount + '次' : '无'}}
+            </view>
+            <view wx:if="{{selectedData.intercourseNote}}" class="note-line" data-note="{{selectedData.intercourseNote}}" bindtap="onNoteTap">
+              <text class="note-text">{{selectedData.intercourseNote}}</text>
+              <text class="note-more" wx:if="{{selectedData.intercourseNote.length > 16}}"> 查看</text>
             </view>
           </view>
           
@@ -139,10 +153,7 @@
             </view>
           </view>
           
-          <view wx:if="{{selectedData.hasSymptoms}}" class="detail-notes">
-            <view class="detail-title">详细备注</view>
-            <view class="notes-content">{{selectedData.symptoms}}</view>
-          </view>
+          
         </view>
         
         <view class="details-actions">
