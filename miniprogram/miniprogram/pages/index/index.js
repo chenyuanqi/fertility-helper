@@ -267,8 +267,10 @@ Page({
             const nextPeriodDate = DateUtils.addDays(lastCycle.startDate, averageCycleLength);
             cycleInfo.nextPeriod = DateUtils.formatDisplayDate(nextPeriodDate);
             
-            // 预测排卵日（排卵日通常在下次月经前14天）
-            const ovulationDate = DateUtils.addDays(lastCycle.startDate, averageCycleLength - 14);
+            // 预测排卵日（排卵日通常在下次月经前“黄体期长度”天）
+            const averageLutealPhase = currentUserSettings?.personalInfo?.averageLutealPhase || 14;
+            const ovulationOffset = Math.max(0, averageCycleLength - averageLutealPhase);
+            const ovulationDate = DateUtils.addDays(lastCycle.startDate, ovulationOffset);
             cycleInfo.ovulationPrediction = DateUtils.formatDisplayDate(ovulationDate);
             
             console.log('预测计算详情:');

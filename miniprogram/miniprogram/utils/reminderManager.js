@@ -174,13 +174,12 @@ class ReminderManager {
       const cycleLength = userSettings?.personalInfo?.averageCycleLength || 28;
       const lutealPhase = userSettings?.personalInfo?.averageLutealPhase || 14;
       
-      // 计算预计排卵日（周期开始前14天）
-      const ovulationDay = cycleLength - lutealPhase;
-      const fertileStart = ovulationDay - 5; // 易孕期开始（排卵前5天）
-      
-      // 计算下次易孕期开始时间
+      // 计算预计排卵日：下次月经开始日前“黄体期长度”天
       const nextCycleStart = DateUtils.addDays(latestCycle.startDate, cycleLength);
-      const nextFertileStart = DateUtils.addDays(nextCycleStart, fertileStart);
+      const expectedOvulationDate = DateUtils.subtractDays(nextCycleStart, lutealPhase);
+      
+      // 易孕期开始：排卵日前5天
+      const nextFertileStart = DateUtils.subtractDays(expectedOvulationDate, 5);
       
       // 设置提醒时间为易孕期开始当天的上午9点
       const reminderTime = new Date(nextFertileStart);
@@ -223,10 +222,9 @@ class ReminderManager {
       const cycleLength = userSettings?.personalInfo?.averageCycleLength || 28;
       const lutealPhase = userSettings?.personalInfo?.averageLutealPhase || 14;
       
-      // 计算预计排卵日
-      const ovulationDay = cycleLength - lutealPhase;
+      // 计算预计排卵日：下次月经开始日前“黄体期长度”天
       const nextCycleStart = DateUtils.addDays(latestCycle.startDate, cycleLength);
-      const nextOvulationDate = DateUtils.addDays(nextCycleStart, ovulationDay);
+      const nextOvulationDate = DateUtils.subtractDays(nextCycleStart, lutealPhase);
       
       // 设置提醒时间为排卵日当天的上午8点
       const reminderTime = new Date(nextOvulationDate);

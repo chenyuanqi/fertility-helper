@@ -203,8 +203,12 @@ Page({
     // 计算同房次数
     const intercourseCount = chartData.reduce((sum, day) => sum + (day.intercourse || 0), 0);
     
-    // 预测排卵日（简化算法：周期开始后14天）
-    const predictedOvulation = DateUtils.addDays(cycle.startDate, 13);
+    // 预测排卵日：下次月经前“黄体期长度”天
+    const userSettings = wx.getStorageSync('fertility_user_settings') || {};
+    const averageCycleLength = userSettings?.personalInfo?.averageCycleLength || 28;
+    const averageLutealPhase = userSettings?.personalInfo?.averageLutealPhase || 14;
+    const ovulationOffset = Math.max(0, averageCycleLength - averageLutealPhase);
+    const predictedOvulation = DateUtils.addDays(cycle.startDate, ovulationOffset);
     
     return {
       startDate: cycle.startDate,
