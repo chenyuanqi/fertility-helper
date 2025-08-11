@@ -514,7 +514,7 @@ Page({
   // 导入数据
   importData() {
     wx.showActionSheet({
-      itemList: ['从聊天记录选择文件', '从剪贴板导入', '扫描二维码导入'],
+      itemList: ['从聊天记录选择文件', '从剪贴板导入'],
       success: (res) => {
         switch (res.tapIndex) {
           case 0:
@@ -522,9 +522,6 @@ Page({
             break;
           case 1:
             this.importFromClipboard();
-            break;
-          case 2:
-            this.importFromQRCode();
             break;
         }
       }
@@ -601,14 +598,7 @@ Page({
     }
   },
 
-  // 从二维码导入（预留功能）
-  importFromQRCode() {
-    wx.showModal({
-      title: '扫描二维码导入',
-      content: '二维码导入功能正在开发中，敬请期待。',
-      showCancel: false
-    });
-  },
+  // 从二维码导入（已移除选项）
 
   // 处理导入文件
   async processImportFile(filePath, fileName) {
@@ -907,20 +897,14 @@ Page({
 
   // 显示帮助
   showHelp() {
-    wx.showModal({
-      title: '使用帮助',
-      content: '备小孕是一款专业的生育健康管理工具，帮助您记录和分析生理周期数据。',
-      showCancel: false
-    });
+    // 跳转到子包的帮助页面，页面内样式天然左对齐
+    wx.navigateTo({ url: '/subpackages/settings/pages/help/help' });
   },
 
   // 显示隐私政策
   showPrivacy() {
-    wx.showModal({
-      title: '隐私政策',
-      content: '我们非常重视您的隐私保护，所有数据仅存储在您的设备本地，不会上传到任何服务器。',
-      showCancel: false
-    });
+    // 跳转到子包隐私政策页面（左对齐富文本/段落样式）
+    wx.navigateTo({ url: '/subpackages/settings/pages/help/help?view=privacy' });
   },
 
   // 联系我们

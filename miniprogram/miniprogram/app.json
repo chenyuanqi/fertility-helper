@@ -16,12 +16,21 @@
         "pages/help/help",
         "pages/report/report"
       ]
+    },
+    {
+      "root": "subpackages/settings",
+      "name": "settings",
+      "pages": [
+        "pages/help/help",
+        "pages/report/report",
+        "pages/settings/settings"
+      ]
     }
   ],
   "preloadRule": {
     "pages/index/index": {
       "network": "all",
-      "packages": ["features"]
+      "packages": ["features", "settings"]
     }
   },
   "tabBar": {

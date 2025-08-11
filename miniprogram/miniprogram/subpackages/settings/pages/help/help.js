@@ -196,7 +196,30 @@ Page({
     searchKeyword: ''
   },
 
-  onLoad() {
+  onLoad(query) {
+    // 支持以隐私政策模式显示
+    if (query && query.view === 'privacy') {
+      const privacySections = [
+        {
+          id: 'privacy',
+          title: '隐私政策',
+          icon: '🔒',
+          items: [
+            { title: '本地存储', content: '所有数据仅保存在您的设备，不会上传服务器。' },
+            { title: '权限使用', content: '仅在必要时使用读写存储、剪贴板、文件访问等本地权限。' },
+            { title: '数据导出', content: '导出文件仅供您本人保管与分享，请勿泄露敏感信息。' },
+            { title: '数据删除', content: '可在设置→危险操作中清空全部数据，此操作不可恢复。' },
+            { title: '变更通知', content: '隐私政策如有变更，将在设置页同步更新版本说明。' }
+          ]
+        }
+      ];
+      this.setData({
+        helpSections: privacySections,
+        filteredSections: privacySections,
+        expandedSections: { privacy: true }
+      });
+      return;
+    }
     // 默认展开第一个部分
     this.setData({
       'expandedSections.basic': true,

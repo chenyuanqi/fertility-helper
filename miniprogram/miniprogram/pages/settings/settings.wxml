@@ -18,7 +18,10 @@
         bind:error="onAvatarError"
       />
     </button>
-    <view class="profile-name">{{userSettings.nickname || '小龙'}}</view>
+    <view class="profile-name" bindtap="editNickname">
+      <text class="name-text">{{userSettings.nickname || '小龙'}}</text>
+      <text class="name-edit-icon">✏️</text>
+    </view>
     <view class="profile-stats">
       <text>已使用 {{statistics.daysUsed}} 天</text>
       <text>记录 {{statistics.totalRecords}} 次</text>
@@ -33,15 +36,7 @@
       <view class="group-description">设置个人基本信息和周期参数</view>
     </view>
     
-    <view class="settings-item" bindtap="editNickname">
-      <view class="item-icon">👤</view>
-      <view class="item-content">
-        <view class="item-title">昵称</view>
-        <view class="item-description">设置显示昵称</view>
-      </view>
-      <view class="item-value">{{userSettings.nickname || '小龙'}}</view>
-      <view class="item-arrow">›</view>
-    </view>
+    
     
     <view class="settings-item" bindtap="editCycleLength">
       <view class="item-icon">📅</view>
