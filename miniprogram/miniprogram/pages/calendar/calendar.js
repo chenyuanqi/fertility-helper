@@ -41,7 +41,10 @@ Page({
     touchEndX: 0,
     touchEndY: 0,
     minSwipeDistance: 50, // 最小滑动距离
-    isSwipeProcessing: false // 防止重复处理滑动
+    isSwipeProcessing: false, // 防止重复处理滑动
+    // 记录编辑前的年月，用于返回后恢复
+    beforeEditYear: null,
+    beforeEditMonth: null
   },
 
   onLoad(options) {
@@ -384,6 +387,9 @@ Page({
     if (this.data.selectedDate) {
       // 保存当前选中的日期
       const selectedDate = this.data.selectedDate;
+      // 记录编辑前的年月
+      const { currentYear, currentMonth } = this.data;
+      this.setData({ beforeEditYear: currentYear, beforeEditMonth: currentMonth });
       
       // 检查是否是未来日期
       const today = new Date();
@@ -414,6 +420,8 @@ Page({
             console.log('记录已更新，重新加载数据');
             // 重新加载日历数据
             this.loadCalendarData().then(() => {
+              // 恢复到编辑前的月份
+              this.restoreMonthAfterEdit();
               // 更新日历网格中的数据
               const calendarGrid = [...this.data.calendarGrid];
               const index = calendarGrid.findIndex(item => item.date === selectedDate);
@@ -476,6 +484,8 @@ Page({
             console.log('记录已保存，重新加载数据');
             // 重新加载日历数据
             this.loadCalendarData().then(() => {
+              // 恢复到编辑前的月份
+              this.restoreMonthAfterEdit();
               // 更新日历网格中的数据
               const calendarGrid = [...this.data.calendarGrid];
               const index = calendarGrid.findIndex(item => item.date === selectedDate);
@@ -532,6 +542,19 @@ Page({
           });
         }
       });
+    }
+  },
+
+  /**
+   * 恢复到编辑前的月份
+   */
+  restoreMonthAfterEdit() {
+    const { beforeEditYear, beforeEditMonth } = this.data;
+    if (beforeEditYear && beforeEditMonth) {
+      this.setData({ currentYear: beforeEditYear, currentMonth: beforeEditMonth });
+      this.loadCalendarData();
+      // 清理记忆值
+      this.setData({ beforeEditYear: null, beforeEditMonth: null });
     }
   },
 

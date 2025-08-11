@@ -3,6 +3,7 @@ const { FertilityStorage } = require('../../utils/storage');
 const { DateUtils } = require('../../utils/date');
 const { OvulationAlgorithm } = require('../../utils/ovulationAlgorithm');
 const { DataAnalysis } = require('../../utils/dataAnalysis');
+const { DataManager } = require('../../utils/dataManager.js');
 
 Page({
   /**
@@ -138,6 +139,9 @@ Page({
       // 加载今日记录
       await this.loadTodayRecord();
       
+      // 在计算周期信息前，自动补齐周期到今天
+      await DataManager.getInstance().ensureCyclesUpToCurrentDate();
+
       // 加载周期信息
       await this.loadCycleInfo();
       

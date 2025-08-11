@@ -7,6 +7,28 @@ const { DateUtils } = require('./date');
 
 class OvulationAlgorithm {
   /**
+   * 兼容方法：分析体温数据（测试使用的API名）
+   * @param {Array} temperatureData [{date, temperature}]
+   * @returns {Object} 分析结果，至少包含 isValid 字段
+   */
+  static analyzeTemperatureData(temperatureData) {
+    try {
+      if (!Array.isArray(temperatureData)) {
+        return { isValid: false, reason: '无效的体温数据' };
+      }
+      // 过滤非法值，保证输入稳定
+      const normalized = (temperatureData || [])
+        .filter(item => item && item.date && typeof item.temperature === 'number')
+        .map(item => ({ date: item.date, temperature: item.temperature }));
+      // 复用基础体温分析
+      const result = this.analyzeBasalTemperature(normalized);
+      // 确保返回对象至少包含 isValid
+      return result || { isValid: false };
+    } catch (e) {
+      return { isValid: false, reason: '分析异常' };
+    }
+  }
+  /**
    * 分析基础体温数据，识别排卵模式
    * @param {Array} temperatureData 体温数据数组 [{date, temperature}, ...]
    * @returns {Object} 分析结果

@@ -16,6 +16,97 @@ class DataManager {
   }
 
   /**
+   * 确保周期数据已补齐到今天（基于平均周期长度进行预测生成）
+   * - 若本地无周期，但有月经开始记录(isStart)，则据此生成周期
+   * - 若最后一个周期已过期（今天已超过预测下次开始日），则自动生成后续周期，直到覆盖今天
+   */
+  async ensureCyclesUpToCurrentDate() {
+    try {
+      const today = DateUtils.formatDate(new Date());
+      let cycles = await FertilityStorage.getCycles() || [];
+      const userSettings = await FertilityStorage.getUserSettings();
+      const averageCycleLength = userSettings?.personalInfo?.averageCycleLength || 28;
+
+      let changed = false;
+
+      // 若没有任何周期，尝试根据日记录推断
+      if (!cycles || cycles.length === 0) {
+        const dayRecords = await FertilityStorage.getDayRecords();
+        const startDates = Object.values(dayRecords || {})
+          .filter(r => r && r.menstrual && r.menstrual.isStart)
+          .map(r => r.menstrual.date || r.date)
+          .filter(Boolean)
+          .sort((a, b) => new Date(a) - new Date(b));
+
+        if (startDates.length > 0) {
+          cycles = startDates.map(d => ({
+            id: this.generateId(),
+            startDate: d,
+            isComplete: false,
+            createdAt: DateUtils.formatISO(new Date()),
+            updatedAt: DateUtils.formatISO(new Date())
+          }));
+          changed = true;
+        }
+      }
+
+      if (cycles && cycles.length > 0) {
+        // 1) 按开始日期排序
+        cycles.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
+        // 2) 规范化周期结束日期：优先使用“下个周期开始前一天”，最后一个周期用平均长度预测
+        for (let i = 0; i < cycles.length; i++) {
+          const current = cycles[i];
+          const next = cycles[i + 1];
+          if (next && next.startDate) {
+            const expectedEnd = DateUtils.subtractDays(next.startDate, 1);
+            if (current.endDate !== expectedEnd) {
+              current.endDate = expectedEnd;
+              current.length = DateUtils.getDaysDifference(current.startDate, current.endDate) + 1;
+              current.updatedAt = DateUtils.formatISO(new Date());
+              changed = true;
+            }
+          } else {
+            // 最后一个周期：若无结束日期，按平均长度补齐
+            if (!current.endDate) {
+              current.endDate = DateUtils.addDays(current.startDate, averageCycleLength - 1);
+              current.length = averageCycleLength;
+              current.updatedAt = DateUtils.formatISO(new Date());
+              changed = true;
+            }
+          }
+        }
+
+        // 3) 根据平均周期长度，自动生成后续周期直到覆盖今天
+        let last = cycles[cycles.length - 1];
+        while (new Date(today) > new Date(last.endDate)) {
+          const nextStart = DateUtils.addDays(last.startDate, averageCycleLength);
+          const nextEnd = DateUtils.addDays(nextStart, averageCycleLength - 1);
+          const newCycle = {
+            id: this.generateId(),
+            startDate: nextStart,
+            endDate: nextEnd,
+            length: averageCycleLength,
+            isComplete: false,
+            createdAt: DateUtils.formatISO(new Date()),
+            updatedAt: DateUtils.formatISO(new Date())
+          };
+          cycles.push(newCycle);
+          last = newCycle;
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        await FertilityStorage.saveCycles(cycles);
+        this.clearCache('cycles');
+      }
+    } catch (error) {
+      console.warn('ensureCyclesUpToCurrentDate 执行失败（不影响主流程）:', error);
+    }
+  }
+
+  /**
    * 获取单例实例
    */
   static getInstance() {

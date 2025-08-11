@@ -106,7 +106,7 @@
           <text class="legend-text">基础体温</text>
         </view>
         <view class="legend-item">
-          <view class="legend-pad"></view>
+          <view class="legend-dot" style="background-color: #ff3b30;"></view>
           <text class="legend-text">月经记录</text>
         </view>
         <view class="legend-item">

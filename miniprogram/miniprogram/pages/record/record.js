@@ -364,36 +364,28 @@ Page({
    */
   markUnsavedChanges() {
     this.setData({ hasUnsavedChanges: true });
-    
-    // 清除之前的定时器
+    // 重置已有计时器
     if (this.data.autoSaveTimer) {
-      clearTimeout(this.data.autoSaveTimer);
+      clearInterval(this.data.autoSaveTimer);
     }
-
-    // 用户停止操作3秒后开始倒计时
-    const delayTimer = setTimeout(() => {
-      this.startAutoSaveTimer();
-    }, 3000);
-
-    this.setData({ autoSaveTimer: delayTimer });
+    // 直接开始6秒倒计时
+    this.startAutoSaveTimer(6);
   },
 
   /**
    * 开始自动保存倒计时
    */
-  startAutoSaveTimer() {
-    this.setData({ autoSaveCountdown: 10 });
-
+  startAutoSaveTimer(seconds = 6) {
+    this.setData({ autoSaveCountdown: seconds });
     const timer = setInterval(() => {
       const countdown = this.data.autoSaveCountdown - 1;
       this.setData({ autoSaveCountdown: countdown });
-
       if (countdown <= 0) {
         clearInterval(timer);
+        this.setData({ autoSaveTimer: null });
         this.autoSaveCurrentRecord();
       }
     }, 1000);
-
     this.setData({ autoSaveTimer: timer });
   },
 
@@ -403,12 +395,12 @@ Page({
   cancelAutoSave() {
     if (this.data.autoSaveTimer) {
       clearInterval(this.data.autoSaveTimer);
-      this.setData({
-        autoSaveTimer: null,
-        hasUnsavedChanges: false,
-        autoSaveCountdown: 0
-      });
     }
+    this.setData({
+      autoSaveTimer: null,
+      hasUnsavedChanges: false,
+      autoSaveCountdown: 0
+    });
   },
 
   /**
@@ -417,6 +409,7 @@ Page({
   async manualSaveCurrentRecord() {
     this.cancelAutoSave();
     await this.saveCurrentRecord();
+    this.notifyRecordSaved();
   },
 
   /**
@@ -429,6 +422,24 @@ Page({
       autoSaveCountdown: 0
     });
     await this.saveCurrentRecord();
+    this.notifyRecordSaved();
+  },
+
+  /**
+   * 通知上一个页面记录已保存（用于日历返回后刷新且保持月份）
+   */
+  notifyRecordSaved() {
+    try {
+      if (typeof this.getOpenerEventChannel === 'function') {
+        const eventChannel = this.getOpenerEventChannel();
+        if (eventChannel) {
+          eventChannel.emit('recordSaved');
+          eventChannel.emit('recordUpdated');
+        }
+      }
+    } catch (e) {
+      // 忽略通知异常
+    }
   },
 
   /**
@@ -540,6 +551,7 @@ Page({
         wx.showToast({ title: '保存成功', icon: 'success' });
         this.setData({ hasUnsavedChanges: false });
         await this.loadTodayRecord();
+        this.notifyRecordSaved();
       } else {
         throw new Error(result.error?.message || '保存失败');
       }
@@ -604,6 +616,7 @@ Page({
         wx.showToast({ title: '保存成功', icon: 'success' });
         this.setData({ hasUnsavedChanges: false });
         await this.loadTodayRecord();
+        this.notifyRecordSaved();
       } else {
         throw new Error(result.error?.message || '保存失败');
       }
@@ -708,6 +721,7 @@ Page({
         wx.showToast({ title: '保存成功', icon: 'success' });
         this.setData({ hasUnsavedChanges: false });
         await this.loadTodayRecord();
+        this.notifyRecordSaved();
       } else {
         throw new Error(result.error?.message || '保存失败');
       }

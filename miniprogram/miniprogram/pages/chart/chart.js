@@ -1,6 +1,7 @@
 // pages/chart/chart.js - 重新设计的图表页面
 const { FertilityStorage } = require('../../utils/storage');
 const { DateUtils } = require('../../utils/date');
+const { DataManager } = require('../../utils/dataManager.js');
 
 Page({
   data: {
@@ -29,6 +30,8 @@ Page({
   async onLoad() {
     try {
       console.log('图表页面开始加载');
+      // 补齐周期到今天
+      await DataManager.getInstance().ensureCyclesUpToCurrentDate();
       await this.loadCycles();
       await this.loadCurrentCycleData();
       console.log('图表页面加载完成');
@@ -42,7 +45,8 @@ Page({
   async onShow() {
     try {
       console.log('图表页面显示，重新加载数据');
-      // 重新加载周期数据，以防有新的周期被创建
+      // 重新加载前，确保周期已补齐
+      await DataManager.getInstance().ensureCyclesUpToCurrentDate();
       await this.loadCycles();
       // 重新加载当前周期数据，确保获取最新的记录
       await this.loadCurrentCycleData();
