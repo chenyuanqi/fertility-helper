@@ -1,4 +1,4 @@
-<!--pages/chart/chart-new.wxml - 重新设计的图表页面模板-->
+<!--pages/chart/chart.wxml - 图表页面模板-->
 <view class="chart-page">
   <!-- 加载状态 -->
   <view wx:if="{{isLoading}}" class="loading-container">
