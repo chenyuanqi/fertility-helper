@@ -909,11 +909,8 @@ Page({
 
   // 联系我们
   contactUs() {
-    wx.showModal({
-      title: '联系我们',
-      content: '如有问题或建议，请通过小程序内的反馈功能联系我们。',
-      showCancel: false
-    });
+    // 跳转到左对齐的帮助页面（contact 视图）
+    wx.navigateTo({ url: '/subpackages/settings/pages/help/help?view=contact' });
   },
 
   // 清空所有数据

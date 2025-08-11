@@ -197,7 +197,7 @@ Page({
   },
 
   onLoad(query) {
-    // 支持以隐私政策模式显示
+    // 支持以隐私政策/联系我们模式显示
     if (query && query.view === 'privacy') {
       const privacySections = [
         {
@@ -217,6 +217,26 @@ Page({
         helpSections: privacySections,
         filteredSections: privacySections,
         expandedSections: { privacy: true }
+      });
+      return;
+    }
+    if (query && query.view === 'contact') {
+      const contactSections = [
+        {
+          id: 'contact',
+          title: '联系我们',
+          icon: '📮',
+          items: [
+            { title: '微信官方反馈（推荐）', content: '1. 在任意页面，点击右上角“...”菜单\n2. 选择“反馈与投诉”进入反馈入口\n3. 按引导提交问题（可附截图/描述/联系方式）' },
+            { title: '邮箱联系', content: '邮箱：chenyuanqi@outlook.com' },
+            { title: '提交建议的最佳实践', content: '请尽量提供问题出现的页面、复现步骤、截图或录屏、设备型号与系统版本，以便快速定位与修复。' }
+          ]
+        }
+      ];
+      this.setData({
+        helpSections: contactSections,
+        filteredSections: contactSections,
+        expandedSections: { contact: true }
       });
       return;
     }

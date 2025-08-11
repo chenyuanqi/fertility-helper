@@ -257,10 +257,7 @@
     </view>
   </view>
 
-  <!-- 版本信息 -->
-  <view class="version-info">
-    <view class="copyright">© 2025 元气团队</view>
-  </view>
+  <!-- 版本信息：按需求隐藏 -->
 </view>
 
 
