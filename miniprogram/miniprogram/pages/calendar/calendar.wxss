@@ -265,6 +265,14 @@
   background: linear-gradient(to bottom, #ff6b9d 0%, #ff4081 100%);
 }
 
+/* 易孕期与最佳期背景（置于日块底层，不影响文字） */
+.calendar-day.fertile-bg {
+  background-image: linear-gradient(to bottom, rgba(255, 214, 102, 0.22), rgba(255, 214, 102, 0.22));
+}
+.calendar-day.optimal-bg {
+  background-image: linear-gradient(to bottom, rgba(255, 107, 107, 0.25), rgba(255, 107, 107, 0.25));
+}
+
 .day-number {
   font-size: 28rpx;
   color: #333333;

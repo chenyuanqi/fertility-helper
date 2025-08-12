@@ -248,6 +248,94 @@ Page({
       calendarGrid.push(dayInfo);
     }
     
+    // 计算当月的易孕期/最佳期背景：依据用户设置
+    // 从 Storage 同步读取以避免额外 await
+    try {
+      const settings = wx.getStorageSync ? wx.getStorageSync('fertility_user_settings') : null;
+      const avgLen = Math.max(20, Math.min(40, settings?.personalInfo?.averageCycleLength || 28));
+      const luteal = Math.max(10, Math.min(16, settings?.personalInfo?.averageLutealPhase || 14));
+      // 通过当月中最近一次经期开始估算本周期排卵日，再反推易孕/最佳区间
+      const startIdx = calendarData.findIndex(x => x && x.menstrual && x.menstrual.isStart);
+      if (startIdx >= 0) {
+        const cycleStart = calendarData[startIdx].date;
+        const ovulationDate = DateUtils.addDays(cycleStart, avgLen - luteal);
+        const fertileStart = DateUtils.subtractDays(ovulationDate, 5);
+        const fertileEnd = ovulationDate;
+        const optimalStart = DateUtils.subtractDays(ovulationDate, 2);
+        const optimalEnd = ovulationDate;
+        
+        // 标注到网格数据上（添加标志位，供 WXML 使用）
+        calendarGrid.forEach(cell => {
+          if (!cell || !cell.isCurrentMonth) return;
+          if (cell.date >= fertileStart && cell.date <= fertileEnd) {
+            cell.isFertile = true;
+          }
+          if (cell.date >= optimalStart && cell.date <= optimalEnd) {
+            cell.isOptimal = true;
+          }
+        });
+      } else {
+        // 回退：若当月没有开始标记，用“最近周期开始”（可能在上月）估算
+        try {
+          const cycles = wx.getStorageSync ? (wx.getStorageSync('fertility_cycles') || []) : [];
+          if (Array.isArray(cycles) && cycles.length > 0) {
+            // 找到开始日期最接近且不晚于本月最后一天的周期
+            const lastDayOfMonth = DateUtils.formatDate(new Date(currentYear, currentMonth, 0));
+            const sorted = [...cycles].sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+            let chosen = sorted.find(c => new Date(c.startDate) <= new Date(lastDayOfMonth)) || sorted[0];
+            if (chosen && chosen.startDate) {
+              const ovulationDate = DateUtils.addDays(chosen.startDate, avgLen - luteal);
+              const fertileStart = DateUtils.subtractDays(ovulationDate, 5);
+              const fertileEnd = ovulationDate;
+              const optimalStart = DateUtils.subtractDays(ovulationDate, 2);
+              const optimalEnd = ovulationDate;
+              calendarGrid.forEach(cell => {
+                if (!cell || !cell.isCurrentMonth) return;
+                if (cell.date >= fertileStart && cell.date <= fertileEnd) {
+                  cell.isFertile = true;
+                }
+                if (cell.date >= optimalStart && cell.date <= optimalEnd) {
+                  cell.isOptimal = true;
+                }
+              });
+            }
+          }
+        } catch (_) {}
+      }
+      // 若以上两种方式均未标注出任何背景，则遍历全部周期，找出与本月有交集的排卵窗口标注
+      const anyMarked = calendarGrid.some(c => c && (c.isFertile || c.isOptimal));
+      if (!anyMarked) {
+        try {
+          const cycles = wx.getStorageSync ? (wx.getStorageSync('fertility_cycles') || []) : [];
+          if (Array.isArray(cycles) && cycles.length > 0) {
+            const monthStart = DateUtils.formatDate(new Date(currentYear, currentMonth - 1, 1));
+            const monthEnd = DateUtils.formatDate(new Date(currentYear, currentMonth, 0));
+            cycles.forEach(cycle => {
+              if (!cycle || !cycle.startDate) return;
+              const start = cycle.startDate;
+              const end = cycle.endDate || DateUtils.addDays(start, avgLen - 1);
+              // 快速判断与本月是否有交集
+              if (new Date(end) < new Date(monthStart) || new Date(start) > new Date(monthEnd)) {
+                // 周期与本月无交集，但排卵窗口可能跨月：仍计算排卵窗口再判断
+              }
+              const ovulation = DateUtils.addDays(start, avgLen - luteal);
+              const fertileStart = DateUtils.subtractDays(ovulation, 5);
+              const fertileEnd = ovulation;
+              const optimalStart = DateUtils.subtractDays(ovulation, 2);
+              const optimalEnd = ovulation;
+              calendarGrid.forEach(cell => {
+                if (!cell || !cell.isCurrentMonth) return;
+                if (cell.date >= fertileStart && cell.date <= fertileEnd) cell.isFertile = true;
+                if (cell.date >= optimalStart && cell.date <= optimalEnd) cell.isOptimal = true;
+              });
+            });
+          }
+        } catch (_) {}
+      }
+    } catch (e) {
+      // 忽略背景标记失败
+    }
+
     this.setData({ calendarGrid });
   },
 

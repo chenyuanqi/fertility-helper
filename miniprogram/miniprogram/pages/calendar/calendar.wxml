@@ -57,7 +57,7 @@
       <!-- 日历网格 -->
       <view class="calendar-grid">
         <view wx:for="{{calendarGrid}}" wx:key="date" 
-              class="calendar-day {{item.isCurrentMonth ? 'current-month' : 'other-month'}} {{item.isToday ? 'today' : ''}} {{selectedDate === item.date ? 'selected' : ''}} {{item.hasMenstrual ? 'menstruation' : ''}}"
+              class="calendar-day {{item.isCurrentMonth ? 'current-month' : 'other-month'}} {{item.isToday ? 'today' : ''}} {{selectedDate === item.date ? 'selected' : ''}} {{item.hasMenstrual ? 'menstruation' : ''}} {{item.isFertile ? 'fertile-bg' : ''}} {{item.isOptimal ? 'optimal-bg' : ''}}"
               bindtap="onDateClick"
               data-date="{{item.date}}"
               data-is-current-month="{{item.isCurrentMonth}}">
@@ -189,6 +189,14 @@
         <view class="legend-item">
           <view class="legend-square menstruation-bg"></view>
           <text>经期背景</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-square" style="background: rgba(255, 214, 102, 0.22);"></view>
+          <text>易孕期</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-square" style="background: rgba(255, 107, 107, 0.25);"></view>
+          <text>最佳受孕期</text>
         </view>
       </view>
     </view>
