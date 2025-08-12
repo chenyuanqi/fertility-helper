@@ -119,8 +119,8 @@ Page({
         // 生成日历网格
         this.generateCalendarGrid(calendarData);
         
-        // 计算统计信息
-        this.calculateCalendarStats(calendarData);
+         // 计算统计信息
+         await this.calculateCalendarStats(calendarData);
         
         // 检查是否为当前月
         this.checkIsCurrentMonth();
@@ -254,7 +254,7 @@ Page({
   /**
    * 计算日历统计信息
    */
-  calculateCalendarStats(calendarData) {
+  async calculateCalendarStats(calendarData) {
     const stats = {
       cycleDay: 0,
       recordDays: 0,
@@ -278,9 +278,18 @@ Page({
       const today = DateUtils.formatDate(new Date());
       stats.cycleDay = DateUtils.getDaysDifference(menstrualStart.date, today) + 1;
       
-      // 简单的排卵预测（周期第14天）
-      const predictedDate = DateUtils.addDays(menstrualStart.date, 13);
-      stats.predictedOvulation = DateUtils.formatDisplayDate(predictedDate);
+      // 基于设置的“平均周期长度 - 黄体期长度”预测排卵日
+      try {
+        const { FertilityStorage } = require('../../utils/storage');
+        const userSettings = await FertilityStorage.getUserSettings();
+        const avgLen = Math.max(20, Math.min(40, userSettings?.personalInfo?.averageCycleLength || 28));
+        const luteal = Math.max(10, Math.min(16, userSettings?.personalInfo?.averageLutealPhase || 14));
+        const predictedDate = DateUtils.addDays(menstrualStart.date, avgLen - luteal);
+        stats.predictedOvulation = DateUtils.formatDisplayDate(predictedDate);
+      } catch (e) {
+        const fallback = DateUtils.addDays(menstrualStart.date, 13);
+        stats.predictedOvulation = DateUtils.formatDisplayDate(fallback);
+      }
     }
     
     this.setData({ calendarStats: stats });

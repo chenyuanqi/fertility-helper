@@ -91,16 +91,8 @@ Component({
         };
       }
 
-      // 简化的排卵预测
-      let ovulationPrediction = null;
-      if (data.length >= 14) {
-        const midIndex = Math.floor(data.length / 2);
-        ovulationPrediction = {
-          date: data[midIndex].date,
-          index: midIndex,
-          confidence: 'medium'
-        };
-      }
+      // 简化的排卵预测（若组件仍被使用）：不再固定14天，由上层传入的数据决定标记
+      let ovulationPrediction = null; // 保持为空，避免误导性标记
 
       const processedData = data.map((item, index) => {
         const processed = {

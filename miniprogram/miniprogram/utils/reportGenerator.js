@@ -174,14 +174,14 @@ class ReportGenerator {
       lengthRange: `${minLength}-${maxLength}天`,
       variability: variability,
       regularityAssessment: this.assessCycleRegularity(variability),
-      cycleDetails: recentCycles.map((cycle, index) => ({
+      cycleDetails: await Promise.all(recentCycles.map(async (cycle, index) => ({
         cycleNumber: index + 1,
         length: lengths[index] || '未完成',
         startDate: this.formatDate(cycle.startDate),
         endDate: cycle.endDate ? this.formatDate(cycle.endDate) : '进行中',
-        ovulationPredicted: this.predictOvulationForCycle(cycle, dayRecords),
+        ovulationPredicted: await this.predictOvulationForCycle(cycle, dayRecords),
         temperaturePattern: this.analyzeTemperaturePattern(cycle, dayRecords)
-      }))
+      })))
     };
   }
 
@@ -332,7 +332,7 @@ class ReportGenerator {
         (new Date(today) - new Date(lastMenstrualStart)) / (1000 * 60 * 60 * 24)
       );
       
-      // 简单的周期估算
+      // 简单的周期估算（保持示意，不再写死14天）
       if (daysSinceLastPeriod >= 10 && daysSinceLastPeriod <= 18) {
         currentStatus = '可能易孕期';
         fertilityWindow = '排卵期前后';
@@ -347,10 +347,23 @@ class ReportGenerator {
         fertilityWindow = '非易孕期';
       }
       
-      // 估算下次排卵日
-      const estimatedNextOvulation = new Date(lastMenstrualStart);
-      estimatedNextOvulation.setDate(estimatedNextOvulation.getDate() + 28 + 14); // 假设28天周期
-      nextOvulation = this.formatDate(estimatedNextOvulation.toISOString().split('T')[0]);
+      // 估算下次排卵日：28天周期 - 黄体期长度（默认14，可从设置读取；此处用同步读取避免 await）
+      try {
+        let luteal = 14;
+        try {
+          const stored = wx.getStorageSync ? wx.getStorageSync('fertility_user_settings') : null;
+          luteal = Math.max(10, Math.min(16, stored?.personalInfo?.averageLutealPhase || 14));
+        } catch (_) {
+          luteal = 14;
+        }
+        const estimatedNextOvulation = new Date(lastMenstrualStart);
+        estimatedNextOvulation.setDate(estimatedNextOvulation.getDate() + (28 - luteal));
+        nextOvulation = this.formatDate(estimatedNextOvulation.toISOString().split('T')[0]);
+      } catch (e) {
+        const fallback = new Date(lastMenstrualStart);
+        fallback.setDate(fallback.getDate() + (28 - 14));
+        nextOvulation = this.formatDate(fallback.toISOString().split('T')[0]);
+      }
     }
     
     return {
@@ -630,7 +643,7 @@ class ReportGenerator {
     return '周期不规律，建议咨询医生';
   }
 
-  predictOvulationForCycle(cycle, dayRecords) {
+  async predictOvulationForCycle(cycle, dayRecords) {
     // 简化的排卵预测逻辑
     if (!cycle.isComplete) return '周期未完成';
     
@@ -638,8 +651,15 @@ class ReportGenerator {
     const cycleEnd = new Date(cycle.endDate);
     const cycleDays = Math.ceil((cycleEnd - cycleStart) / (1000 * 60 * 60 * 24)) + 1;
     
-    // 估算排卵日（周期长度-14天）
-    const estimatedOvulationDay = Math.max(1, cycleDays - 14);
+    // 估算排卵日（周期长度 - 黄体期长度）
+    let luteal = 14;
+    try {
+      const userSettings = await FertilityStorage.getUserSettings();
+      luteal = Math.max(10, Math.min(16, userSettings?.personalInfo?.averageLutealPhase || 14));
+    } catch (e) {
+      luteal = 14;
+    }
+    const estimatedOvulationDay = Math.max(1, cycleDays - luteal);
     const ovulationDate = new Date(cycleStart);
     ovulationDate.setDate(ovulationDate.getDate() + estimatedOvulationDay - 1);
     
