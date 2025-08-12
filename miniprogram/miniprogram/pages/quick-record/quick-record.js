@@ -187,7 +187,7 @@ Page({
     // 经量：无/少/中/多（映射为0/1/2/3+）
     if (/(无经|无月经|没有月经|未见月经|今日无)/.test(raw)) {
       menstrualPadCount = 0; menstrualLabel = '无';
-    } else if (/少量|偏少|轻/.test(raw)) {
+    } else if (/月经|少量|偏少|轻/.test(raw)) {
       menstrualPadCount = 1; menstrualLabel = '少量';
     } else if (/中等|中量/.test(raw)) {
       menstrualPadCount = 2; menstrualLabel = '中量';
@@ -196,7 +196,7 @@ Page({
     }
 
     // 经血颜色：鲜红/暗红/褐色/粉色
-    if (/鲜红|亮红|大红/.test(raw)) menstrualColor = 'bright_red';
+    if (/鲜红|亮红|大红|红色/.test(raw)) menstrualColor = 'bright_red';
     else if (/暗红|深红/.test(raw)) menstrualColor = 'dark_red';
     else if (/褐色|咖色/.test(raw)) menstrualColor = 'brown';
     else if (/粉色/.test(raw)) menstrualColor = 'pink';
@@ -204,7 +204,7 @@ Page({
     // 同房：有/无/一次/1次/两次（>0 视为有）
     if (/(无同房|没同房|未同房|未有同房|没有同房)/.test(raw)) {
       intercourse = 'none';
-    } else if (/(有同房|同房了|一次|1次|两次|2次|晚间同房|晚上同房)/.test(raw)) {
+    } else if (/(同房|有同房|同房了|一次|1次|两次|2次|晚间同房|晚上同房|避孕)/.test(raw)) {
       intercourse = 'once';
     }
     // 避孕：有/无/套/避孕
