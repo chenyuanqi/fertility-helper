@@ -115,6 +115,22 @@ Page({
   onShow() {
     console.log('=== Index page onShow - 页面显示时刷新数据 ===');
     
+    // 如果来自图表页的“编辑/新建周期”意图，自动打开设置模态框
+    try {
+      const intent = wx.getStorageSync && wx.getStorageSync('fertility_open_cycle_edit');
+      if (intent && intent.open) {
+        // 清除意图，避免重复打开
+        try { wx.removeStorageSync && wx.removeStorageSync('fertility_open_cycle_edit'); } catch (e) {}
+        // 打开周期设置
+        this.showCycleStartModal();
+        // 继续刷新轻量信息
+        this.loadUserSettings().catch(() => {});
+        return;
+      }
+    } catch (e) {
+      // 忽略
+    }
+
     // 如果数据刚刚被更新，跳过这次刷新，避免覆盖刚保存的数据
     if (this.dataJustUpdated) {
       console.log('数据刚刚更新，跳过onShow刷新');

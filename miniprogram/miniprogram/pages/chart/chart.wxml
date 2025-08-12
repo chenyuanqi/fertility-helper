@@ -28,7 +28,7 @@
         <view class="cycle-title" bindlongpress="showCycleMenu">
           <text class="cycle-name">第{{currentCycleIndex + 1}}个周期</text>
           <text class="cycle-range">{{cycleInfo.startDate}} 至 {{cycleInfo.endDate}}</text>
-          <text class="cycle-edit-hint">长按编辑</text>
+          <text class="cycle-edit-hint">长按管理</text>
         </view>
         
         <button class="nav-button" bindtap="onNextCycle">

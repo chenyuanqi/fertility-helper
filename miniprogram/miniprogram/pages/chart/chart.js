@@ -333,16 +333,13 @@ Page({
     if (!cycles || cycles.length === 0) return;
 
     wx.showActionSheet({
-      itemList: ['编辑周期', '删除周期', '新建周期'],
+      itemList: ['删除周期', '新建周期'],
       success: (res) => {
         switch (res.tapIndex) {
           case 0:
-            this.editCurrentCycle();
-            break;
-          case 1:
             this.deleteCurrentCycle();
             break;
-          case 2:
+          case 1:
             this.createNewCycle();
             break;
         }
@@ -350,27 +347,7 @@ Page({
     });
   },
 
-  /**
-   * 编辑当前周期
-   */
-  editCurrentCycle() {
-    const { cycles, currentCycleIndex } = this.data;
-    const currentCycle = cycles[currentCycleIndex];
-    
-    wx.showModal({
-      title: '编辑周期',
-      content: `当前周期：${currentCycle.startDate} 至 ${currentCycle.endDate}`,
-      showCancel: true,
-      confirmText: '去首页编辑',
-      success: (res) => {
-        if (res.confirm) {
-          wx.switchTab({
-            url: '/pages/index/index'
-          });
-        }
-      }
-    });
-  },
+  // 已移除“编辑周期”入口
 
   /**
    * 删除当前周期
@@ -423,14 +400,22 @@ Page({
   createNewCycle() {
     wx.showModal({
       title: '新建周期',
-      content: '请到首页设置新的周期开始日期',
+      content: '将跳转到首页，打开“设置周期开始日期”窗口。',
       showCancel: true,
       confirmText: '去设置',
       success: (res) => {
         if (res.confirm) {
-          wx.switchTab({
-            url: '/pages/index/index'
-          });
+          try {
+            wx.setStorage({
+              key: 'fertility_open_cycle_edit',
+              data: { open: true, ts: Date.now(), from: 'chart_new' },
+              complete: () => {
+                wx.switchTab({ url: '/pages/index/index' });
+              }
+            });
+          } catch (e) {
+            wx.switchTab({ url: '/pages/index/index' });
+          }
         }
       }
     });
