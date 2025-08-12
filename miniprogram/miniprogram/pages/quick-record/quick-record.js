@@ -106,6 +106,45 @@ Page({
       return NaN;
     };
 
+    // 绝对日期识别：2023年7月10日 / 7月10日（含中文数字）
+    // - 若无年份，默认取今年
+    // - 不允许超过今天（未来日期自动改为今天并提示）
+    try {
+      const parseCnYear = (s) => {
+        if (!s) return NaN;
+        if (/^\d{4}$/.test(s)) return parseInt(s, 10);
+        const digits = [];
+        for (const ch of s.split('')) {
+          if (ch in cnMap) digits.push(cnMap[ch]); else return NaN;
+        }
+        const num = parseInt(digits.join(''), 10);
+        return isNaN(num) ? NaN : num;
+      };
+
+      const absMatch = raw.match(/(?:([\d一二两三四五六七八九零〇]{4})年)?([\d一二两三四五六七八九十]{1,3})月([\d一二三四五六七八九十]{1,3})日?/);
+      if (absMatch) {
+        const now = new Date();
+        let year = now.getFullYear();
+        const monthVal = parseCnInt(absMatch[2], 12);
+        const dayVal = parseCnInt(absMatch[3], 31);
+        if (absMatch[1]) {
+          const y = parseCnYear(absMatch[1]);
+          if (!isNaN(y)) year = y;
+        }
+        if (!isNaN(monthVal) && !isNaN(dayVal) && monthVal >= 1 && monthVal <= 12 && dayVal >= 1 && dayVal <= 31) {
+          const dt = new Date(year, monthVal - 1, dayVal);
+          const formatted = DateUtils.formatDate(dt);
+          const todayStr = DateUtils.getToday();
+          if (new Date(formatted) > new Date(todayStr)) {
+            wx.showToast({ title: '不能记录未来日期，已改为今天', icon: 'none' });
+            targetDate = todayStr;
+          } else {
+            targetDate = formatted;
+          }
+        }
+      }
+    } catch (_) {}
+
     // 体温：匹配36.0-42.9，支持“36.6”“36点6”“三十六点六”“36度6”
     // 先尝试阿拉伯数字
     let tempMatch = raw.match(/(3[5-9]|4[0-2])[\.|点度]?([0-9])/);
