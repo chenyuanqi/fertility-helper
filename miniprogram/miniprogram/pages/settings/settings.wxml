@@ -184,15 +184,7 @@
       </view>
     </view>
     
-    <view class="settings-item" bindtap="checkUpdate">
-      <view class="item-icon">🔄</view>
-      <view class="item-content">
-        <view class="item-title">检查更新</view>
-        <view class="item-description">查看是否有新版本</view>
-      </view>
-      <view class="item-value" bindtap="onVersionTap">v1.0.0</view>
-      <view class="item-arrow">›</view>
-    </view>
+    
     
     <view class="settings-item" bindtap="showHelp">
       <view class="item-icon">❓</view>

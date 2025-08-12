@@ -903,18 +903,7 @@ Page({
     });
   },
 
-  // 检查更新
-  checkUpdate() {
-    wx.showLoading({ title: '正在检查更新...' });
-    
-    setTimeout(() => {
-      wx.hideLoading();
-      wx.showToast({
-        title: '当前已是最新版本',
-        icon: 'success'
-      });
-    }, 1000);
-  },
+  // 检查更新（已移除入口）
 
   // 显示帮助
   showHelp() {
