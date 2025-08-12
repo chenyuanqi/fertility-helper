@@ -1179,6 +1179,16 @@
   animation: fadeInUp 0.6s ease-out both;
 }
 
+/* 快捷记录卡片 */
+.quick-record-card {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+.qr-left { font-size: 48rpx; }
+.qr-title { font-size: 30rpx; font-weight: bold; color: #2c3e50; }
+.qr-desc { margin-top: 4rpx; font-size: 24rpx; color: #6c757d; }
+
 .card-body {
   /* 卡片内容区域 */
 }

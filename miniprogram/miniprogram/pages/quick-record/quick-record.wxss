@@ -1,0 +1,11 @@
+.container { padding: 24rpx; background: linear-gradient(135deg,#667eea,#764ba2); min-height: 100vh; }
+.header { background:#fff;border-radius:16rpx;padding:24rpx;margin-bottom:16rpx; }
+.title { font-size:32rpx;font-weight:bold;color:#333;margin-right:16rpx; }
+.date-picker { display:inline-block;padding:12rpx 16rpx;background:#f8f9fa;border-radius:12rpx;font-size:26rpx;color:#333; }
+.input-card { background:#fff;border-radius:16rpx;padding:24rpx;margin-bottom:16rpx;display:flex;flex-direction:column;gap:12rpx; }
+.input { width:100%;min-height:180rpx;background:#f8f9fa;border-radius:12rpx;padding:16rpx;font-size:26rpx;color:#333; }
+.btn { background: #f0f0f0;border:none;border-radius:12rpx;padding:16rpx 24rpx;font-size:26rpx; }
+.btn-primary { background: linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
+.preview-card { background:#fff;border-radius:16rpx;padding:24rpx;display:flex;flex-direction:column;gap:12rpx; }
+.preview-row { display:flex;justify-content:space-between;font-size:26rpx;color:#333; }
+.actions { text-align:center;margin-top:12rpx; }

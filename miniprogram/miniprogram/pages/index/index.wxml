@@ -22,6 +22,15 @@
       </view>
     </view>
 
+    <!-- 快捷记录入口 -->
+    <view class="card quick-record-card" bindtap="goQuickRecord">
+      <view class="qr-left">📝</view>
+      <view class="qr-right">
+        <view class="qr-title">快捷记录</view>
+        <view class="qr-desc">语音/文字一键填：体温、经量、同房（默认今天）</view>
+      </view>
+    </view>
+
     <!-- 周期信息卡片 -->
     <view class="card cycle-card">
       <view class="card-body">

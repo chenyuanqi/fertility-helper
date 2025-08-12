@@ -108,6 +108,11 @@ Page({
     }
   },
 
+  // 跳转快捷记录
+  goQuickRecord() {
+    wx.navigateTo({ url: '/pages/quick-record/quick-record?date=' + (this.data.currentDate || '') });
+  },
+
   /**
   /**
    * 生命周期函数--监听页面显示

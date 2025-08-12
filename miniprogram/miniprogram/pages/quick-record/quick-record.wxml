@@ -1,0 +1,24 @@
+<view class="container">
+  <view class="header">
+    <text class="title">快捷记录</text>
+    <picker mode="date" value="{{date}}" bindchange="onDateChange">
+      <view class="date-picker">{{date}}</view>
+    </picker>
+  </view>
+
+  <view class="input-card">
+    <textarea class="input" placeholder="粘贴或语音转文字，例如：今天7:05体温36.6，经量中等，晚间有同房" value="{{text}}" bindinput="onInput" />
+    <button class="btn" bindtap="parseText">解析文字</button>
+  </view>
+
+  <view wx:if="{{parsed}}" class="preview-card">
+    <view class="preview-row"><text>日期</text><text>{{date}}</text></view>
+    <view class="preview-row"><text>体温</text><text>{{temperature ? temperature + '°C' : '未识别'}}</text></view>
+    <view class="preview-row"><text>测量时间</text><text>{{temperatureTime || '未识别'}}</text></view>
+    <view class="preview-row"><text>经量</text><text>{{menstrualLabel || '未识别'}}</text></view>
+    <view class="preview-row"><text>同房</text><text>{{intercourseText}}</text></view>
+    <view class="actions">
+      <button class="btn btn-primary" bindtap="confirmSave">确认保存</button>
+    </view>
+  </view>
+</view>
