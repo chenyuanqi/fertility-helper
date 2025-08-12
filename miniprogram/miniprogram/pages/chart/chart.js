@@ -26,7 +26,8 @@ Page({
     // UI状态
     isLoading: true,
     canScrollLeft: false,
-    canScrollRight: false
+    canScrollRight: false,
+    fertileWindow: null
   },
 
   async onLoad() {
@@ -131,10 +132,21 @@ Page({
       
       // 计算周期统计信息
       const cycleInfo = this.calculateCycleInfo(currentCycle, chartData);
+
+      // 计算易孕期窗口（基于设置的黄体期长度）
+      const luteal = Math.max(10, Math.min(16, (this.data.userSettings?.personalInfo?.averageLutealPhase) || 14));
+      const avgLen = Math.max(20, Math.min(40, (this.data.userSettings?.personalInfo?.averageCycleLength) || 28));
+      const ovulationDate = DateUtils.addDays(currentCycle.startDate, avgLen - luteal);
+      const fertileStart = DateUtils.subtractDays(ovulationDate, 5);
+      const fertileEnd = ovulationDate;
+      const optimalStart = DateUtils.subtractDays(ovulationDate, 2);
+      const optimalEnd = ovulationDate;
+      const fertileWindow = { fertileStart, fertileEnd, optimalStart, optimalEnd };
       
       this.setData({
         chartData,
         cycleInfo,
+        fertileWindow,
         isLoading: false
       });
       

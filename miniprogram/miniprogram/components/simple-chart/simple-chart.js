@@ -5,6 +5,10 @@ Component({
       type: Array,
       value: []
     },
+    fertileWindow: {
+      type: Object,
+      value: null // { fertileStart, fertileEnd, optimalStart, optimalEnd }
+    },
     viewMode: {
       type: String,
       value: 'all' // 'all' 或 'temperature'
@@ -39,7 +43,7 @@ Component({
   },
 
   observers: {
-    'chartData, viewMode': function(chartData, viewMode) {
+    'chartData, viewMode, fertileWindow': function(chartData, viewMode) {
       console.log('=== simple-chart 数据更新 ===');
       console.log('图表数据长度:', chartData ? chartData.length : 0);
       console.log('显示模式:', viewMode);
@@ -113,6 +117,9 @@ Component({
       // 绘制背景网格
       this.drawGrid(ctx, padding, chartWidth, chartHeight, minTemp, maxTemp);
       
+      // 绘制易孕期/最佳期背景（先画，置于底层）
+      this.drawFertileBackground(ctx, padding, chartWidth, chartHeight);
+      
       // 绘制经量背景（基于 padCount）
       this.drawMenstruationBackground(ctx, padding, chartWidth, chartHeight);
 
@@ -121,6 +128,47 @@ Component({
       
       // 绘制日期标签
       this.drawDateLabels(ctx, padding, chartWidth, height);
+    },
+
+    /**
+     * 绘制易孕期/最佳受孕期背景
+     */
+    drawFertileBackground(ctx, padding, chartWidth, chartHeight) {
+      const fw = this.data.fertileWindow;
+      const dataLength = this.data.chartData.length;
+      if (!fw || !fw.fertileStart || !fw.fertileEnd || dataLength === 0) return;
+      
+      const colWidth = chartWidth / Math.max(1, dataLength - 1);
+      const dates = this.data.chartData.map(d => d.date);
+      
+      const findRangeX = (startStr, endStr) => {
+        let startIdx = -1;
+        let endIdx = -1;
+        for (let i = 0; i < dates.length; i++) {
+          if (startIdx === -1 && dates[i] >= startStr) startIdx = i;
+          if (dates[i] <= endStr) endIdx = i;
+        }
+        if (startIdx === -1 || endIdx === -1 || endIdx < startIdx) return null;
+        const x1 = padding.left + (startIdx / Math.max(1, dataLength - 1)) * chartWidth - colWidth / 2;
+        const x2 = padding.left + (endIdx / Math.max(1, dataLength - 1)) * chartWidth + colWidth / 2;
+        return { x1, x2 };
+      };
+      
+      // 易孕期背景
+      const fertileRange = findRangeX(fw.fertileStart, fw.fertileEnd);
+      if (fertileRange) {
+        ctx.fillStyle = 'rgba(255, 214, 102, 0.20)'; // 浅橙，避免与月经粉色冲突
+        ctx.fillRect(fertileRange.x1, padding.top, fertileRange.x2 - fertileRange.x1, chartHeight);
+      }
+      
+      // 最佳受孕期背景（覆盖在易孕期之上，颜色稍深）
+      if (fw.optimalStart && fw.optimalEnd) {
+        const optimalRange = findRangeX(fw.optimalStart, fw.optimalEnd);
+        if (optimalRange) {
+          ctx.fillStyle = 'rgba(255, 107, 107, 0.25)';
+          ctx.fillRect(optimalRange.x1, padding.top, optimalRange.x2 - optimalRange.x1, chartHeight);
+        }
+      }
     },
 
     /**

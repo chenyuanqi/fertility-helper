@@ -86,6 +86,7 @@
           <simple-chart 
             chart-data="{{chartData}}" 
             view-mode="{{viewMode}}"
+            fertile-window="{{fertileWindow}}"
             width="{{chartData.length > 15 ? chartData.length * 50 : 750}}"
             height="450">
           </simple-chart>
@@ -114,6 +115,14 @@
         <view class="legend-item">
           <view class="legend-dot" style="background-color: #8e44ad;"></view>
           <text class="legend-text">同房记录</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-dot" style="background-color: rgba(255, 214, 102, 1);"></view>
+          <text class="legend-text">易孕期</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-dot" style="background-color: rgba(255, 107, 107, 1);"></view>
+          <text class="legend-text">最佳受孕期</text>
         </view>
         <view class="legend-item">
           <view class="legend-line" style="background-color: #4a90e2;"></view>
