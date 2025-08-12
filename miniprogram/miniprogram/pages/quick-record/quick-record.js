@@ -6,6 +6,7 @@ const { DateUtils } = require('../../utils/date');
 Page({
   data: {
     date: DateUtils.getToday(),
+    today: DateUtils.getToday(),
     text: '',
     // 解析结果
     parsed: false,
@@ -14,6 +15,7 @@ Page({
     menstrualLabel: '', // 少量/中等/大量/无
     menstrualPadCount: 0,
     intercourse: null, // null/none/once
+    intercourseYes: false,
   },
 
   onLoad(options) {
@@ -23,7 +25,15 @@ Page({
   },
 
   onDateChange(e) {
-    this.setData({ date: e.detail.value });
+    const picked = e.detail.value;
+    // 保护：不可选择今天之后
+    const today = DateUtils.getToday();
+    if (new Date(picked) > new Date(today)) {
+      wx.showToast({ title: '不能选择未来日期', icon: 'none' });
+      this.setData({ date: today });
+    } else {
+      this.setData({ date: picked });
+    }
   },
 
   onInput(e) {
@@ -42,6 +52,23 @@ Page({
       wx.showToast({ title: '请输入文字', icon: 'none' });
       return;
     }
+
+    // 相对日期识别：今天/昨天/前天/明天（必要时可扩展“后天”）
+    let targetDate = this.data.date || DateUtils.getToday();
+    try {
+      const today = DateUtils.getToday();
+      if (/前天/.test(raw)) {
+        targetDate = DateUtils.subtractDays(today, 2);
+      } else if (/昨天/.test(raw)) {
+        targetDate = DateUtils.subtractDays(today, 1);
+      } else if (/明天/.test(raw)) {
+        // 禁止未来：解析为明天时，重置为今天并提示
+        wx.showToast({ title: '不能记录未来日期，已改为今天', icon: 'none' });
+        targetDate = today;
+      } else if (/今天/.test(raw)) {
+        targetDate = today;
+      }
+    } catch (_) {}
 
     let temperature = '';
     let temperatureTime = '';
@@ -145,15 +172,39 @@ Page({
     if (/(避孕|套|安全套|有保护)/.test(raw)) hasProtection = true;
 
     this.setData({
+      date: targetDate,
       temperature,
       temperatureTime: temperatureTime || DateUtils.getCurrentTime(),
       menstrualPadCount,
       menstrualLabel,
       menstrualColor,
       intercourse,
+      intercourseYes: intercourse === 'once',
       hasProtection,
       parsed: true,
     });
+  },
+
+  onTemperatureInput(e) {
+    this.setData({ temperature: e.detail.value });
+  },
+  onTimeChange(e) {
+    this.setData({ temperatureTime: e.detail.value });
+  },
+  setFlow(e) {
+    const c = Number(e.currentTarget.dataset.count || 0);
+    this.setData({ menstrualPadCount: c, menstrualLabel: c===0?'无':(c===1?'少量':(c===2?'中量':'大量')) });
+  },
+  setColor(e) {
+    const color = e.currentTarget.dataset.color || '';
+    this.setData({ menstrualColor: color });
+  },
+  onIntercourseToggle(e) {
+    const yes = !!e.detail.value;
+    this.setData({ intercourseYes: yes, intercourse: yes ? 'once' : 'none' });
+  },
+  onProtectionToggle(e) {
+    this.setData({ hasProtection: !!e.detail.value });
   },
 
   async confirmSave() {

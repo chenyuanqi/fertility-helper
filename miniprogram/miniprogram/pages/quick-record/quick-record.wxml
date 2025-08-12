@@ -1,23 +1,72 @@
 <view class="container">
-  <view class="header">
-    <text class="title">快捷记录</text>
-    <picker mode="date" value="{{date}}" bindchange="onDateChange">
-      <view class="date-picker">{{date}}</view>
-    </picker>
+  <!-- 顶部卡片 -->
+  <view class="card header-card">
+    <view class="header-row">
+      <text class="title">快捷记录</text>
+      <picker mode="date" value="{{date}}" end="{{today}}" bindchange="onDateChange">
+        <view class="date-pill">{{date}}</view>
+      </picker>
+    </view>
   </view>
 
-  <view class="input-card">
-    <textarea class="input" placeholder="粘贴或语音转文字，例如：今天7:05体温36.6，经量中等，晚间有同房" value="{{text}}" bindinput="onInput" />
-    <button class="btn" bindtap="parseText">解析文字</button>
+  <!-- 输入卡片 -->
+  <view class="card input-card">
+    <textarea class="input" placeholder="粘贴或语音转文字，例如：今天7:05体温36.6，经量中等，晚上有同房/有避孕" value="{{text}}" bindinput="onInput" />
+    <button class="btn btn-primary" bindtap="parseText">解析文字</button>
   </view>
 
-  <view wx:if="{{parsed}}" class="preview-card">
-    <view class="preview-row"><text>日期</text><text>{{date}}</text></view>
-    <view class="preview-row"><text>体温</text><text>{{temperature ? temperature + '°C' : '未识别'}}</text></view>
-    <view class="preview-row"><text>测量时间</text><text>{{temperatureTime || '未识别'}}</text></view>
-    <view class="preview-row"><text>经量</text><text>{{menstrualLabel || '未识别'}}</text></view>
-    <view class="preview-row"><text>同房</text><text>{{intercourseText}}</text></view>
+  <!-- 可编辑预览表单 -->
+  <view wx:if="{{parsed}}" class="card form-card">
+    <view class="section">
+      <view class="section-title">体温</view>
+      <view class="row">
+        <input class="field" type="digit" placeholder="36.6" value="{{temperature}}" bindinput="onTemperatureInput" />
+        <picker mode="time" value="{{temperatureTime}}" bindchange="onTimeChange">
+          <view class="time-pill">{{temperatureTime || '选择时间'}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">经量</view>
+      <view class="flow-grid">
+        <view class="flow-chip {{menstrualPadCount===0?'active':''}}" bindtap="setFlow" data-count="0">无</view>
+        <view class="flow-chip {{menstrualPadCount===1?'active':''}}" bindtap="setFlow" data-count="1">少量</view>
+        <view class="flow-chip {{menstrualPadCount===2?'active':''}}" bindtap="setFlow" data-count="2">中量</view>
+        <view class="flow-chip {{menstrualPadCount>=3?'active':''}}" bindtap="setFlow" data-count="3">大量</view>
+      </view>
+      <view class="color-grid">
+        <view class="color-item {{menstrualColor==='bright_red'?'active':''}}" data-color="bright_red" bindtap="setColor">
+          <view class="color-dot" style="background:#ff4d4f"></view><text>鲜红</text>
+        </view>
+        <view class="color-item {{menstrualColor==='dark_red'?'active':''}}" data-color="dark_red" bindtap="setColor">
+          <view class="color-dot" style="background:#a8071a"></view><text>暗红</text>
+        </view>
+        <view class="color-item {{menstrualColor==='brown'?'active':''}}" data-color="brown" bindtap="setColor">
+          <view class="color-dot" style="background:#8B4513"></view><text>褐色</text>
+        </view>
+        <view class="color-item {{menstrualColor==='pink'?'active':''}}" data-color="pink" bindtap="setColor">
+          <view class="color-dot" style="background:#ff85c0"></view><text>粉色</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">同房</view>
+      <view class="row space-between">
+        <view class="toggle">
+          <text class="toggle-label">有同房</text>
+          <switch checked="{{intercourseYes}}" bindchange="onIntercourseToggle" color="#4ecdc4" />
+        </view>
+        <view class="toggle" wx:if="{{intercourseYes}}">
+          <text class="toggle-label">采取避孕</text>
+          <switch checked="{{hasProtection}}" bindchange="onProtectionToggle" color="#667eea" />
+        </view>
+      </view>
+    </view>
+
     <view class="actions">
+      <button class="btn" bindtap="parseText">重新解析</button>
       <button class="btn btn-primary" bindtap="confirmSave">确认保存</button>
     </view>
   </view>
