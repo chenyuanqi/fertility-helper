@@ -458,7 +458,7 @@ Page({
     this.setData({ saveSuccessTip: true });
     setTimeout(() => {
       this.setData({ saveSuccessTip: false });
-    }, 1200);
+    }, 2000);
   },
 
   /**
