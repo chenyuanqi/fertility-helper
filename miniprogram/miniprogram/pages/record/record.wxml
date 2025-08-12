@@ -5,10 +5,11 @@
     <text class="page-title-date">{{formattedDate}}</text>
   </view>
 
-  <!-- 自动保存提示 -->
-  <view class="auto-save-tip" wx:if="{{hasUnsavedChanges}}">
+  <!-- 自动保存提示/保存成功轻提示共用区域 -->
+  <view class="auto-save-tip" wx:if="{{hasUnsavedChanges || saveSuccessTip}}">
     <view class="tip-content">
-      <text class="tip-text" wx:if="{{autoSaveCountdown > 0}}">{{autoSaveCountdown}}秒后自动保存</text>
+      <text class="tip-text" wx:if="{{saveSuccessTip}}">保存成功</text>
+      <text class="tip-text" wx:elif="{{autoSaveCountdown > 0}}">{{autoSaveCountdown}}秒后自动保存</text>
       <text class="tip-text" wx:else>有未保存的更改</text>
       <view class="tip-actions">
         <text class="tip-btn save-btn" bindtap="manualSaveCurrentRecord">保存</text>

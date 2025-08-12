@@ -37,7 +37,8 @@ Page({
     // 自动保存相关
     hasUnsavedChanges: false,
     autoSaveTimer: null,
-    autoSaveCountdown: 0
+    autoSaveCountdown: 0,
+    saveSuccessTip: false
   },
 
   onLoad(options) {
@@ -434,6 +435,7 @@ Page({
   async manualSaveCurrentRecord() {
     this.cancelAutoSave();
     await this.saveCurrentRecord();
+    this.showSaveSuccessTip();
     this.notifyRecordSaved();
   },
 
@@ -447,7 +449,16 @@ Page({
       autoSaveCountdown: 0
     });
     await this.saveCurrentRecord();
+    this.showSaveSuccessTip();
     this.notifyRecordSaved();
+  },
+
+  /** 显示保存成功轻提示（与自动保存提示复用区域） */
+  showSaveSuccessTip() {
+    this.setData({ saveSuccessTip: true });
+    setTimeout(() => {
+      this.setData({ saveSuccessTip: false });
+    }, 1200);
   },
 
   /**
@@ -573,7 +584,6 @@ Page({
       const result = await dataManager.saveTemperatureRecord(record);
       
       if (result.success) {
-        wx.showToast({ title: '保存成功', icon: 'success' });
         this.setData({ hasUnsavedChanges: false });
         await this.loadTodayRecord();
         this.notifyRecordSaved();
@@ -638,7 +648,6 @@ Page({
       const result = await dataManager.saveMenstrualRecord(record);
       
       if (result.success) {
-        wx.showToast({ title: '保存成功', icon: 'success' });
         this.setData({ hasUnsavedChanges: false });
         await this.loadTodayRecord();
         this.notifyRecordSaved();
@@ -718,7 +727,6 @@ Page({
         const result = await dataManager.saveNoIntercourseRecord(record);
         
         if (result.success) {
-          wx.showToast({ title: '保存成功', icon: 'success' });
           this.setData({ hasUnsavedChanges: false });
           await this.loadTodayRecord();
         } else {
@@ -743,7 +751,6 @@ Page({
       const result = await dataManager.saveIntercourseRecord(record);
       
       if (result.success) {
-        wx.showToast({ title: '保存成功', icon: 'success' });
         this.setData({ hasUnsavedChanges: false });
         await this.loadTodayRecord();
         this.notifyRecordSaved();

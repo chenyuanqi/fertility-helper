@@ -248,12 +248,7 @@ Page({
     console.log('同房总次数:', intercourseCount);
     
     // 预测排卵日（简化算法：周期开始后14天）
-    // 预测排卵日：下次月经前“黄体期长度”天
-    const userSettings = wx.getStorageSync('fertility_user_settings') || {};
-    const averageCycleLength = userSettings?.personalInfo?.averageCycleLength || 28;
-    const averageLutealPhase = userSettings?.personalInfo?.averageLutealPhase || 14;
-    const ovulationOffset = Math.max(0, averageCycleLength - averageLutealPhase);
-    const predictedOvulation = DateUtils.addDays(cycle.startDate, ovulationOffset);
+    const predictedOvulation = DateUtils.addDays(cycle.startDate, 13);
     
     return {
       startDate: cycle.startDate,
