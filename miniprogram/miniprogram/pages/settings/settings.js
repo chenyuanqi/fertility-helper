@@ -243,6 +243,27 @@ Page({
             return;
           }
           newSettings.personalInfo.averageLutealPhase = lutealPhase;
+          // 级联校验：若黄体期过大，建议调整平均周期长度，确保卵泡期至少12天
+          const minFollicular = 12;
+          const currentCycleLen = parseInt(newSettings.personalInfo.averageCycleLength || 28);
+          const requiredCycleLen = lutealPhase + minFollicular;
+          if (currentCycleLen < requiredCycleLen) {
+            const suggestLen = Math.min(40, requiredCycleLen);
+            await new Promise(resolve => {
+              wx.showModal({
+                title: '建议调整平均周期长度',
+                content: `当前平均周期长度为${currentCycleLen}天，小于“黄体期${lutealPhase}天 + 卵泡期至少${minFollicular}天”。\n建议将平均周期长度调整为${suggestLen}天，以获得更准确的排卵与易孕期预测。`,
+                confirmText: '应用建议',
+                cancelText: '稍后再说',
+                success: (res) => {
+                  if (res.confirm) {
+                    newSettings.personalInfo.averageCycleLength = suggestLen;
+                  }
+                  resolve();
+                }
+              });
+            });
+          }
           break;
         case 'reminderTime':
           newSettings.reminders.morningTemperature.time = inputValue;

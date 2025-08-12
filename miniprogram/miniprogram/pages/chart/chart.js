@@ -64,9 +64,9 @@ Page({
   async loadCycles() {
     try {
       let cycles = await FertilityStorage.getCycles() || [];
+      const userSettings = await FertilityStorage.getUserSettings();
       
       // 确保每个周期都有结束日期
-      const userSettings = await FertilityStorage.getUserSettings();
       cycles = cycles.map(cycle => {
         if (!cycle.endDate) {
           const cycleLength = userSettings?.personalInfo?.averageCycleLength || 28;
@@ -96,6 +96,11 @@ Page({
       this.setData({ isLoading: true });
       
       const { cycles, currentCycleIndex } = this.data;
+      // 确保加载用户设置供后续计算使用
+      if (!this.data.userSettings) {
+        const userSettings = await FertilityStorage.getUserSettings();
+        this.setData({ userSettings });
+      }
       if (!cycles || cycles.length === 0) {
         this.setData({ 
           chartData: [],
@@ -247,8 +252,10 @@ Page({
     console.log('=== 周期统计信息计算 ===');
     console.log('同房总次数:', intercourseCount);
     
-    // 预测排卵日（简化算法：周期开始后14天）
-    const predictedOvulation = DateUtils.addDays(cycle.startDate, 13);
+    // 预测排卵日（基于设置的黄体期长度：开始日期 + 平均周期长度 - 黄体期长度）
+    const lutealPhaseLen = Math.max(10, Math.min(16, (this.data.userSettings?.personalInfo?.averageLutealPhase) || 14));
+    const avgLen = Math.max(20, Math.min(40, (this.data.userSettings?.personalInfo?.averageCycleLength) || 28));
+    const predictedOvulation = DateUtils.addDays(cycle.startDate, avgLen - lutealPhaseLen);
     
     return {
       startDate: cycle.startDate,

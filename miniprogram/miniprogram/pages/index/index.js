@@ -245,12 +245,15 @@ Page({
             cycleInfo.cycleDay = daysSinceStart + 1;
             cycleInfo.hasCycleData = true;
             
-            // 简单的周期阶段判断
+            // 简单的周期阶段判断（基于设置的黄体期长度推导排卵窗口）
+            const lutealLen = Math.max(10, Math.min(16, (this.data.userSettings?.personalInfo?.averageLutealPhase) || 14));
+            const avgLen = Math.max(20, Math.min(40, (this.data.userSettings?.personalInfo?.averageCycleLength) || 28));
+            const ovulationOffset = Math.max(6, avgLen - lutealLen); // 从周期开始起第几天（从0开始计）
             if (daysSinceStart < 5) {
               cycleInfo.phase = 'menstrual';
-            } else if (daysSinceStart < 14) {
+            } else if (daysSinceStart < ovulationOffset) {
               cycleInfo.phase = 'follicular';
-            } else if (daysSinceStart < 16) {
+            } else if (daysSinceStart < ovulationOffset + 2) {
               cycleInfo.phase = 'ovulation';
             } else {
               cycleInfo.phase = 'luteal';
@@ -267,8 +270,9 @@ Page({
             const nextPeriodDate = DateUtils.addDays(lastCycle.startDate, averageCycleLength);
             cycleInfo.nextPeriod = DateUtils.formatDisplayDate(nextPeriodDate);
             
-            // 预测排卵日（排卵日通常在下次月经前14天）
-            const ovulationDate = DateUtils.addDays(lastCycle.startDate, averageCycleLength - 14);
+            // 预测排卵日：下次月经前“黄体期长度”天
+            const lutealPhaseLen = Math.max(10, Math.min(16, (currentUserSettings?.personalInfo?.averageLutealPhase) || 14));
+            const ovulationDate = DateUtils.addDays(lastCycle.startDate, averageCycleLength - lutealPhaseLen);
             cycleInfo.ovulationPrediction = DateUtils.formatDisplayDate(ovulationDate);
             
             console.log('预测计算详情:');
@@ -922,7 +926,8 @@ Page({
       const analysisResult = OvulationAlgorithm.comprehensiveAnalysis(
         temperatureData,
         menstrualData,
-        intercourseData
+        intercourseData,
+        { averageLutealPhase: (this.data.userSettings?.personalInfo?.averageLutealPhase) || 14 }
       );
 
       // 更新智能分析结果

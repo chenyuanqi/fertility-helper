@@ -392,7 +392,7 @@ class OvulationAlgorithm {
    * @param {Object} temperatureAnalysis 体温分析结果
    * @returns {Object} 排卵窗口预测
    */
-  static calculateOvulationWindow(cycleAnalysis, temperatureAnalysis = null) {
+  static calculateOvulationWindow(cycleAnalysis, temperatureAnalysis = null, options = {}) {
     if (!cycleAnalysis.isValid) {
       return {
         isValid: false,
@@ -401,9 +401,10 @@ class OvulationAlgorithm {
     }
 
     const { averageCycleLength, lastMenstrualStart } = cycleAnalysis;
+    const averageLutealPhase = Math.max(10, Math.min(16, Number(options.averageLutealPhase) || 14));
     
-    // 基于周期的排卵预测（排卵通常在下次月经前14天）
-    const predictedOvulationDate = DateUtils.addDays(lastMenstrualStart, averageCycleLength - 14);
+    // 基于周期的排卵预测（排卵通常在下次月经前“黄体期长度”天）
+    const predictedOvulationDate = DateUtils.addDays(lastMenstrualStart, averageCycleLength - averageLutealPhase);
     
     // 排卵窗口：排卵日前5天到排卵日后1天
     const windowStart = DateUtils.subtractDays(predictedOvulationDate, 5);
@@ -439,7 +440,7 @@ class OvulationAlgorithm {
       windowEnd,
       confidence,
       method: 'cycle_based',
-      description: `基于月经周期，预测排卵日为${DateUtils.formatDisplayDate(predictedOvulationDate)}`
+      description: `基于月经周期与“黄体期长度=${averageLutealPhase}天”，预测排卵日为${DateUtils.formatDisplayDate(predictedOvulationDate)}`
     };
   }
 
@@ -574,7 +575,7 @@ class OvulationAlgorithm {
    * @param {Array} intercourseData 同房数据
    * @returns {Object} 综合分析结果
    */
-  static comprehensiveAnalysis(temperatureData, menstrualData, intercourseData = []) {
+  static comprehensiveAnalysis(temperatureData, menstrualData, intercourseData = [], options = {}) {
     // 分析基础体温
     const temperatureAnalysis = this.analyzeBasalTemperature(temperatureData);
     
@@ -582,7 +583,11 @@ class OvulationAlgorithm {
     const cycleAnalysis = this.analyzeMenstrualCycle(menstrualData);
     
     // 计算排卵窗口
-    const ovulationWindow = this.calculateOvulationWindow(cycleAnalysis, temperatureAnalysis.isValid ? temperatureAnalysis : null);
+    const ovulationWindow = this.calculateOvulationWindow(
+      cycleAnalysis,
+      temperatureAnalysis.isValid ? temperatureAnalysis : null,
+      { averageLutealPhase: options.averageLutealPhase || 14 }
+    );
     
     // 预测易孕期
     const fertileWindow = this.predictFertileWindow(ovulationWindow);
