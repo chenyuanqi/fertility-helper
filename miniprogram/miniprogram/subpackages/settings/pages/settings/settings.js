@@ -365,77 +365,117 @@ Page({
   // 导出数据
   async exportData() {
     wx.showLoading({ title: '正在准备导出...' });
-    
+
+    const tryClipboardFallback = async (dataStr) => {
+      try {
+        await wx.setClipboardData({ data: dataStr });
+        wx.showToast({ title: '已复制', icon: 'success' });
+        setTimeout(() => {
+          wx.showModal({ title: '已复制到剪贴板', content: '由于存储限制，导出文件未保存。您可直接粘贴到聊天/备忘录/邮箱。', showCancel: false });
+        }, 300);
+      } catch (_) {
+        wx.showToast({ title: '导出失败', icon: 'error' });
+      }
+    };
+
     try {
       const dayRecords = await FertilityStorage.getDayRecords();
       const cycles = await FertilityStorage.getCycles();
       const userSettings = await FertilityStorage.getUserSettings();
-      
+
       const exportData = {
-        version: '1.0.0',
+        version: '1.1.0',
         exportDate: new Date().toISOString(),
         appName: '备小孕',
         userSettings: {
-          ...userSettings,
-          // 移除敏感信息
-          avatar: userSettings.avatar ? '已设置' : '未设置'
+          ...(userSettings || {}),
+          avatar: userSettings && userSettings.avatar ? '已设置' : '未设置'
         },
         dayRecords,
         cycles,
         statistics: this.data.statistics
       };
-      
-      // 将数据转为JSON字符串
-      const jsonString = JSON.stringify(exportData, null, 2);
-      
-      // 保存到微信临时文件系统
-      const fs = wx.getFileSystemManager();
-      const fileName = `备小孕数据备份-${new Date().toISOString().split('T')[0]}.json`;
-      const filePath = `${wx.env.USER_DATA_PATH}/${fileName}`;
-      
-      fs.writeFile({
-        filePath,
-        data: jsonString,
-        encoding: 'utf8',
-        success: () => {
-          wx.hideLoading();
-          
-          // 显示导出选项
-          wx.showModal({
-            title: '导出成功',
-            content: '数据已导出完成，您希望如何处理？',
-            confirmText: '分享给好友',
-            cancelText: '仅保存本地',
-            success: (res) => {
-              if (res.confirm) {
-                // 用户选择分享给好友
-                this.shareExportedFile(filePath, fileName);
-              } else {
-                // 用户选择仅保存本地
-                wx.showToast({
-                  title: '文件已保存到本地',
-                  icon: 'success'
-                });
+
+      const minified = JSON.stringify(exportData);
+      // 简化导出：直接复制到剪贴板并提示
+      await tryClipboardFallback(minified);
+      return;
+
+      const performFileSave = () => {
+        const timeoutId = setTimeout(async () => {
+          try { wx.hideLoading(); } catch (e) {}
+          await tryClipboardFallback(minified);
+        }, 6000);
+
+        fs.writeFile({
+          filePath,
+          data: minified,
+          encoding: 'utf8',
+          success: () => {
+            clearTimeout(timeoutId);
+            wx.hideLoading();
+            setTimeout(() => {
+              wx.showModal({
+                title: '导出成功',
+                content: '数据已导出完成，您希望如何处理？',
+                confirmText: '分享给好友',
+                cancelText: '仅保存本地',
+                success: (res) => {
+                  if (res.confirm) {
+                    this.shareExportedFile(filePath, fileName);
+                  } else {
+                    wx.showToast({ title: '文件已保存到本地', icon: 'success' });
+                  }
+                }
+              });
+            }, 100);
+          },
+          fail: async (error) => {
+            clearTimeout(timeoutId);
+            wx.hideLoading();
+            console.error('导出数据失败:', error);
+            const msg = error && error.errMsg ? String(error.errMsg) : '';
+            if (/maximum size/i.test(msg) || /exceed/i.test(msg)) {
+              await tryClipboardFallback(minified);
+            } else {
+              setTimeout(() => {
+                wx.showModal({ title: '导出失败', content: msg || '导出失败，请重试', showCancel: false });
+              }, 100);
+            }
+          }
+        });
+      };
+
+      const sys = wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
+      const isIOS = (sys && (sys.platform === 'ios' || (sys.system && /iOS/i.test(sys.system)))) || false;
+      if (isIOS) {
+        wx.hideLoading();
+        setTimeout(() => {
+          wx.showActionSheet({
+            itemList: ['复制到剪贴板', '尝试保存文件'],
+            success: async (res) => {
+              if (res.tapIndex === 0) {
+                await tryClipboardFallback(minified);
+              } else if (res.tapIndex === 1) {
+                wx.showLoading({ title: '正在保存...' });
+                performFileSave();
               }
+            },
+            fail: async () => {
+              await tryClipboardFallback(minified);
             }
           });
-        },
-        fail: (error) => {
-          wx.hideLoading();
-          console.error('导出数据失败:', error);
-          wx.showToast({
-            title: '导出失败',
-            icon: 'error'
-          });
-        }
-      });
+        }, 100);
+        return;
+      }
+
+      performFileSave();
     } catch (error) {
       wx.hideLoading();
       console.error('导出数据失败:', error);
-      wx.showToast({
-        title: '导出失败',
-        icon: 'error'
-      });
+      setTimeout(() => {
+        wx.showToast({ title: '导出失败', icon: 'error' });
+      }, 100);
     }
   },
 

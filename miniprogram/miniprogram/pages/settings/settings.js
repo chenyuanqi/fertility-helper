@@ -362,7 +362,10 @@ Page({
     const tryClipboardFallback = async (dataStr) => {
       try {
         await wx.setClipboardData({ data: dataStr });
-        wx.showModal({ title: '已复制到剪贴板', content: '由于存储限制，导出文件未保存。数据已复制，可直接粘贴到聊天/备忘录/邮箱。', showCancel: false });
+        wx.showToast({ title: '已复制', icon: 'success' });
+        setTimeout(() => {
+          wx.showModal({ title: '已复制到剪贴板', content: '由于存储限制，导出文件未保存。您可直接粘贴到聊天/备忘录/邮箱。', showCancel: false });
+        }, 300);
       } catch (_) {
         wx.showToast({ title: '导出失败', icon: 'error' });
       }
@@ -387,45 +390,88 @@ Page({
       };
       
       const minified = JSON.stringify(exportData);
-      const fs = wx.getFileSystemManager();
-      const fileName = `备小孕数据备份-${new Date().toISOString().split('T')[0]}.json`;
-      const filePath = `${wx.env.USER_DATA_PATH}/${fileName}`;
-      
-      fs.writeFile({
-        filePath,
-        data: minified,
-        encoding: 'utf8',
-        success: () => {
-          wx.hideLoading();
-          wx.showModal({
-            title: '导出成功',
-            content: '数据已导出完成，您希望如何处理？',
-            confirmText: '复制内容',
-            cancelText: '仅保存本地',
-            success: (res) => {
-              if (res.confirm) {
-                wx.setClipboardData({ data: minified, success: () => wx.showToast({ title: '已复制', icon: 'success' }) });
-              } else {
-                wx.showToast({ title: '文件已保存到本地', icon: 'success' });
+      // 简化导出：直接复制到剪贴板并提示
+      await tryClipboardFallback(minified);
+      return;
+
+      const performFileSave = () => {
+        // 写入超时兜底（部分 iOS 机型偶现回调未触发）
+        const timeoutId = setTimeout(async () => {
+          try { wx.hideLoading(); } catch (e) {}
+          await tryClipboardFallback(minified);
+        }, 6000);
+
+        fs.writeFile({
+          filePath,
+          data: minified,
+          encoding: 'utf8',
+          success: () => {
+            clearTimeout(timeoutId);
+            wx.hideLoading();
+            setTimeout(() => {
+              wx.showModal({
+                title: '导出成功',
+                content: '数据已导出完成，您希望如何处理？',
+                confirmText: '复制内容',
+                cancelText: '仅保存本地',
+                success: (res) => {
+                  if (res.confirm) {
+                    wx.setClipboardData({ data: minified, success: () => wx.showToast({ title: '已复制', icon: 'success' }) });
+                  } else {
+                    wx.showToast({ title: '文件已保存到本地', icon: 'success' });
+                  }
+                }
+              });
+            }, 100);
+          },
+          fail: async (error) => {
+            clearTimeout(timeoutId);
+            wx.hideLoading();
+            const msg = error && error.errMsg ? String(error.errMsg) : '';
+            if (/maximum size/i.test(msg) || /exceed/i.test(msg)) {
+              await tryClipboardFallback(minified);
+            } else {
+              setTimeout(() => {
+                wx.showModal({ title: '导出失败', content: msg || '导出失败，请重试', showCancel: false });
+              }, 100);
+            }
+          },
+          complete: () => {}
+        });
+      };
+
+      // iOS 优先提供复制选项，避免个别机型文件回调异常
+      const sys = wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
+      const isIOS = (sys && (sys.platform === 'ios' || (sys.system && /iOS/i.test(sys.system)))) || false;
+      if (isIOS) {
+        wx.hideLoading();
+        setTimeout(() => {
+          wx.showActionSheet({
+            itemList: ['复制到剪贴板', '尝试保存文件'],
+            success: async (res) => {
+              if (res.tapIndex === 0) {
+                await tryClipboardFallback(minified);
+              } else if (res.tapIndex === 1) {
+                wx.showLoading({ title: '正在保存...' });
+                performFileSave();
               }
+            },
+            fail: async () => {
+              await tryClipboardFallback(minified);
             }
           });
-        },
-        fail: async (error) => {
-          wx.hideLoading();
-          const msg = error && error.errMsg ? String(error.errMsg) : '';
-          if (/maximum size/i.test(msg) || /exceed/i.test(msg)) {
-            await tryClipboardFallback(minified);
-          } else {
-            wx.showModal({ title: '导出失败', content: msg || '导出失败，请重试', showCancel: false });
-          }
-        },
-        complete: () => {}
-      });
+        }, 150);
+        return;
+      }
+
+      // 非 iOS 直接走保存流程
+      performFileSave();
     } catch (error) {
       wx.hideLoading();
       console.error('导出数据失败:', error);
-      wx.showModal({ title: '导出失败', content: error && error.message ? error.message : '导出失败，请重试', showCancel: false });
+      setTimeout(() => {
+        wx.showModal({ title: '导出失败', content: error && error.message ? error.message : '导出失败，请重试', showCancel: false });
+      }, 100);
     }
   },
 
