@@ -1,7 +1,7 @@
 // pages/chart/chart.js
-const { FertilityStorage } = require('../../utils/storage');
-const { DateUtils } = require('../../utils/date.js');
-const { TestDataGenerator } = require('../../utils/testData.js');
+const { FertilityStorage } = require('../../../../utils/storage');
+const { DateUtils } = require('../../../../utils/date.js');
+const { TestDataGenerator } = require('../../../../utils/testData.js');
 
 Page({
   data: {

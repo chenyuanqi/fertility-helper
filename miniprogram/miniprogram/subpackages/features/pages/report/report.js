@@ -1,5 +1,5 @@
 // pages/report/report.js
-const reportGenerator = require('../../utils/reportGenerator');
+const reportGenerator = require('../../../../utils/reportGenerator');
 
 Page({
   data: {

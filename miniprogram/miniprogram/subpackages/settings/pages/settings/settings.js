@@ -1,8 +1,8 @@
 // pages/settings/settings.js
-const { DataManager } = require('../../utils/dataManager');
-const { FertilityStorage } = require('../../utils/storage');
-const { ReminderManager } = require('../../utils/reminderManager');
-const reportGenerator = require('../../utils/reportGenerator');
+const { DataManager } = require('../../../../utils/dataManager');
+const { FertilityStorage } = require('../../../../utils/storage');
+const { ReminderManager } = require('../../../../utils/reminderManager');
+const reportGenerator = require('../../../../utils/reportGenerator');
 
 Page({
   data: {
@@ -1006,7 +1006,7 @@ Page({
   // 打开报告页面
   openReportPage() {
     wx.navigateTo({
-      url: '/pages/report/report'
+      url: '/subpackages/settings/pages/report/report'
     });
   },
 

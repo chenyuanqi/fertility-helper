@@ -798,9 +798,8 @@ Page({
   // 生成文本报告
   async generateTextReport() {
     wx.showLoading({ title: '正在生成报告...' });
-    
     try {
-      // 数据可用性预检查
+      // 数据可用性预检查（避免进入空白页）
       const dayRecords = await FertilityStorage.getDayRecords();
       const hasData = dayRecords && Object.keys(dayRecords).length > 0;
       if (!hasData) {
@@ -808,41 +807,12 @@ Page({
         wx.showModal({ title: '提示', content: '暂无记录数据，请先添加一些记录后再生成报告', showCancel: false });
         return;
       }
-      const textReport = await reportGenerator.generateCycleReport({
-        cycleCount: 3,
-        format: 'text'
-      });
-      
       wx.hideLoading();
-      
-      wx.showModal({
-        title: '周期分析报告',
-        content: textReport.substring(0, 1000) + (textReport.length > 1000 ? '...' : ''),
-        confirmText: '复制完整报告',
-        cancelText: '关闭',
-        success: (res) => {
-          if (res.confirm) {
-            wx.setClipboardData({
-              data: textReport,
-              success: () => {
-                wx.showToast({
-                  title: '报告已复制到剪贴板',
-                  icon: 'success'
-                });
-              }
-            });
-          }
-        }
-      });
-      
+      wx.navigateTo({ url: '/subpackages/settings/pages/report/report?type=text' });
     } catch (error) {
       wx.hideLoading();
       console.error('生成报告失败:', error);
-      wx.showModal({
-        title: '生成失败',
-        content: error.message || '报告生成失败，请检查是否有足够的数据记录',
-        showCancel: false
-      });
+      wx.showModal({ title: '生成失败', content: error.message || '报告生成失败，请稍后重试', showCancel: false });
     }
   },
 

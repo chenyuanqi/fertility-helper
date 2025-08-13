@@ -1,6 +1,6 @@
 // pages/chart/chart.js - 重新设计的图表页面
-const { FertilityStorage } = require('../../utils/storage');
-const { DateUtils } = require('../../utils/date');
+const { FertilityStorage } = require('../../../../utils/storage');
+const { DateUtils } = require('../../../../utils/date');
 
 Page({
   data: {

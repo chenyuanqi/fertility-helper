@@ -1,6 +1,6 @@
 // pages/calendar/calendar.js
-const { DataManager } = require('../../utils/dataManager.js');
-const { DateUtils } = require('../../utils/date.js');
+const { DataManager } = require('../../../../utils/dataManager.js');
+const { DateUtils } = require('../../../../utils/date.js');
 
 Page({
   data: {
