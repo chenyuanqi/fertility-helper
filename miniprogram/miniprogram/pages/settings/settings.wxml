@@ -134,7 +134,7 @@
       </view>
       <view class="stat-card">
         <view class="stat-number">{{statistics.completeCycles}}</view>
-        <view class="stat-label">完整周期</view>
+        <view class="stat-label">周期数</view>
       </view>
       <view class="stat-card">
         <view class="stat-number">{{statistics.temperatureRecords}}</view>

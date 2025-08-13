@@ -121,7 +121,7 @@ Page({
     return {
       daysUsed,
       totalRecords: records.length,
-      completeCycles: cycles.filter(cycle => cycle.isComplete).length,
+      completeCycles: Array.isArray(cycles) ? cycles.length : 0,
       temperatureRecords: temperatureCount,
       intercourseRecords: intercourseCount
     };
