@@ -162,7 +162,8 @@ Page({
       }
     }
 
-    // 时间：HH:mm 或 H点mm 或 H点；也识别“晚上/早上/上午/下午”
+    // 时间：HH:mm / HH.mm / H：mm 或 H点mm / H点；也识别“晚上/早上/上午/下午”
+    // 1) 先匹配带“点/时”的中文口语时间
     let timeMatch = raw.match(/(凌晨|清晨|早上|上午|中午|下午|傍晚|晚上|夜里|夜晚)?((\d{1,2})|[一二三四五六七八九十]{1,3})(点|时)(半|[零一二三四五六七八九十]{1,3}|\d{1,2})?/);
     if (timeMatch) {
       const prefix = timeMatch[1] || '';
@@ -182,6 +183,111 @@ Page({
       const hh = String(Math.min(23, Math.max(0, h))).padStart(2, '0');
       const mm = String(Math.min(59, Math.max(0, minutes))).padStart(2, '0');
       temperatureTime = `${hh}:${mm}`;
+    }
+
+    // 2) 若还未识别，匹配 8:20 / 08:20 / 8.20 / 8：20（全角冒号）等，支持中文分钟
+    if (!temperatureTime) {
+      const timeColon = raw.match(/(凌晨|清晨|早上|上午|中午|下午|傍晚|晚上|夜里|夜晚)?(\d{1,2})[\.:：]([\d]{1,2}|[零一二三四五六七八九十]{1,3})/);
+      if (timeColon) {
+        const prefix = timeColon[1] || '';
+        let h = parseInt(timeColon[2], 10);
+        let minutes;
+        if (/^[零一二三四五六七八九十]+$/.test(timeColon[3])) {
+          const mm = parseCnInt(timeColon[3], 59);
+          minutes = isNaN(mm) ? 0 : mm;
+        } else {
+          minutes = parseInt(timeColon[3], 10);
+        }
+        if (/下午|傍晚|晚上|夜里|夜晚/.test(prefix) && h < 12) h += 12;
+        if (/中午/.test(prefix)) { if (h === 0) h = 12; else if (h < 12) h += 12; }
+        if (/凌晨|清晨/.test(prefix) && h === 12) h = 0;
+        const hh = String(Math.min(23, Math.max(0, h))).padStart(2, '0');
+        const mm = String(Math.min(59, Math.max(0, minutes))).padStart(2, '0');
+        temperatureTime = `${hh}:${mm}`;
+      }
+    }
+
+    // 3) “H点一刻/三刻” => :15 / :45
+    if (!temperatureTime) {
+      const quarter = raw.match(/(凌晨|清晨|早上|上午|中午|下午|傍晚|晚上|夜里|夜晚)?((\d{1,2})|[一二三四五六七八九十]{1,3})点(一刻|三刻)/);
+      if (quarter) {
+        const prefix = quarter[1] || '';
+        const hourRaw = quarter[2];
+        let h = parseCnInt(hourRaw, 23);
+        if (isNaN(h)) h = 0;
+        let minutes = quarter[4] === '一刻' ? 15 : 45;
+        if (/下午|傍晚|晚上|夜里|夜晚/.test(prefix) && h < 12) h += 12;
+        if (/中午/.test(prefix)) { if (h === 0) h = 12; else if (h < 12) h += 12; }
+        if (/凌晨|清晨/.test(prefix) && h === 12) h = 0;
+        const hh = String(Math.min(23, Math.max(0, h))).padStart(2, '0');
+        const mm = String(Math.min(59, Math.max(0, minutes))).padStart(2, '0');
+        temperatureTime = `${hh}:${mm}`;
+      }
+    }
+
+    // 4) “差X分H点” / “H点差X分”
+    if (!temperatureTime) {
+      const before1 = raw.match(/差((\d{1,2})|[一二三四五六七八九十]{1,3})分?(上午|中午|下午|晚上)?((\d{1,2})|[一二三四五六七八九十]{1,3})点/);
+      const before2 = raw.match(/(上午|中午|下午|晚上)?((\d{1,2})|[一二三四五六七八九十]{1,3})点差((\d{1,2})|[一二三四五六七八九十]{1,3})分?/);
+      if (before1 || before2) {
+        let ampm = '';
+        let hRaw = '';
+        let diffRaw = '';
+        if (before1) {
+          diffRaw = before1[1];
+          ampm = before1[3] || '';
+          hRaw = before1[4];
+        } else if (before2) {
+          ampm = before2[1] || '';
+          hRaw = before2[2];
+          diffRaw = before2[4];
+        }
+        let h = parseCnInt(hRaw, 23);
+        if (isNaN(h)) h = parseInt(hRaw, 10) || 0;
+        let diff = parseCnInt(diffRaw, 59);
+        if (isNaN(diff)) diff = parseInt(diffRaw, 10) || 0;
+        if (/下午|晚上/.test(ampm) && h < 12) h += 12;
+        if (/中午/.test(ampm)) { if (h === 0) h = 12; else if (h < 12) h += 12; }
+        // 计算 H:00 - diff 分钟
+        let base = new Date();
+        base.setHours(Math.min(23, Math.max(0, h)), 0, 0, 0);
+        base = new Date(base.getTime() - diff * 60000);
+        temperatureTime = DateUtils.formatTime(base);
+      }
+    }
+
+    // 5) “现在/此刻/刚才”
+    if (!temperatureTime) {
+      if (/(现在|此刻|刚才)/.test(raw)) {
+        temperatureTime = DateUtils.getCurrentTime();
+      }
+    }
+
+    // 6) “N分钟前/小时前”
+    if (!temperatureTime) {
+      const agoMin = raw.match(/((\d{1,3})|[一二三四五六七八九十百]{1,3})分钟?前/);
+      const agoHour = raw.match(/((\d{1,2})|[一二三四五六七八九十]{1,3})小?时?前/);
+      if (agoMin || agoHour) {
+        let minutesDelta = 0;
+        if (agoMin) {
+          const v = /^[零一二三四五六七八九十百]+$/.test(agoMin[1]) ? parseCnInt(agoMin[1], 300) : parseInt(agoMin[1], 10);
+          minutesDelta += isNaN(v) ? 0 : v;
+        }
+        if (agoHour) {
+          const hval = /^[零一二三四五六七八九十]+$/.test(agoHour[1]) ? parseCnInt(agoHour[1], 48) : parseInt(agoHour[1], 10);
+          const add = isNaN(hval) ? 0 : hval * 60;
+          minutesDelta += add;
+        }
+        const base = new Date();
+        const t = new Date(base.getTime() - minutesDelta * 60000);
+        temperatureTime = DateUtils.formatTime(t);
+      }
+    }
+
+    // 7) “午夜/正午”
+    if (!temperatureTime) {
+      if (/午夜/.test(raw)) temperatureTime = '00:00';
+      else if (/正午/.test(raw)) temperatureTime = '12:00';
     }
 
     // 经量：无/少/中/多（映射为0/1/2/3+）
