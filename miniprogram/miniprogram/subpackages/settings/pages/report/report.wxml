@@ -8,9 +8,13 @@
 
   <!-- 报告类型切换 -->
   <view class="type-selector">
+    <view class="type-item {{reportType === 'visual' ? 'active' : ''}}" 
+          bindtap="switchReportType" data-type="visual">
+      <text>可视化</text>
+    </view>
     <view class="type-item {{reportType === 'text' ? 'active' : ''}}" 
           bindtap="switchReportType" data-type="text">
-      <text>文本报告</text>
+      <text>文本</text>
     </view>
     <view class="type-item {{reportType === 'json' ? 'active' : ''}}" 
           bindtap="switchReportType" data-type="json">
@@ -25,20 +29,42 @@
     </button>
   </view>
 
-  <!-- 报告内容 -->
+  <!-- 报告内容：可视化 / 文本 / JSON -->
   <view class="report-section" wx:if="{{hasReport}}">
     <view class="report-header">
-      <text class="report-title">{{reportType === 'text' ? '分析报告' : '详细数据'}}</text>
+      <text class="report-title">{{reportType === 'visual' ? '可视化报告' : (reportType === 'text' ? '分析报告' : '详细数据')}}</text>
       <view class="report-actions">
         <button class="action-btn" bindtap="copyReport" size="mini">复制</button>
         <button class="action-btn" bindtap="shareReport" size="mini" type="primary">分享</button>
       </view>
     </view>
-    
-    <scroll-view class="report-content" scroll-y="true">
+
+    <!-- 可视化卡片 -->
+    <view wx:if="{{reportType === 'visual'}}">
+      <view class="period-tip" wx:if="{{visual && visual.period}}">覆盖范围：{{visual.period}}</view>
+      <!-- 图表区：体温折线、周期长度柱状 -->
+      <canvas id="chartCanvas" type="2d" style="width: 343px; height: 180px; margin: 12px auto; display:block;"></canvas>
+      <canvas id="barCanvas" type="2d" style="width: 343px; height: 160px; margin: 12px auto; display:block;"></canvas>
+      <view class="card" wx:for="{{visual.cards}}" wx:key="index">
+        <view class="card-title">{{item.title}}</view>
+        <view class="card-grid">
+          <view class="kv" wx:for="{{item.items}}" wx:key="label">
+            <text class="kv-label">{{item.label}}</text>
+            <text class="kv-value">{{item.value}}</text>
+          </view>
+        </view>
+        <view class="recom" wx:if="{{item.recommendations && item.recommendations.length}}">
+          <view class="recom-title">建议</view>
+          <view class="recom-item" wx:for="{{item.recommendations}}" wx:key="*this">• {{item}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 文本/JSON 区域 -->
+    <scroll-view class="report-content" scroll-y="true" wx:if="{{reportType !== 'visual'}}">
       <text class="report-text" user-select="true">{{reportContent}}</text>
     </scroll-view>
-    
+
     <view class="report-footer">
       <button class="regenerate-btn" bindtap="generateReport" size="mini">重新生成</button>
     </view>

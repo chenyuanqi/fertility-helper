@@ -865,7 +865,6 @@ Page({
   // 生成详细数据报告
   async generateDetailedReport() {
     wx.showLoading({ title: '正在生成详细报告...' });
-    
     try {
       // 数据可用性预检查
       const dayRecords = await FertilityStorage.getDayRecords();
@@ -875,63 +874,9 @@ Page({
         wx.showModal({ title: '提示', content: '暂无记录数据，请先添加一些记录后再生成报告', showCancel: false });
         return;
       }
-      const detailedReport = await reportGenerator.generateCycleReport({
-        cycleCount: 5,
-        format: 'json'
-      });
-      
       wx.hideLoading();
-      
-      const fs = wx.getFileSystemManager();
-      const fileName = `备小孕详细报告-${new Date().toISOString().split('T')[0]}.json`;
-      const filePath = `${wx.env.USER_DATA_PATH}/${fileName}`;
-      // 生成最小化JSON，减小体积
-      const minified = JSON.stringify(detailedReport);
-      const tryClipboardFallback = async () => {
-        try {
-          await wx.setClipboardData({ data: minified });
-          wx.showModal({
-            title: '已复制到剪贴板',
-            content: '由于存储空间限制，文件未能保存。已为您复制详细报告内容，可直接粘贴到聊天/备忘录/邮箱。',
-            showCancel: false
-          });
-        } catch (_) {
-          wx.showModal({
-            title: '生成失败',
-            content: '存储空间不足，且复制失败。请清理存储后重试。',
-            showCancel: false
-          });
-        }
-      };
-      
-      fs.writeFile({
-        filePath,
-        data: minified,
-        encoding: 'utf8',
-        success: () => {
-          wx.showModal({
-            title: '详细报告生成完成',
-            content: '详细报告已生成并保存到本地，您可以分享给医生或保存备用。',
-            confirmText: '复制报告内容',
-            cancelText: '知道了',
-            success: (res) => {
-              if (res.confirm) {
-                wx.setClipboardData({ data: minified, success: () => wx.showToast({ title: '报告已复制到剪贴板', icon: 'success' }) });
-              }
-            }
-          });
-        },
-        fail: (error) => {
-          const msg = error && error.errMsg ? String(error.errMsg) : '';
-          if (/maximum size/i.test(msg) || /exceed/i.test(msg)) {
-            // 存储空间限制：降级为复制到剪贴板
-            tryClipboardFallback();
-          } else {
-            wx.showModal({ title: '生成失败', content: `详细报告生成失败，请重试。\n${msg}`, showCancel: false });
-          }
-        }
-      });
-      
+      // 跳转到可视化报告页
+      wx.navigateTo({ url: '/subpackages/settings/pages/report/report?type=visual' });
     } catch (error) {
       wx.hideLoading();
       console.error('生成详细报告失败:', error);
