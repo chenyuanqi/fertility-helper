@@ -8,6 +8,15 @@
 
   <!-- 主要内容 -->
   <view wx:else>
+    <!-- 快捷记录入口 -->
+    <view wx:if="{{false}}" class="card quick-record-card" bindtap="goQuickRecord">
+      <view class="qr-left">📝</view>
+      <view class="qr-right">
+        <view class="qr-title">快捷记录</view>
+        <view class="qr-desc">语音/文字一键填：体温、经量、同房（默认今天）</view>
+      </view>
+    </view>
+
     <!-- 日期头部 -->
     <view class="date-header">
       <view class="greeting-section">
@@ -19,15 +28,6 @@
           </view>
         </view>
         <text class="date-info">{{formatDate(currentDate)}} {{getDayOfWeek(currentDate)}}</text>
-      </view>
-    </view>
-
-    <!-- 快捷记录入口 -->
-    <view class="card quick-record-card" bindtap="goQuickRecord">
-      <view class="qr-left">📝</view>
-      <view class="qr-right">
-        <view class="qr-title">快捷记录</view>
-        <view class="qr-desc">语音/文字一键填：体温、经量、同房（默认今天）</view>
       </view>
     </view>
 
@@ -238,6 +238,12 @@
     </view>
   </view>
 
+  <!-- 浮动操作按钮 -->
+  <view class="fab-container">
+    <view class="fab-main" bindtap="goQuickRecord">
+      <text class="fab-icon">✚</text>
+    </view>
+  </view>
   <!-- 浮动操作按钮 - 暂时隐藏 -->
   <!-- 
   <view class="fab-container">
