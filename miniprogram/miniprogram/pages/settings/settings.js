@@ -3,6 +3,7 @@ const { DataManager } = require('../../utils/dataManager');
 const { FertilityStorage } = require('../../utils/storage');
 const { ReminderManager } = require('../../utils/reminderManager');
 const reportGenerator = require('../../utils/reportGenerator');
+const { DateUtils } = require('../../utils/date');
 
 Page({
   data: {
@@ -115,8 +116,9 @@ Page({
     });
     
     const firstRecord = records.sort()[0];
-    const daysUsed = firstRecord ? 
-      Math.ceil((new Date() - new Date(firstRecord)) / (1000 * 60 * 60 * 24)) + 1 : 0;
+    const todayStr = DateUtils.getToday();
+    const startDateStr = firstRecord || todayStr;
+    const daysUsed = DateUtils.getDaysDifference(startDateStr, todayStr) + 1;
     
     return {
       daysUsed,
