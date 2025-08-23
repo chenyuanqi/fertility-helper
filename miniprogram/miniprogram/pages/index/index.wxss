@@ -318,6 +318,14 @@
   animation: fadeInUp 0.6s ease-out 0.2s both;
 }
 
+/* 今日记录 - 现代卡片容器（更轻） */
+.today-records.modern {
+  padding: 8rpx 0 0;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+}
+
 .records-title {
   font-size: 32rpx;
   font-weight: bold;
@@ -353,6 +361,25 @@
   background: rgba(255, 255, 255, 0.9);
 }
 
+/* 类别强调色条 */
+.record-item.temperature { border-left: 6rpx solid #4a90e2; }
+.record-item.menstrual { border-left: 6rpx solid #ff6b9d; }
+.record-item.intercourse { border-left: 6rpx solid #9b59b6; }
+
+/* 圆形图标徽章（替代 .record-icon） */
+.icon-badge {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+  font-size: 36rpx;
+}
+
 .record-icon {
   font-size: 36rpx;
   width: 56rpx;
@@ -366,37 +393,48 @@
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
+.row-grid {
+  display: grid;
+  grid-template-columns: 56rpx 120rpx 1fr auto;
+  align-items: center;
+  width: 100%;
+  column-gap: 16rpx;
+}
+
 .record-content {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
+  display: grid;
+  grid-template-columns: 120rpx 1fr;
+  align-items: center;
+  column-gap: 16rpx;
+  min-width: 0;
 }
 
 .record-label {
   font-size: 24rpx;
   color: #6c757d;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .record-value {
   font-size: 28rpx;
   color: #2c3e50;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1;
+  position: relative;
+  top: -16rpx;
 }
 
-.record-action {
-  padding: 12rpx 24rpx;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border-radius: 20rpx;
-  font-size: 24rpx;
-  transition: all 0.3s ease;
-}
-
-.record-action:active {
-  transform: scale(0.95);
-}
+/* 操作为文本样式：未记录红色+号，已记录灰色“修改” */
+.record-action { padding: 0 8rpx; margin-left: auto; }
+.action-link { background: transparent; }
+.action-link.record .action-text { color: #ff4d6d; font-weight: 600; }
+.action-link.modify .action-text { color: #97a6ae; }
+.action-link:active .action-text { opacity: 0.75; }
 
 /* 快速统计 */
 .quick-stats {
@@ -960,6 +998,42 @@
   font-size: 32rpx;
   font-weight: bold;
   color: #2c3e50;
+}
+
+/* 卡片副标题（日期/星期） */
+.card-subtitle {
+  font-size: 22rpx;
+  color: #7f8c8d;
+}
+
+/* 今日记录标题右侧进度 */
+.record-progress {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.progress-text {
+  font-size: 22rpx;
+  color: #7f8c8d;
+}
+
+.progress-bar {
+  width: 180rpx;
+  height: 12rpx;
+  background: rgba(0,0,0,0.06);
+  border-radius: 999rpx;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b9d, #ff8a80);
+  border-radius: 999rpx;
+}
+
+.progress-bar-fill.complete {
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
 }
 
 .confidence-badge {

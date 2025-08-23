@@ -50,7 +50,9 @@ Page({
     // 问候语相关
     greeting: '',
     greetingEmoji: '',
-    greetingTip: ''
+    greetingTip: '',
+    // 今日记录完成进度
+    recordsProgress: { completed: 0, total: 3, percent: 0 }
   },
 
   /**
@@ -224,6 +226,8 @@ Page({
       const dayRecords = await FertilityStorage.getDayRecords();
       const todayRecord = dayRecords[this.data.currentDate] || null;
       this.setData({ todayRecord });
+      // 更新今日记录完成进度
+      this.updateRecordsProgress();
     } catch (error) {
       console.error('加载今日记录失败:', error);
     }
@@ -331,6 +335,24 @@ Page({
           hasCycleData: false
         }
       });
+    }
+  },
+
+  /**
+   * 计算并更新“今日记录”完成进度
+   */
+  updateRecordsProgress() {
+    try {
+      const record = this.data.todayRecord || {};
+      let completed = 0;
+      if (record && record.temperature) completed++;
+      if (record && record.menstrual) completed++;
+      if (record && record.intercourse && Array.isArray(record.intercourse) && record.intercourse.length > 0) completed++;
+      const total = 3;
+      const percent = Math.round((completed / total) * 100);
+      this.setData({ recordsProgress: { completed, total, percent } });
+    } catch (e) {
+      // 忽略单次失败
     }
   },
 

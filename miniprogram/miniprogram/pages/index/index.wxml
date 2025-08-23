@@ -151,27 +151,35 @@
     <view class="card today-card">
       <view class="card-header">
         <text class="card-title">今日记录</text>
+        <view class="record-progress">
+          <text class="progress-text">{{recordsProgress.completed}}/{{recordsProgress.total}}</text>
+          <view class="progress-bar">
+            <view class="progress-bar-fill {{recordsProgress.percent === 100 ? 'complete' : ''}}" style="width: {{recordsProgress.percent}}%"></view>
+          </view>
+        </view>
       </view>
       <view class="card-body">
-        <view class="today-records">
-          <view class="record-item">
-            <text class="record-icon">🌡️</text>
-            <view class="record-content">
+        <view class="today-records modern">
+          <!-- 体温 -->
+          <view class="record-item temperature">
+            <view class="row-grid">
+              <view class="icon-badge">🌡️</view>
               <text class="record-label">体温</text>
               <text class="record-value">
                 {{todayRecord && todayRecord.temperature ? todayRecord.temperature.temperature + '°C' : '未记录'}}
               </text>
-            </view>
-            <view class="record-action" bindtap="quickRecordTemperature">
-              <text class="action-text">{{todayRecord && todayRecord.temperature ? '修改' : '记录'}}</text>
+              <view class="record-action action-link {{todayRecord && todayRecord.temperature ? 'modify' : 'record'}}" bindtap="quickRecordTemperature">
+                <text class="action-text">{{todayRecord && todayRecord.temperature ? '修改' : '+ 记录'}}</text>
+              </view>
             </view>
           </view>
-          
-          <view class="record-item">
-            <view class="record-icon pad-icons">
-              <view class="pad-visual small"></view>
-            </view>
-            <view class="record-content">
+
+          <!-- 月经 -->
+          <view class="record-item menstrual">
+            <view class="row-grid">
+              <view class="icon-badge">
+                <view class="pad-visual small"></view>
+              </view>
               <text class="record-label">月经</text>
               <text class="record-value">
                 {{todayRecord && todayRecord.menstrual ? 
@@ -179,23 +187,24 @@
                    (todayRecord.menstrual.padCount === 1 ? '少量' : 
                    (todayRecord.menstrual.padCount === 2 ? '中等' : '大量'))) : '未记录'}}
               </text>
-            </view>
-            <view class="record-action" bindtap="quickRecordMenstrual">
-              <text class="action-text">{{todayRecord && todayRecord.menstrual ? '修改' : '记录'}}</text>
+              <view class="record-action action-link {{todayRecord && todayRecord.menstrual ? 'modify' : 'record'}}" bindtap="quickRecordMenstrual">
+                <text class="action-text">{{todayRecord && todayRecord.menstrual ? '修改' : '+ 记录'}}</text>
+              </view>
             </view>
           </view>
-          
-          <view class="record-item">
-            <text class="record-icon">💕</text>
-            <view class="record-content">
+
+          <!-- 同房 -->
+          <view class="record-item intercourse">
+            <view class="row-grid">
+              <view class="icon-badge">💕</view>
               <text class="record-label">同房</text>
               <text class="record-value">
                 {{todayRecord && todayRecord.intercourse && todayRecord.intercourse.length > 0 ? 
                   (todayRecord.intercourse[0].type === 'none' ? '无同房' : todayRecord.intercourse.length + '次') : '未记录'}}
               </text>
-            </view>
-            <view class="record-action" bindtap="quickRecordIntercourse">
-              <text class="action-text">{{todayRecord && todayRecord.intercourse && todayRecord.intercourse.length > 0 ? '修改' : '记录'}}</text>
+              <view class="record-action action-link {{todayRecord && todayRecord.intercourse && todayRecord.intercourse.length > 0 ? 'modify' : 'record'}}" bindtap="quickRecordIntercourse">
+                <text class="action-text">{{todayRecord && todayRecord.intercourse && todayRecord.intercourse.length > 0 ? '修改' : '+ 记录'}}</text>
+              </view>
             </view>
           </view>
         </view>
