@@ -71,81 +71,6 @@
     </view>
 
     <!-- 今日记录卡片 -->
-    <!-- 智能分析卡片 -->
-    <view class="card smart-analysis-card" wx:if="{{smartAnalysis.ovulationWindow && smartAnalysis.fertileWindow && (quickStats.temperatureRecords >= 10 || quickStats.menstrualDays >= 5)}}">
-      <view class="card-header">
-        <text class="card-title">智能分析</text>
-        <view class="confidence-badge confidence-{{smartAnalysis.confidence}}">
-          <text class="confidence-text">{{getConfidenceText()}}</text>
-        </view>
-      </view>
-      <view class="card-body">
-        <!-- 易孕期状态 -->
-        <view class="fertile-status" wx:if="{{smartAnalysis.fertileWindow}}">
-          <view class="fertile-status-main">
-            <text class="fertile-status-icon">
-              {{smartAnalysis.fertileWindow.currentStatus.phase === 'optimal' ? '🌟' : 
-                smartAnalysis.fertileWindow.currentStatus.phase === 'fertile' ? '💖' : 
-                smartAnalysis.fertileWindow.currentStatus.phase === 'pre_fertile' ? '🌱' : '🌙'}}
-            </text>
-            <view class="fertile-status-text">
-              <text class="fertile-status-title">{{getFertileStatusText()}}</text>
-              <text class="fertile-status-desc" wx:if="{{smartAnalysis.fertileWindow.currentStatus.fertility === 'high'}}">
-                现在是受孕的好时机
-              </text>
-              <text class="fertile-status-desc" wx:elif="{{smartAnalysis.fertileWindow.currentStatus.fertility === 'medium'}}">
-                适度的受孕概率
-              </text>
-              <text class="fertile-status-desc" wx:else>
-                受孕概率较低
-              </text>
-            </view>
-          </view>
-        </view>
-
-        <!-- 智能建议 -->
-        <view class="smart-recommendations" wx:if="{{smartAnalysis.recommendations.length > 0}}">
-          <view class="recommendation-item" wx:for="{{smartAnalysis.recommendations}}" wx:key="type">
-            <view class="recommendation-icon">
-              {{item.type === 'fertility' ? '💡' : 
-                item.type === 'health' ? '🏥' : 
-                item.type === 'data_quality' ? '📊' : 
-                item.type === 'timing' ? '⏰' : '💭'}}
-            </view>
-            <view class="recommendation-content">
-              <text class="recommendation-title">{{item.title}}</text>
-              <text class="recommendation-text">{{item.content}}</text>
-            </view>
-          </view>
-        </view>
-
-        <!-- 查看详情按钮 -->
-        <view class="analysis-action">
-          <button class="btn btn-outline btn-small" bindtap="viewSmartAnalysis">查看详细分析</button>
-        </view>
-      </view>
-    </view>
-
-    <!-- 数据不足提示 -->
-    <view class="card data-tips-card" wx:else>
-      <view class="card-header">
-        <text class="card-title">开始智能分析</text>
-      </view>
-      <view class="card-body">
-        <view class="data-tips">
-          <text class="data-tips-icon">🤖</text>
-          <view class="data-tips-content">
-            <text class="data-tips-title">AI 助手等待中</text>
-            <text class="data-tips-desc">记录更多数据后，我将为您提供个性化的排卵预测和备孕建议</text>
-          </view>
-        </view>
-        <view class="data-tips-actions">
-          <text class="data-tip-item">📊 至少需要10天体温数据</text>
-          <text class="data-tip-item">🩸 记录2个以上月经周期</text>
-          <text class="data-tip-item">💕 记录同房情况更准确</text>
-        </view>
-      </view>
-    </view>
 
     <!-- 今日记录卡片 -->
     <view class="card today-card">
@@ -243,6 +168,76 @@
       <view class="nav-item" bindtap="viewCalendar">
         <view class="nav-icon calendar-icon"></view>
         <text class="nav-label">查看日历</text>
+      </view>
+    </view>
+
+    <!-- 智能分析卡片（移动到页面底部） -->
+    <view class="card smart-analysis-card" wx:if="{{smartAnalysis.ovulationWindow && smartAnalysis.fertileWindow && (quickStats.temperatureRecords >= 10 || quickStats.menstrualDays >= 5)}}">
+      <view class="card-header">
+        <text class="card-title">智能分析</text>
+        <view class="confidence-badge confidence-{{smartAnalysis.confidence}}">
+          <text class="confidence-text">{{getConfidenceText()}}</text>
+        </view>
+      </view>
+      <view class="card-body">
+        <!-- 易孕期状态 -->
+        <view class="fertile-status" wx:if="{{smartAnalysis.fertileWindow}}">
+          <view class="fertile-status-main">
+            <text class="fertile-status-icon">
+              {{smartAnalysis.fertileWindow.currentStatus.phase === 'optimal' ? '🌟' : 
+                smartAnalysis.fertileWindow.currentStatus.phase === 'fertile' ? '💖' : 
+                smartAnalysis.fertileWindow.currentStatus.phase === 'pre_fertile' ? '🌱' : '🌙'}}
+            </text>
+            <view class="fertile-status-text">
+              <text class="fertile-status-title">{{getFertileStatusText()}}</text>
+              <text class="fertile-status-desc" wx:if="{{smartAnalysis.fertileWindow.currentStatus.fertility === 'high'}}">现在是受孕的好时机</text>
+              <text class="fertile-status-desc" wx:elif="{{smartAnalysis.fertileWindow.currentStatus.fertility === 'medium'}}">适度的受孕概率</text>
+              <text class="fertile-status-desc" wx:else>受孕概率较低</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 智能建议 -->
+        <view class="smart-recommendations" wx:if="{{smartAnalysis.recommendations.length > 0}}">
+          <view class="recommendation-item" wx:for="{{smartAnalysis.recommendations}}" wx:key="type">
+            <view class="recommendation-icon">
+              {{item.type === 'fertility' ? '💡' : 
+                item.type === 'health' ? '🏥' : 
+                item.type === 'data_quality' ? '📊' : 
+                item.type === 'timing' ? '⏰' : '💭'}}
+            </view>
+            <view class="recommendation-content">
+              <text class="recommendation-title">{{item.title}}</text>
+              <text class="recommendation-text">{{item.content}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 查看详情按钮 -->
+        <view class="analysis-action">
+          <button class="btn btn-outline btn-small" bindtap="viewSmartAnalysis">查看详细分析</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 数据不足提示（放到底部，和上面的 if 成对） -->
+    <view class="card data-tips-card" wx:else>
+      <view class="card-header">
+        <text class="card-title">开始智能分析</text>
+      </view>
+      <view class="card-body">
+        <view class="data-tips">
+          <text class="data-tips-icon">🤖</text>
+          <view class="data-tips-content">
+            <text class="data-tips-title">AI 助手等待中</text>
+            <text class="data-tips-desc">记录更多数据后，我将为您提供个性化的排卵预测和备孕建议</text>
+          </view>
+        </view>
+        <view class="data-tips-actions">
+          <text class="data-tip-item">📊 至少需要10天体温数据</text>
+          <text class="data-tip-item">🩸 记录2个以上月经周期</text>
+          <text class="data-tip-item">💕 记录同房情况更准确</text>
+        </view>
       </view>
     </view>
   </view>
