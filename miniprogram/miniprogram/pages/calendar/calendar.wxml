@@ -57,13 +57,19 @@
       <!-- 日历网格 -->
       <view class="calendar-grid">
         <view wx:for="{{calendarGrid}}" wx:key="date" 
-              class="calendar-day {{item.isCurrentMonth ? 'current-month' : 'other-month'}} {{item.isToday ? 'today' : ''}} {{selectedDate === item.date ? 'selected' : ''}} {{item.hasMenstrual ? 'menstruation' : ''}} {{item.isFertile ? 'fertile-bg' : ''}} {{item.isOptimal ? 'optimal-bg' : ''}}"
+              class="calendar-day {{item.isCurrentMonth ? 'current-month' : 'other-month'}} {{item.isToday ? 'today' : ''}} {{selectedDate === item.date ? 'selected' : ''}} {{item.hasMenstrual ? 'menstruation' : ''}}"
               bindtap="onDateClick"
               data-date="{{item.date}}"
               data-is-current-month="{{item.isCurrentMonth}}">
           
-          <!-- 日期数字 -->
+          <!-- 胶囊背景（先铺在底层） -->
+          <view wx:if="{{item.isFertile}}" class="capsule fertile capsule-{{item.fertileRole || 'single'}}"></view>
+          <view wx:if="{{item.isOptimal}}" class="capsule optimal capsule-{{item.optimalRole || 'single'}}"></view>
+
+          <!-- 日期数字与徽标 -->
           <view class="day-number">{{item.day}}</view>
+          <view wx:if="{{item.isToday}}" class="today-badge">今</view>
+          <view wx:if="{{item.isOvulationDay}}" class="ovulation-badge">排卵日</view>
           
           <!-- 数据指示器 -->
           <view wx:if="{{item.hasData}}" class="day-indicators">

@@ -184,6 +184,7 @@ Page({
       const dayInfo = {
         date: dateStr,
         day: date.getDate(),
+        weekday: date.getDay(),
         isCurrentMonth,
         isToday,
         hasData: !!dayData,
@@ -254,11 +255,12 @@ Page({
       const settings = wx.getStorageSync ? wx.getStorageSync('fertility_user_settings') : null;
       const avgLen = Math.max(20, Math.min(40, settings?.personalInfo?.averageCycleLength || 28));
       const luteal = Math.max(10, Math.min(16, settings?.personalInfo?.averageLutealPhase || 14));
+      let ovulationDate = null;
       // 通过当月中最近一次经期开始估算本周期排卵日，再反推易孕/最佳区间
       const startIdx = calendarData.findIndex(x => x && x.menstrual && x.menstrual.isStart);
       if (startIdx >= 0) {
         const cycleStart = calendarData[startIdx].date;
-        const ovulationDate = DateUtils.addDays(cycleStart, avgLen - luteal);
+        ovulationDate = DateUtils.addDays(cycleStart, avgLen - luteal);
         const fertileStart = DateUtils.subtractDays(ovulationDate, 5);
         const fertileEnd = ovulationDate;
         const optimalStart = DateUtils.subtractDays(ovulationDate, 2);
@@ -273,6 +275,9 @@ Page({
           if (cell.date >= optimalStart && cell.date <= optimalEnd) {
             cell.isOptimal = true;
           }
+          if (cell.date === ovulationDate) {
+            cell.isOvulationDay = true;
+          }
         });
       } else {
         // 回退：若当月没有开始标记，用“最近周期开始”（可能在上月）估算
@@ -284,7 +289,7 @@ Page({
             const sorted = [...cycles].sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
             let chosen = sorted.find(c => new Date(c.startDate) <= new Date(lastDayOfMonth)) || sorted[0];
             if (chosen && chosen.startDate) {
-              const ovulationDate = DateUtils.addDays(chosen.startDate, avgLen - luteal);
+              ovulationDate = DateUtils.addDays(chosen.startDate, avgLen - luteal);
               const fertileStart = DateUtils.subtractDays(ovulationDate, 5);
               const fertileEnd = ovulationDate;
               const optimalStart = DateUtils.subtractDays(ovulationDate, 2);
@@ -296,6 +301,9 @@ Page({
                 }
                 if (cell.date >= optimalStart && cell.date <= optimalEnd) {
                   cell.isOptimal = true;
+                }
+                if (cell.date === ovulationDate) {
+                  cell.isOvulationDay = true;
                 }
               });
             }
@@ -319,6 +327,7 @@ Page({
                 // 周期与本月无交集，但排卵窗口可能跨月：仍计算排卵窗口再判断
               }
               const ovulation = DateUtils.addDays(start, avgLen - luteal);
+              ovulationDate = ovulation; // 以最后一次覆盖为准
               const fertileStart = DateUtils.subtractDays(ovulation, 5);
               const fertileEnd = ovulation;
               const optimalStart = DateUtils.subtractDays(ovulation, 2);
@@ -327,11 +336,38 @@ Page({
                 if (!cell || !cell.isCurrentMonth) return;
                 if (cell.date >= fertileStart && cell.date <= fertileEnd) cell.isFertile = true;
                 if (cell.date >= optimalStart && cell.date <= optimalEnd) cell.isOptimal = true;
+                if (cell.date === ovulation) cell.isOvulationDay = true;
               });
             });
           }
         } catch (_) {}
       }
+
+      // 计算“胶囊”区间的起止位，便于渲染连带背景
+      const computeRangeRole = (flagKey, roleKey) => {
+        for (let i = 0; i < calendarGrid.length; i++) {
+          const cell = calendarGrid[i];
+          if (!cell || !cell.isCurrentMonth || !cell[flagKey]) continue;
+          const isFirstOfWeek = cell.weekday === 0;
+          const isLastOfWeek = cell.weekday === 6;
+          const prevSameRow = !isFirstOfWeek;
+          const nextSameRow = !isLastOfWeek;
+          const prevIn = prevSameRow && calendarGrid[i - 1] && calendarGrid[i - 1].isCurrentMonth && calendarGrid[i - 1][flagKey];
+          const nextIn = nextSameRow && calendarGrid[i + 1] && calendarGrid[i + 1].isCurrentMonth && calendarGrid[i + 1][flagKey];
+
+          if (!prevIn && !nextIn) {
+            cell[roleKey] = 'single';
+          } else if (!prevIn && nextIn) {
+            cell[roleKey] = 'start';
+          } else if (prevIn && nextIn) {
+            cell[roleKey] = 'middle';
+          } else if (prevIn && !nextIn) {
+            cell[roleKey] = 'end';
+          }
+        }
+      };
+      computeRangeRole('isFertile', 'fertileRole');
+      computeRangeRole('isOptimal', 'optimalRole');
     } catch (e) {
       // 忽略背景标记失败
     }
