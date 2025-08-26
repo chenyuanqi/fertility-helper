@@ -83,7 +83,8 @@ Page({
     try {
       const dayRecords = await FertilityStorage.getDayRecords();
       const cycles = await FertilityStorage.getCycles();
-      const statistics = this.calculateStatistics(dayRecords, cycles);
+      const firstOpenDate = await FertilityStorage.getOrInitFirstOpenDate();
+      const statistics = this.calculateStatistics(dayRecords, cycles, firstOpenDate);
       this.setData({ statistics });
     } catch (error) {
       console.error('加载统计数据失败:', error);
@@ -102,7 +103,7 @@ Page({
   },
 
   // 计算统计数据
-  calculateStatistics(dayRecords, cycles) {
+  calculateStatistics(dayRecords, cycles, firstOpenDate) {
     const records = Object.keys(dayRecords);
     let temperatureCount = 0;
     let intercourseCount = 0;
@@ -117,7 +118,8 @@ Page({
     
     const firstRecord = records.sort()[0];
     const todayStr = DateUtils.getToday();
-    const startDateStr = firstRecord || todayStr;
+    // 已使用天数：以首次打开日期为准；若不存在则回退到“最早记录/今天”
+    const startDateStr = firstOpenDate || firstRecord || todayStr;
     const daysUsed = DateUtils.getDaysDifference(startDateStr, todayStr) + 1;
     
     return {

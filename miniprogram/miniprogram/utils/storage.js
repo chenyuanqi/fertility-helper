@@ -12,6 +12,7 @@ const STORAGE_KEYS = {
   APP_VERSION: 'fertility_app_version',
   BACKUP_DATA: 'fertility_backup_data',
   LAST_SYNC: 'fertility_last_sync',
+  FIRST_OPEN_DATE: 'fertility_first_open_date',
 };
 
 class StorageManager {
@@ -217,6 +218,29 @@ class FertilityStorage {
    */
   static async getStatistics() {
     return StorageManager.getItem(STORAGE_KEYS.STATISTICS);
+  }
+
+  /**
+   * 记录并获取首次打开日期（yyyy-MM-dd）。
+   * 若尚未记录，写入今天并返回；若已存在，直接返回。
+   */
+  static async getOrInitFirstOpenDate() {
+    try {
+      const existing = await StorageManager.getItem(STORAGE_KEYS.FIRST_OPEN_DATE);
+      if (existing) return existing;
+      const { DateUtils } = require('./date');
+      const today = DateUtils.getToday();
+      try { wx.setStorageSync(STORAGE_KEYS.FIRST_OPEN_DATE, today); } catch (_) {}
+      await StorageManager.setItem(STORAGE_KEYS.FIRST_OPEN_DATE, today);
+      return today;
+    } catch (e) {
+      try {
+        const { DateUtils } = require('./date');
+        return DateUtils.getToday();
+      } catch (_) {
+        return new Date().toISOString().slice(0,10);
+      }
+    }
   }
 }
 
