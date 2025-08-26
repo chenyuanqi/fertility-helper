@@ -99,7 +99,16 @@ class FertilityStorage {
    * 保存用户设置
    */
   static async saveUserSettings(settings) {
-    return StorageManager.setItem(STORAGE_KEYS.USER_SETTINGS, settings);
+    try {
+      // 先同步写入，确保其他使用 getStorageSync 的页面（如日历）能立即读到最新值
+      try { wx.setStorageSync(STORAGE_KEYS.USER_SETTINGS, settings); } catch (_) {}
+      // 再异步备份写入
+      await StorageManager.setItem(STORAGE_KEYS.USER_SETTINGS, settings);
+      return true;
+    } catch (error) {
+      console.error('saveUserSettings 保存失败:', error);
+      throw error;
+    }
   }
 
   /**

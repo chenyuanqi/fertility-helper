@@ -75,6 +75,18 @@ Page({
         }
         return cycle;
       });
+
+      // 动态调整“当前进行中的周期”的结束日期用于展示（不回写存储）
+      if (cycles && cycles.length > 0) {
+        const lastIdx = cycles.length - 1;
+        const last = cycles[lastIdx];
+        if (last && last.startDate) {
+          const cycleLength = userSettings?.personalInfo?.averageCycleLength || 28;
+          const dynamicEnd = DateUtils.addDays(last.startDate, cycleLength - 1);
+          // 仅在展示层覆盖，避免影响历史数据
+          cycles[lastIdx] = { ...last, endDate: dynamicEnd, length: cycleLength };
+        }
+      }
       
       this.setData({ 
         cycles,
@@ -97,11 +109,9 @@ Page({
       this.setData({ isLoading: true });
       
       const { cycles, currentCycleIndex } = this.data;
-      // 确保加载用户设置供后续计算使用
-      if (!this.data.userSettings) {
-        const userSettings = await FertilityStorage.getUserSettings();
-        this.setData({ userSettings });
-      }
+      // 每次加载都获取最新用户设置，确保与设置页同步
+      const userSettings = await FertilityStorage.getUserSettings();
+      this.setData({ userSettings });
       if (!cycles || cycles.length === 0) {
         this.setData({ 
           chartData: [],
