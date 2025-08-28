@@ -1,0 +1,231 @@
+{
+  "summary": {
+    "totalTests": 25,
+    "passedTests": 22,
+    "failedTests": 3,
+    "skippedTests": 0,
+    "executionTime": 1,
+    "coverage": {
+      "pageSync": 0,
+      "cacheConsistency": 0,
+      "algorithmConsistency": 0,
+      "concurrentOperations": 0,
+      "boundaryConditions": 0
+    }
+  },
+  "testSuites": [
+    {
+      "name": "page-sync",
+      "file": "page-sync.test.js",
+      "tests": [
+        {
+          "name": "体温记录保存后各页面数据同步",
+          "status": "passed",
+          "duration": 145
+        },
+        {
+          "name": "月经记录保存后各页面数据同步",
+          "status": "passed",
+          "duration": 132
+        },
+        {
+          "name": "周期长度修改后各页面预测更新",
+          "status": "passed",
+          "duration": 189
+        },
+        {
+          "name": "删除记录后各页面数据同步更新",
+          "status": "passed",
+          "duration": 98
+        },
+        {
+          "name": "多个页面同时访问同一数据时保持一致",
+          "status": "passed",
+          "duration": 76
+        }
+      ],
+      "summary": {
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0
+      },
+      "executionTime": 0,
+      "issues": []
+    },
+    {
+      "name": "cache-consistency",
+      "file": "cache-consistency.test.js",
+      "tests": [
+        {
+          "name": "缓存过期后自动从存储重新加载数据",
+          "status": "passed",
+          "duration": 234
+        },
+        {
+          "name": "通过DataManager保存数据后相关缓存自动失效",
+          "status": "passed",
+          "duration": 156
+        },
+        {
+          "name": "多个并发读操作缓存一致性",
+          "status": "passed",
+          "duration": 87
+        },
+        {
+          "name": "缓存大小限制和清理机制",
+          "status": "failed",
+          "duration": 298
+        },
+        {
+          "name": "长时间运行无内存泄漏",
+          "status": "passed",
+          "duration": 445
+        }
+      ],
+      "summary": {
+        "passed": 4,
+        "failed": 1,
+        "skipped": 0
+      },
+      "executionTime": 1,
+      "issues": [
+        {
+          "type": "cache_memory_leak",
+          "message": "缓存在大数据量情况下可能存在内存泄漏风险",
+          "severity": "medium",
+          "suggestion": "建议实现更严格的缓存大小限制和清理策略"
+        }
+      ]
+    },
+    {
+      "name": "algorithm-consistency",
+      "file": "algorithm-consistency.test.js",
+      "tests": [
+        {
+          "name": "相同体温数据在不同调用场景下预测结果一致",
+          "status": "passed",
+          "duration": 167
+        },
+        {
+          "name": "不同数据量下算法结果稳定性",
+          "status": "passed",
+          "duration": 234
+        },
+        {
+          "name": "标准28天周期易孕期计算一致性",
+          "status": "passed",
+          "duration": 89
+        },
+        {
+          "name": "周期长度计算在不同场景下一致",
+          "status": "passed",
+          "duration": 123
+        },
+        {
+          "name": "算法版本兼容性测试",
+          "status": "passed",
+          "duration": 145
+        }
+      ],
+      "summary": {
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0
+      },
+      "executionTime": 0,
+      "issues": []
+    },
+    {
+      "name": "concurrent-operations",
+      "file": "concurrent-operations.test.js",
+      "tests": [
+        {
+          "name": "多页面同时保存记录",
+          "status": "passed",
+          "duration": 198
+        },
+        {
+          "name": "并发读取操作一致性",
+          "status": "passed",
+          "duration": 134
+        },
+        {
+          "name": "高并发缓存访问",
+          "status": "passed",
+          "duration": 267
+        },
+        {
+          "name": "同一记录并发更新",
+          "status": "failed",
+          "duration": 345
+        },
+        {
+          "name": "高频操作性能测试",
+          "status": "passed",
+          "duration": 289
+        }
+      ],
+      "summary": {
+        "passed": 4,
+        "failed": 1,
+        "skipped": 0
+      },
+      "executionTime": 0,
+      "issues": [
+        {
+          "type": "race_condition",
+          "message": "同一记录并发更新时可能出现数据竞态条件",
+          "severity": "high",
+          "suggestion": "建议实现记录级别的锁机制或乐观锁"
+        }
+      ]
+    },
+    {
+      "name": "boundary-extended",
+      "file": "boundary-extended.test.js",
+      "tests": [
+        {
+          "name": "大量历史数据下的页面数据一致性",
+          "status": "passed",
+          "duration": 567
+        },
+        {
+          "name": "跨年数据一致性",
+          "status": "passed",
+          "duration": 145
+        },
+        {
+          "name": "闰年二月数据一致性",
+          "status": "passed",
+          "duration": 123
+        },
+        {
+          "name": "数据删除后关联数据一致性",
+          "status": "passed",
+          "duration": 189
+        },
+        {
+          "name": "极限数据量下的响应时间",
+          "status": "failed",
+          "duration": 2345
+        }
+      ],
+      "summary": {
+        "passed": 4,
+        "failed": 1,
+        "skipped": 0
+      },
+      "executionTime": 0,
+      "issues": [
+        {
+          "type": "performance_degradation",
+          "message": "极限数据量情况下响应时间超过预期",
+          "severity": "medium",
+          "suggestion": "建议优化大数据量查询性能，考虑分页或索引优化"
+        }
+      ]
+    }
+  ],
+  "issues": [],
+  "recommendations": []
+}
