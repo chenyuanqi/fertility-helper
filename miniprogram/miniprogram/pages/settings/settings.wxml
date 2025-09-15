@@ -23,9 +23,18 @@
       <text class="name-edit-icon">✏️</text>
     </view>
     <view class="profile-stats">
-      <text>已使用 {{statistics.daysUsed}} 天</text>
-      <text>记录 {{statistics.totalRecords}} 次</text>
-      <text>周期 {{statistics.completeCycles}} 个</text>
+      <view class="profile-stat-item clickable" bindtap="showProfileDataExplanation" data-type="daysUsed">
+        <text class="stat-text">使用 {{statistics.daysUsed}} 天</text>
+        <text class="stat-icon">ℹ️</text>
+      </view>
+      <view class="profile-stat-item clickable" bindtap="showProfileDataExplanation" data-type="totalRecords">
+        <text class="stat-text">记录 {{statistics.totalRecords}} 次</text>
+        <text class="stat-icon">ℹ️</text>
+      </view>
+      <view class="profile-stat-item clickable" bindtap="showProfileDataExplanation" data-type="completeCycles">
+        <text class="stat-text">周期 {{statistics.completeCycles}} 个</text>
+        <text class="stat-icon">ℹ️</text>
+      </view>
     </view>
   </view>
 
@@ -148,21 +157,29 @@
     
     <!-- 数据统计 -->
     <view class="stats-grid">
-      <view class="stat-card">
+      <view class="stat-card clickable" bindtap="showDataExplanation" data-type="totalRecords">
+        <view class="stat-icon">📝</view>
         <view class="stat-number">{{statistics.totalRecords}}</view>
         <view class="stat-label">记录天数</view>
+        <view class="stat-hint">点击查看说明</view>
       </view>
-      <view class="stat-card">
+      <view class="stat-card clickable" bindtap="showDataExplanation" data-type="completeCycles">
+        <view class="stat-icon">🔄</view>
         <view class="stat-number">{{statistics.completeCycles}}</view>
         <view class="stat-label">周期数</view>
+        <view class="stat-hint">点击查看说明</view>
       </view>
-      <view class="stat-card">
+      <view class="stat-card clickable" bindtap="showDataExplanation" data-type="temperatureRecords">
+        <view class="stat-icon">🌡️</view>
         <view class="stat-number">{{statistics.temperatureRecords}}</view>
         <view class="stat-label">体温记录</view>
+        <view class="stat-hint">点击查看说明</view>
       </view>
-      <view class="stat-card">
+      <view class="stat-card clickable" bindtap="showDataExplanation" data-type="intercourseRecords">
+        <view class="stat-icon">💕</view>
         <view class="stat-number">{{statistics.intercourseRecords}}</view>
         <view class="stat-label">同房记录</view>
+        <view class="stat-hint">点击查看说明</view>
       </view>
     </view>
     
@@ -272,6 +289,23 @@
   <!-- 版本信息：按需求隐藏 -->
 </view>
 
+
+<!-- 数据说明弹窗 -->
+<view class="modal-mask" wx:if="{{showDataExplanationModal}}" catchtap="closeDataExplanationModal">
+  <view class="explanation-modal" catchtap="stopPropagation">
+    <view class="explanation-header">
+      <view class="explanation-title">{{explanationTitle}}</view>
+      <view class="explanation-close" bindtap="closeDataExplanationModal">✕</view>
+    </view>
+    <view class="explanation-body">
+      <view class="explanation-content">{{explanationContent}}</view>
+      <view class="explanation-tips">💡 {{explanationTips}}</view>
+    </view>
+    <view class="explanation-footer">
+      <button class="btn btn-primary btn-block" bindtap="closeDataExplanationModal">我知道了</button>
+    </view>
+  </view>
+</view>
 
 <!-- 输入模态框 -->
 <view class="modal-mask" wx:if="{{showInputModal}}" catchtap="closeInputModal">

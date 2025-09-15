@@ -43,6 +43,11 @@ Page({
     focus_nickname: false,
     focus_cycleLength: false,
     focus_lutealPhase: false,
+    // 数据说明弹窗
+    showDataExplanationModal: false,
+    explanationTitle: '',
+    explanationContent: '',
+    explanationTips: '',
     // 调试模式相关
     debugMode: false,
     debugClickCount: 0
@@ -414,6 +419,185 @@ Page({
       'ovulationReminderTime',
       this.data.userSettings.reminders.periodPrediction.time || '10:00'
     );
+  },
+
+  // 显示数据说明
+  showDataExplanation(e) {
+    const dataType = e.currentTarget.dataset.type;
+    const currentStats = this.data.statistics;
+
+    const explanations = {
+      totalRecords: {
+        title: '记录天数',
+        content: `您已连续记录 ${currentStats.totalRecords} 天的数据。
+
+📊 统计范围
+此数据包含以下任一类型记录的日期：
+• 📝 体温记录
+• 🩸 月经记录（经量、开始/结束标记）
+• 💕 同房记录
+• 📋 症状备注
+
+🎯 数据价值
+记录天数反映您的使用活跃度，连续记录有助于：
+• 提高排卵预测准确性
+• 识别个人生理规律
+• 为医生提供完整参考数据`,
+        tips: '专业建议：坚持每日记录，连续3个完整周期的数据可显著提升排卵预测的准确性至85%以上。'
+      },
+      completeCycles: {
+        title: '周期数',
+        content: `您已记录 ${currentStats.completeCycles} 个完整的月经周期。
+
+🔄 周期统计规则
+• 从月经第一天到下次月经前一天
+• 必须标记"经期开始"才计入统计
+• 当前进行中的周期不计入
+• 正常周期长度：21-35天
+
+📈 数据价值
+完整周期数据可以帮助：
+• 计算个人平均周期长度
+• 分析周期规律性
+• 预测下次月经时间
+• 确定最佳受孕窗口`,
+        tips: '科学提示：拥有3个以上完整周期数据，可准确计算个人平均周期长度，提高排卵日预测精度。'
+      },
+      temperatureRecords: {
+        title: '体温记录',
+        content: `您已记录 ${currentStats.temperatureRecords} 次基础体温。
+
+🌡️ 科学原理
+基础体温变化的生理机制：
+• 排卵后孕激素分泌增加
+• 体温上升0.3-0.5°C并持续
+• 是判断排卵的"金标准"
+• 需要连续测量形成曲线
+
+📋 正确测量方法
+确保数据准确性的要点：
+• 每天同一时间（起床后立即）
+• 测量3-5分钟
+• 使用专用基础体温计
+• 避免起床、说话、喝水`,
+        tips: '医学建议：连续测量至少21天可形成有效的体温曲线，帮助准确识别排卵期和黄体期。'
+      },
+      intercourseRecords: {
+        title: '同房记录',
+        content: `您已记录 ${currentStats.intercourseRecords} 次同房数据。
+
+💕 记录意义
+同房记录的重要价值：
+• 📊 分析受孕时机分布
+• 🎯 优化备孕策略
+• 📋 为医生提供参考
+• 📈 跟踪备孕进度
+
+🔒 隐私保护
+我们承诺保护您的隐私：
+• 数据仅存储在您的设备本地
+• 不会上传到任何服务器
+• 您可随时删除所有记录
+• 完全掌控个人隐私数据`,
+        tips: '备孕建议：排卵期前后每2天一次同房频率最佳，既能保证精子质量，又能最大化受孕机会。'
+      }
+    };
+
+    const explanation = explanations[dataType];
+    if (explanation) {
+      this.setData({
+        showDataExplanationModal: true,
+        explanationTitle: `📊 ${explanation.title}说明`,
+        explanationContent: explanation.content,
+        explanationTips: explanation.tips
+      });
+    }
+  },
+
+  // 关闭数据说明弹窗
+  closeDataExplanationModal() {
+    this.setData({
+      showDataExplanationModal: false,
+      explanationTitle: '',
+      explanationContent: '',
+      explanationTips: ''
+    });
+  },
+
+  // 显示个人资料统计说明
+  showProfileDataExplanation(e) {
+    const dataType = e.currentTarget.dataset.type;
+    const currentStats = this.data.statistics;
+
+    const explanations = {
+      daysUsed: {
+        title: '使用天数',
+        content: `您已连续使用备小孕 ${currentStats.daysUsed} 天。
+
+📅 计算方式
+使用天数的统计规则：
+• 从首次打开小程序的日期开始计算
+• 到今天为止的总天数
+• 不受数据记录频率影响
+• 反映您的小程序使用时长
+
+⏰ 时间价值
+持续使用的重要意义：
+• 建立规律记录的好习惯
+• 积累更多有价值的健康数据
+• 提高算法预测的准确性
+• 形成长期的健康管理意识`,
+        tips: '坚持记录：使用时间越长，积累的数据越多，排卵预测和健康分析越准确。建议至少坚持使用3个月经周期。'
+      },
+      totalRecords: {
+        title: '记录次数',
+        content: `您已成功记录 ${currentStats.totalRecords} 次数据。
+
+📝 记录统计
+记录次数包含以下数据：
+• 📝 体温记录
+• 🩸 月经记录（经量、开始/结束）
+• 💕 同房记录
+• 📋 症状和备注
+
+📈 记录价值
+每次记录都是珍贵的健康数据：
+• 构建个人生理档案
+• 为排卵预测提供依据
+• 帮助识别异常情况
+• 为医生诊断提供参考`,
+        tips: '记录建议：理想的记录频率是每天至少1次，包含体温和任何相关症状。连续记录比偶尔记录更有价值。'
+      },
+      completeCycles: {
+        title: '完整周期',
+        content: `您已完成 ${currentStats.completeCycles} 个完整的月经周期记录。
+
+🔄 周期价值
+每个完整周期都极其珍贵：
+• 提供周期长度的准确数据
+• 帮助识别个人排卵规律
+• 建立基础体温变化模式
+• 为下次周期预测提供基础
+
+📊 数据积累
+完整周期数据的重要作用：
+• 计算个人平均周期长度
+• 分析排卵期规律性
+• 预测易孕窗口时间
+• 识别可能的健康问题`,
+        tips: '周期建议：至少需要3个完整周期才能获得可靠的排卵预测。如果周期不规律，建议记录6个以上周期以获得更准确的分析。'
+      }
+    };
+
+    const explanation = explanations[dataType];
+    if (explanation) {
+      this.setData({
+        showDataExplanationModal: true,
+        explanationTitle: `📊 ${explanation.title}说明`,
+        explanationContent: explanation.content,
+        explanationTips: explanation.tips
+      });
+    }
   },
 
   // 保存设置

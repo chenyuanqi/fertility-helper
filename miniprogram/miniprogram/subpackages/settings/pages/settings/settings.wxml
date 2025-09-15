@@ -18,7 +18,7 @@
     </view>
     <view class="profile-name">{{userSettings.nickname || '小龙'}}</view>
     <view class="profile-stats">
-      <text>已使用 {{statistics.daysUsed}} 天</text>
+      <text>使用 {{statistics.daysUsed}} 天</text>
       <text>记录 {{statistics.totalRecords}} 次</text>
       <text>周期 {{statistics.completeCycles}} 个</text>
     </view>
