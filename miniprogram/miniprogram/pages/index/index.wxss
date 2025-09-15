@@ -557,6 +557,14 @@
   bottom: 140rpx;
   right: 40rpx;
   z-index: 1000;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* 收缩状态 - 贴靠右侧并缩小 */
+.fab-container.fab-minimized {
+  right: 20rpx;
+  bottom: 200rpx;
+  transform: scale(0.7);
 }
 
 .fab-main {
@@ -568,8 +576,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
+}
+
+/* 收缩状态下的fab-main样式 */
+.fab-container.fab-minimized .fab-main {
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 157, 0.3);
 }
 
 .fab-main:active {

@@ -252,7 +252,7 @@
   </view>
 
   <!-- 浮动操作按钮 -->
-  <view class="fab-container">
+  <view class="fab-container {{fabMinimized ? 'fab-minimized' : ''}}">
     <view class="fab-main" bindtap="goQuickRecord">
       <text class="fab-icon">✚</text>
     </view>

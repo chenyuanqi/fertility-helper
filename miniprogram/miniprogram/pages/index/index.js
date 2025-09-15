@@ -33,6 +33,8 @@ Page({
     },
     isLoading: true,
     showFabMenu: false,
+    fabMinimized: false,
+    lastScrollTop: 0,
     showCycleModal: false,
     selectedPhase: 'unknown',
     // 授权相关
@@ -1470,6 +1472,39 @@ Page({
       return '记录习惯很棒，继续保持下去！';
     } else {
       return '每天的记录都很宝贵，坚持就是胜利！';
+    }
+  },
+
+  /**
+   * 页面滚动监听 - 控制浮动按钮显示状态
+   */
+  onPageScroll(e) {
+    const currentScrollTop = e.scrollTop;
+    const lastScrollTop = this.data.lastScrollTop;
+    const threshold = 50; // 滚动阈值
+
+    // 判断滚动方向和距离
+    if (Math.abs(currentScrollTop - lastScrollTop) > threshold) {
+      if (currentScrollTop > lastScrollTop) {
+        // 向下滚动 - 收缩按钮
+        if (!this.data.fabMinimized) {
+          this.setData({
+            fabMinimized: true,
+            showFabMenu: false // 收缩时关闭菜单
+          });
+        }
+      } else {
+        // 向上滚动 - 展开按钮
+        if (this.data.fabMinimized) {
+          this.setData({
+            fabMinimized: false
+          });
+        }
+      }
+
+      this.setData({
+        lastScrollTop: currentScrollTop
+      });
     }
   }
 });
