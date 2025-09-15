@@ -52,7 +52,12 @@ Page({
     greetingEmoji: '',
     greetingTip: '',
     // 今日记录完成进度
-    recordsProgress: { completed: 0, total: 3, percent: 0 }
+    recordsProgress: { completed: 0, total: 3, percent: 0 },
+    // 数据说明弹窗
+    showStatsExplanationModal: false,
+    statsExplanationTitle: '',
+    statsExplanationContent: '',
+    statsExplanationTips: ''
   },
 
   /**
@@ -1270,6 +1275,74 @@ Page({
       console.error('验证周期数据时出错:', error);
       return false;
     }
+  },
+
+  /**
+   * 显示统计数据说明
+   */
+  showStatsExplanation(e) {
+    const { type } = e.currentTarget.dataset;
+    let title = '';
+    let content = '';
+    let tips = '';
+
+    switch (type) {
+      case 'temperature':
+        title = '体温记录说明';
+        content = `体温记录：${this.data.quickStats.temperatureRecords}天
+
+统计最近30天内所有有效的基础体温记录。
+
+基础体温是指在完全休息状态下的体温，通常在清晨起床前测量。体温的变化可以帮助判断排卵期和月经周期。
+
+记录越完整，排卵预测和周期分析就越准确。建议每天同一时间测量并记录。`;
+        tips = '连续记录10天以上的体温数据，AI分析会更准确';
+        break;
+      case 'menstrual':
+        title = '月经天数说明';
+        content = `月经天数：${this.data.quickStats.menstrualDays}天
+
+统计最近30天内所有月经期的天数（不包括"无月经"的记录）。
+
+月经天数是指月经来潮的实际天数，正常范围通常是3-7天。记录月经量的多少有助于了解身体健康状况。
+
+完整的月经记录有助于：
+• 计算准确的周期长度
+• 预测下次月经时间
+• 监测月经规律性`;
+        tips = '建议记录每天的月经量变化，从开始到结束';
+        break;
+      case 'intercourse':
+        title = '同房次数说明';
+        content = `同房次数：${this.data.quickStats.intercourseCount}次
+
+统计最近30天内所有同房记录的总次数（不包括"无同房"的记录）。
+
+记录同房时间有助于：
+• 结合排卵期预测提高受孕概率
+• 分析同房频率与周期的关系
+• 为医生提供完整的备孕信息
+
+同房记录会在图表中以特殊标记显示，方便查看与排卵期的关系。`;
+        tips = '在易孕期内增加同房频率，可以提高受孕几率';
+        break;
+    }
+
+    this.setData({
+      showStatsExplanationModal: true,
+      statsExplanationTitle: title,
+      statsExplanationContent: content,
+      statsExplanationTips: tips
+    });
+  },
+
+  /**
+   * 关闭统计数据说明弹窗
+   */
+  closeStatsExplanationModal() {
+    this.setData({
+      showStatsExplanationModal: false
+    });
   },
 
   /**

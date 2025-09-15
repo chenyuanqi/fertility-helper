@@ -143,17 +143,26 @@
       </view>
       <view class="card-body">
         <view class="stats-grid">
-          <view class="stat-item">
+          <view class="stat-item clickable" bindtap="showStatsExplanation" data-type="temperature">
             <text class="stat-value">{{quickStats.temperatureRecords}}</text>
-            <text class="stat-label">体温记录</text>
+            <view class="stat-label-row">
+              <text class="stat-label">体温记录</text>
+              <text class="stat-info-icon">ℹ️</text>
+            </view>
           </view>
-          <view class="stat-item">
+          <view class="stat-item clickable" bindtap="showStatsExplanation" data-type="menstrual">
             <text class="stat-value">{{quickStats.menstrualDays}}</text>
-            <text class="stat-label">月经天数</text>
+            <view class="stat-label-row">
+              <text class="stat-label">月经天数</text>
+              <text class="stat-info-icon">ℹ️</text>
+            </view>
           </view>
-          <view class="stat-item">
+          <view class="stat-item clickable" bindtap="showStatsExplanation" data-type="intercourse">
             <text class="stat-value">{{quickStats.intercourseCount}}</text>
-            <text class="stat-label">同房次数</text>
+            <view class="stat-label-row">
+              <text class="stat-label">同房次数</text>
+              <text class="stat-info-icon">ℹ️</text>
+            </view>
           </view>
         </view>
       </view>
@@ -369,6 +378,23 @@
     <view class="modal-footer">
       <button class="btn btn-outline" bindtap="closeCycleStartModal">取消</button>
       <button class="btn btn-primary" bindtap="confirmCycleStart">确定</button>
+    </view>
+  </view>
+</view>
+
+<!-- 统计数据说明弹窗 -->
+<view class="modal-mask" wx:if="{{showStatsExplanationModal}}" catchtap="closeStatsExplanationModal">
+  <view class="explanation-modal" catchtap="stopPropagation">
+    <view class="explanation-header">
+      <view class="explanation-title">{{statsExplanationTitle}}</view>
+      <view class="explanation-close" bindtap="closeStatsExplanationModal">✕</view>
+    </view>
+    <view class="explanation-body">
+      <view class="explanation-content">{{statsExplanationContent}}</view>
+      <view class="explanation-tips" wx:if="{{statsExplanationTips}}">💡 {{statsExplanationTips}}</view>
+    </view>
+    <view class="explanation-footer">
+      <button class="btn btn-primary btn-block" bindtap="closeStatsExplanationModal">我知道了</button>
     </view>
   </view>
 </view>
