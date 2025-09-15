@@ -5,16 +5,10 @@
     <text class="page-title-date">{{formattedDate}}</text>
   </view>
 
-  <!-- 自动保存提示/保存成功轻提示共用区域 -->
-  <view class="auto-save-tip" wx:if="{{hasUnsavedChanges || saveSuccessTip}}">
-    <view class="tip-content">
-      <text class="tip-text" wx:if="{{saveSuccessTip}}">保存成功</text>
-      <text class="tip-text" wx:elif="{{autoSaveCountdown > 0}}">{{autoSaveCountdown}}秒后自动保存</text>
-      <text class="tip-text" wx:else>有未保存的更改</text>
-      <view class="tip-actions" wx:if="{{!saveSuccessTip}}">
-        <text class="tip-btn save-btn" bindtap="manualSaveCurrentRecord">保存</text>
-        <text class="tip-btn cancel-btn" bindtap="cancelAutoSave">取消</text>
-      </view>
+  <!-- 保存状态提示 -->
+  <view class="save-status-tip" wx:if="{{saveSuccessTip}}">
+    <view class="tip-content success">
+      <text class="tip-text">记录已保存</text>
     </view>
   </view>
 
@@ -46,12 +40,35 @@
 
     <view class="form-group">
       <view class="form-label">体温值</view>
-      <picker range="{{temperatureOptions}}" range-key="label" value="{{temperatureIndex}}" bindchange="onTemperatureChange">
-        <view class="picker-input {{temperatureValue ? 'has-value' : ''}}">
-          <text class="picker-text">{{temperatureValue ? temperatureValue + '°C' : '请选择体温'}}</text>
-          <text class="picker-arrow">▼</text>
+
+      <!-- 快速体温选择按钮 -->
+      <view class="quick-temp-buttons">
+        <view class="quick-temp-btn {{temperatureValue === '36.1' ? 'active' : ''}}"
+              data-temp="36.1" bindtap="setQuickTemperature">
+          <text class="temp-value">36.1°C</text>
+          <text class="temp-desc">低温期</text>
         </view>
-      </picker>
+        <view class="quick-temp-btn {{temperatureValue === '36.5' ? 'active' : ''}}"
+              data-temp="36.5" bindtap="setQuickTemperature">
+          <text class="temp-value">36.5°C</text>
+          <text class="temp-desc">常温</text>
+        </view>
+        <view class="quick-temp-btn {{temperatureValue === '36.8' ? 'active' : ''}}"
+              data-temp="36.8" bindtap="setQuickTemperature">
+          <text class="temp-value">36.8°C</text>
+          <text class="temp-desc">高温期</text>
+        </view>
+      </view>
+
+      <!-- 精确选择 -->
+      <view class="precise-temp-picker">
+        <picker range="{{temperatureOptions}}" range-key="label" value="{{temperatureIndex}}" bindchange="onTemperatureChange">
+          <view class="picker-input {{temperatureValue ? 'has-value' : ''}}">
+            <text class="picker-text">{{temperatureValue ? temperatureValue + '°C' : '精确选择体温'}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
     </view>
 
     <view class="form-group">
@@ -118,57 +135,31 @@
     </view>
 
     <view class="form-group">
-      <view class="form-label">卫生巾数量</view>
-      <view class="pad-grid">
-        <view class="pad-item {{menstrualPadCount === 0 ? 'active' : ''}}" data-count="0" bindtap="onPadOptionTap">
-          <view class="pad-icons">
-            <view class="pad-visual empty"><view class="pad-visual-inner"></view></view>
-          </view>
-          <view class="pad-text">无</view>
+      <view class="form-label">月经量</view>
+      <!-- 简化的月经量选择 -->
+      <view class="flow-options">
+        <view class="flow-option {{menstrualPadCount === 0 ? 'active' : ''}}" data-count="0" bindtap="onPadOptionTap">
+          <view class="flow-icon">🚫</view>
+          <text class="flow-text">无月经</text>
         </view>
-        <view class="pad-item {{menstrualPadCount === 1 ? 'active' : ''}}" data-count="1" bindtap="onPadOptionTap">
-          <view class="pad-icons">
-            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
-          </view>
-          <view class="pad-text">1张</view>
+        <view class="flow-option {{menstrualPadCount === 1 ? 'active' : ''}}" data-count="1" bindtap="onPadOptionTap">
+          <view class="flow-icon">💧</view>
+          <text class="flow-text">少量</text>
         </view>
-        <view class="pad-item {{menstrualPadCount === 2 ? 'active' : ''}}" data-count="2" bindtap="onPadOptionTap">
-          <view class="pad-icons">
-            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
-            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
-          </view>
-          <view class="pad-text">2张</view>
+        <view class="flow-option {{menstrualPadCount === 2 ? 'active' : ''}}" data-count="2" bindtap="onPadOptionTap">
+          <view class="flow-icon">💧💧</view>
+          <text class="flow-text">中等</text>
         </view>
-        <view class="pad-item {{menstrualPadCount === 3 ? 'active' : ''}}" data-count="3" bindtap="onPadOptionTap">
-          <view class="pad-icons">
-            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
-            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
-            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
-          </view>
-          <view class="pad-text">3张</view>
+        <view class="flow-option {{menstrualPadCount === 3 ? 'active' : ''}}" data-count="3" bindtap="onPadOptionTap">
+          <view class="flow-icon">💧💧💧</view>
+          <text class="flow-text">较多</text>
         </view>
-        <view class="pad-item {{menstrualPadCount === 4 ? 'active' : ''}}" data-count="4" bindtap="onPadOptionTap">
-          <view class="pad-icons">
-            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
-            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
-            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
-            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
-          </view>
-          <view class="pad-text">4张</view>
-        </view>
-        <view class="pad-item {{menstrualPadCount >= 5 ? 'active' : ''}}" data-count="5" bindtap="onPadOptionTap">
-          <view class="pad-icons">
-            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
-            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
-            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
-            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
-            <view class="pad-visual"><view class="pad-visual-inner"></view></view>
-            <text class="pad-plus">+</text>
-          </view>
-          <view class="pad-text">5张+</view>
+        <view class="flow-option {{menstrualPadCount >= 4 ? 'active' : ''}}" data-count="4" bindtap="onPadOptionTap">
+          <view class="flow-icon">🩸</view>
+          <text class="flow-text">大量</text>
         </view>
       </view>
-      <view class="pad-tip">选择今天湿透的卫生巾数量</view>
+      <view class="flow-tip">轻松记录今日月经量</view>
     </view>
 
     <view class="form-group">
@@ -217,10 +208,18 @@
       <text class="title-desc">记录同房情况</text>
     </view>
 
+    <!-- 快速同房记录选择 -->
     <view class="form-group">
-      <view class="switch-item no-intercourse">
-        <text class="switch-label">今日无同房</text>
-        <switch checked="{{noIntercourseToday}}" bindchange="onNoIntercourseChange" color="#4ecdc4"/>
+      <view class="form-label">同房情况</view>
+      <view class="intercourse-options">
+        <view class="intercourse-option {{noIntercourseToday ? 'active' : ''}}" bindtap="setNoIntercourse">
+          <view class="option-icon">🚫</view>
+          <text class="option-text">无同房</text>
+        </view>
+        <view class="intercourse-option {{!noIntercourseToday ? 'active' : ''}}" bindtap="setHasIntercourse">
+          <view class="option-icon">💕</view>
+          <text class="option-text">有同房</text>
+        </view>
       </view>
     </view>
 

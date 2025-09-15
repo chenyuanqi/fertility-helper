@@ -386,7 +386,7 @@ Page({
         }
       }
 
-      wx.showToast({ title: '已保存', icon: 'success' });
+      wx.showToast({ title: '记录已保存', icon: 'success' });
       setTimeout(() => wx.navigateBack({ delta: 1 }), 800);
     } catch (e) {
       console.error('快捷保存失败', e);

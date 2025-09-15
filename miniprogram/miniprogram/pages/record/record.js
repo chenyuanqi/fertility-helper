@@ -386,16 +386,24 @@ Page({
   // ==================== 自动保存相关方法 ====================
   
   /**
-   * 标记有未保存的更改
+   * 标记有未保存的更改 - 改为即时保存
    */
-  markUnsavedChanges() {
-    this.setData({ hasUnsavedChanges: true });
-    // 重置已有计时器
+  markUnsavedChanges(isTextInput = false) {
+    // 取消原有的延时保存机制，改为即时保存
     if (this.data.autoSaveTimer) {
-      clearInterval(this.data.autoSaveTimer);
+      clearTimeout(this.data.autoSaveTimer);
     }
-    // 直接开始6秒倒计时
-    this.startAutoSaveTimer(6);
+
+    // 根据输入类型设置不同的延时：文本输入2秒，其他操作500ms
+    const delay = isTextInput ? 2000 : 500;
+    const timer = setTimeout(() => {
+      this.quickSaveCurrentRecord();
+    }, delay);
+
+    this.setData({
+      hasUnsavedChanges: true,
+      autoSaveTimer: timer
+    });
   },
 
   /**
@@ -451,6 +459,33 @@ Page({
     await this.saveCurrentRecord();
     this.showSaveSuccessTip();
     this.notifyRecordSaved();
+  },
+
+  /**
+   * 快速保存当前记录（新的即时保存方法）
+   */
+  async quickSaveCurrentRecord() {
+    try {
+      this.setData({
+        autoSaveTimer: null,
+        hasUnsavedChanges: false,
+        autoSaveCountdown: 0
+      });
+
+      await this.saveCurrentRecord();
+
+      // 显示保存成功提示，在顶部显示2.5秒
+      this.setData({ saveSuccessTip: true });
+      setTimeout(() => {
+        this.setData({ saveSuccessTip: false });
+      }, 2500); // 改为2.5秒
+
+      this.notifyRecordSaved();
+    } catch (error) {
+      console.error('快速保存失败:', error);
+      // 保存失败时恢复未保存状态
+      this.setData({ hasUnsavedChanges: true });
+    }
   },
 
   /** 显示保存成功轻提示（与自动保存提示复用区域） */
@@ -552,11 +587,28 @@ Page({
   },
 
   /**
+   * 快速设置体温值
+   */
+  setQuickTemperature(e) {
+    const temperature = parseFloat(e.currentTarget.dataset.temp);
+    const temperatureOptions = this.data.temperatureOptions;
+    const index = temperatureOptions.findIndex(option => option.value === temperature);
+
+    if (index !== -1) {
+      this.setData({
+        temperatureIndex: index,
+        temperatureValue: temperature.toFixed(1)
+      });
+      this.markUnsavedChanges();
+    }
+  },
+
+  /**
    * 体温备注输入
    */
   onTemperatureNoteInput(e) {
     this.setData({ temperatureNote: e.detail.value });
-    this.markUnsavedChanges();
+    this.markUnsavedChanges(true); // 标记为文本输入
   },
 
   /**
@@ -623,7 +675,7 @@ Page({
    */
   onMenstrualNoteInput(e) {
     this.setData({ menstrualNote: e.detail.value });
-    this.markUnsavedChanges();
+    this.markUnsavedChanges(true); // 标记为文本输入
   },
 
   /**
@@ -685,7 +737,7 @@ Page({
    */
   onIntercourseNoteInput(e) {
     this.setData({ intercourseNote: e.detail.value });
-    this.markUnsavedChanges();
+    this.markUnsavedChanges(true); // 标记为文本输入
   },
 
   /**
@@ -693,10 +745,36 @@ Page({
    */
   onNoIntercourseChange(e) {
     const noIntercourseToday = e.detail.value;
-    this.setData({ 
+    this.setData({
       noIntercourseToday,
       // 如果选择了"今日无同房"，清空其他字段
       intercourseTime: noIntercourseToday ? '' : (this.data.intercourseTime || DateUtils.getCurrentTime()),
+      hasProtection: false,
+      intercourseNote: ''
+    });
+    this.markUnsavedChanges();
+  },
+
+  /**
+   * 设置无同房
+   */
+  setNoIntercourse() {
+    this.setData({
+      noIntercourseToday: true,
+      intercourseTime: '',
+      hasProtection: false,
+      intercourseNote: ''
+    });
+    this.markUnsavedChanges();
+  },
+
+  /**
+   * 设置有同房
+   */
+  setHasIntercourse() {
+    this.setData({
+      noIntercourseToday: false,
+      intercourseTime: this.data.intercourseTime || '22:00', // 如果没有时间，设置默认时间
       hasProtection: false,
       intercourseNote: ''
     });
