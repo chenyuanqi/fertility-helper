@@ -72,36 +72,38 @@
       <button class="test-button" bindtap="generateTestData">生成测试数据</button>
     </view>
 
-    <!-- 3. 图表容器 -->
-    <view class="chart-container">
-      <scroll-view 
-        class="chart-scroll" 
-        scroll-x="{{true}}" 
-        enhanced="{{true}}"
-        show-scrollbar="{{false}}"
-        bindscroll="onChartScroll">
-        
-        <view class="chart-content-area" style="width: {{chartData.length > 15 ? chartData.length * 50 : 750}}rpx;">
-          <!-- 使用新的简化图表组件 -->
-          <simple-chart 
-            chart-data="{{chartData}}" 
-            view-mode="{{viewMode}}"
-            fertile-window="{{fertileWindow}}"
-            width="{{chartData.length > 15 ? chartData.length * 50 : 750}}"
-            height="450">
-          </simple-chart>
-        </view>
-      </scroll-view>
-      
-      <!-- 滚动指示器 -->
-      <view class="scroll-indicators" wx:if="{{chartData.length > 15}}">
-        <view class="scroll-hint {{canScrollLeft ? 'active' : ''}}">← 左滑查看更多</view>
-        <view class="scroll-hint {{canScrollRight ? 'active' : ''}}">右滑查看更多 →</view>
-      </view>
-    </view>
+    <!-- 3. 图表与图例组合 -->
+    <view class="chart-with-legend">
+      <!-- 图表容器 -->
+      <view class="chart-container">
+        <scroll-view
+          class="chart-scroll"
+          scroll-x="{{true}}"
+          enhanced="{{true}}"
+          show-scrollbar="{{false}}"
+          bindscroll="onChartScroll">
 
-    <!-- 4. 图例说明 -->
-    <view class="chart-legend">
+          <view class="chart-content-area" style="width: {{chartData.length > 15 ? chartData.length * 50 : 750}}rpx;">
+            <!-- 使用新的简化图表组件 -->
+            <simple-chart
+              chart-data="{{chartData}}"
+              view-mode="{{viewMode}}"
+              fertile-window="{{fertileWindow}}"
+              width="{{chartData.length > 15 ? chartData.length * 50 : 750}}"
+              height="450">
+            </simple-chart>
+          </view>
+        </scroll-view>
+
+        <!-- 滚动指示器 -->
+        <view class="scroll-indicators" wx:if="{{chartData.length > 15}}">
+          <view class="scroll-hint {{canScrollLeft ? 'active' : ''}}">← 左滑查看更多</view>
+          <view class="scroll-hint {{canScrollRight ? 'active' : ''}}">右滑查看更多 →</view>
+        </view>
+      </view>
+
+      <!-- 图例说明 -->
+      <view class="chart-legend">
       <view class="legend-title">图表说明</view>
       <view class="legend-items">
         <view class="legend-item">
@@ -128,6 +130,7 @@
           <view class="legend-line" style="background-color: #4a90e2;"></view>
           <text class="legend-text">体温连线</text>
         </view>
+      </view>
       </view>
     </view>
     

@@ -100,10 +100,8 @@ Component({
      * 绘制图表内容
      */
     drawChartContent(ctx, width, height) {
-      // 清空画布
+      // 清空画布 - 透明背景
       ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, width, height);
       
       // 调整padding，为图例留出空间
       const padding = { top: 40, right: 20, bottom: 50, left: 50 };
