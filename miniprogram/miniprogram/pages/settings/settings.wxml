@@ -97,7 +97,17 @@
         <view class="switch-thumb"></view>
       </view>
     </view>
-    
+
+    <view class="settings-item {{!userSettings.reminders.fertileWindow.enabled ? 'disabled' : ''}}" bindtap="setFertileReminderTime">
+      <view class="item-icon">⏰</view>
+      <view class="item-content">
+        <view class="item-title">易孕期提醒时间</view>
+        <view class="item-description">设置易孕期提醒时间</view>
+      </view>
+      <view class="item-value">{{userSettings.reminders.fertileWindow.time || '09:00'}}</view>
+      <view class="item-arrow">›</view>
+    </view>
+
     <view class="settings-item">
       <view class="item-icon">🎯</view>
       <view class="item-content">
@@ -107,6 +117,16 @@
       <view class="switch {{userSettings.reminders.periodPrediction.enabled ? 'active' : ''}}" bindtap="toggleOvulationReminder">
         <view class="switch-thumb"></view>
       </view>
+    </view>
+
+    <view class="settings-item {{!userSettings.reminders.periodPrediction.enabled ? 'disabled' : ''}}" bindtap="setOvulationReminderTime">
+      <view class="item-icon">⏰</view>
+      <view class="item-content">
+        <view class="item-title">排卵日提醒时间</view>
+        <view class="item-description">设置排卵日提醒时间</view>
+      </view>
+      <view class="item-value">{{userSettings.reminders.periodPrediction.time || '10:00'}}</view>
+      <view class="item-arrow">›</view>
     </view>
     
     <view class="settings-item" bindtap="testReminder" wx:if="{{debugMode}}">
@@ -307,6 +327,20 @@
       
       <view class="input-group" wx:if="{{inputType === 'reminderTime'}}">
         <view class="input-label">晨起测温提醒时间</view>
+        <picker mode="time" value="{{inputValue}}" bindchange="onTimeChange" catchtap="stopPropagation">
+          <view class="picker-display">{{inputValue || '请选择时间'}}</view>
+        </picker>
+      </view>
+
+      <view class="input-group" wx:if="{{inputType === 'fertileReminderTime'}}">
+        <view class="input-label">易孕期提醒时间</view>
+        <picker mode="time" value="{{inputValue}}" bindchange="onTimeChange" catchtap="stopPropagation">
+          <view class="picker-display">{{inputValue || '请选择时间'}}</view>
+        </picker>
+      </view>
+
+      <view class="input-group" wx:if="{{inputType === 'ovulationReminderTime'}}">
+        <view class="input-label">排卵日提醒时间</view>
         <picker mode="time" value="{{inputValue}}" bindchange="onTimeChange" catchtap="stopPropagation">
           <view class="picker-display">{{inputValue || '请选择时间'}}</view>
         </picker>
