@@ -1346,84 +1346,130 @@ Page({
   },
 
   /**
-   * 生成问候语
+   * 生成个性化问候语
    */
   generateGreeting() {
     try {
       const now = new Date();
       const hour = now.getHours();
-      let timeGreeting = '';
-      let emoji = '';
-      
-      // 根据时间段生成不同的问候语
-      if (hour >= 5 && hour < 9) {
-        timeGreeting = '早安';
-        emoji = '🌅';
-      } else if (hour >= 9 && hour < 12) {
-        timeGreeting = '上午好';
-        emoji = '☀️';
-      } else if (hour >= 12 && hour < 14) {
-        timeGreeting = '午安';
-        emoji = '🌞';
-      } else if (hour >= 14 && hour < 18) {
-        timeGreeting = '下午好';
-        emoji = '🌤️';
-      } else if (hour >= 18 && hour < 22) {
-        timeGreeting = '晚上好';
-        emoji = '🌙';
-      } else {
-        timeGreeting = '夜深了';
-        emoji = '✨';
-      }
-      
-      // 温馨称呼列表
-      const nicknames = ['亲爱的', '美丽的', '可爱的', '温柔的', '勇敢的', '坚强的', '聪明的'];
-      const randomNickname = nicknames[Math.floor(Math.random() * nicknames.length)];
-      
-      // 根据周期阶段生成个性化问候语
-      let phaseTip = '';
-      if (this.data.cycleInfo && this.data.cycleInfo.phase) {
-        switch (this.data.cycleInfo.phase) {
-          case 'menstrual':
-            phaseTip = '月经期要注意保暖哦，多喝热水~';
-            break;
-          case 'follicular':
-            phaseTip = '卵泡期是活力满满的时候，今天也要元气满满哦！';
-            break;
-          case 'ovulation':
-            phaseTip = '排卵期到啦，是备小孕的好时机呢！';
-            break;
-          case 'luteal':
-            phaseTip = '黄体期要注意休息，保持好心情很重要哦~';
-            break;
-          default:
-            phaseTip = '今天也要开心哦，记得记录你的身体状况~';
-        }
-      } else {
-        // 随机鼓励语
-        const encouragements = [
-          '今天也要元气满满哦！',
-          '记录身体变化，更懂自己~',
-          '健康生活，好孕相伴！',
-          '每一天都是新的开始！',
-          '坚持记录，收获惊喜！'
-        ];
-        phaseTip = encouragements[Math.floor(Math.random() * encouragements.length)];
-      }
-      
+
+      // 获取用户昵称，如果没有则使用"小龙"
+      const userName = this.data.userSettings?.nickname || '小龙';
+
+      // 获取今日记录完成情况
+      const recordsProgress = this.data.recordsProgress || { completed: 0, total: 3 };
+
+      // 时间段问候语配置
+      const timeGreetings = this.getTimeBasedGreeting(hour);
+
+      // 生成个性化问候和建议
+      const personalizedContent = this.getPersonalizedContent(recordsProgress);
+
       this.setData({
-        greeting: `${timeGreeting}，${randomNickname}`,
-        greetingEmoji: emoji,
-        greetingTip: phaseTip
+        greeting: `${timeGreetings.greeting}，${userName}`,
+        greetingEmoji: timeGreetings.emoji,
+        greetingTip: personalizedContent
       });
     } catch (error) {
       console.error('生成问候语失败:', error);
-      // 设置默认问候语
       this.setData({
         greeting: '你好',
         greetingEmoji: '👋',
-        greetingTip: '欢迎使用备小孕！'
+        greetingTip: '欢迎使用备小孕，开始健康记录吧！'
       });
+    }
+  },
+
+  /**
+   * 根据时间获取问候语
+   */
+  getTimeBasedGreeting(hour) {
+    if (hour >= 5 && hour < 9) {
+      return {
+        greeting: '早安',
+        emoji: '🌅'
+      };
+    } else if (hour >= 9 && hour < 12) {
+      return {
+        greeting: '上午好',
+        emoji: '☀️'
+      };
+    } else if (hour >= 12 && hour < 14) {
+      return {
+        greeting: '中午好',
+        emoji: '🌞'
+      };
+    } else if (hour >= 14 && hour < 18) {
+      return {
+        greeting: '下午好',
+        emoji: '🌤️'
+      };
+    } else if (hour >= 18 && hour < 22) {
+      return {
+        greeting: '晚上好',
+        emoji: '🌙'
+      };
+    } else {
+      return {
+        greeting: hour < 5 ? '夜深了' : '晚安',
+        emoji: '✨'
+      };
+    }
+  },
+
+  /**
+   * 生成个性化内容
+   */
+  getPersonalizedContent(recordsProgress) {
+    const now = new Date();
+    const hour = now.getHours();
+
+    // 根据记录完成情况生成建议
+    if (recordsProgress.completed === 0) {
+      if (hour >= 6 && hour < 10) {
+        return '新的一天开始了，记得测量基础体温哦~';
+      } else if (hour >= 18 && hour < 23) {
+        return '今天还没有记录数据呢，花1分钟记录一下吧💕';
+      } else {
+        return '坚持记录身体变化，更好地了解自己的周期规律';
+      }
+    } else if (recordsProgress.completed < recordsProgress.total) {
+      return `今天已完成${recordsProgress.completed}项记录，继续加油！`;
+    } else {
+      // 全部完成时根据周期阶段给出建议
+      return this.getPhaseBasedTip();
+    }
+  },
+
+  /**
+   * 根据周期阶段生成建议
+   */
+  getPhaseBasedTip() {
+    const cycleInfo = this.data.cycleInfo;
+
+    if (cycleInfo && cycleInfo.phase) {
+      switch (cycleInfo.phase) {
+        case 'menstrual':
+          return '月经期要多休息，注意保暖，适当补充营养哦';
+        case 'follicular':
+          return '卵泡期是身体恢复活力的时候，可以适当运动';
+        case 'ovulation':
+          return '排卵期是受孕的最佳时机，注意身体信号变化';
+        case 'luteal':
+          return '黄体期保持心情愉悦，注意作息规律很重要';
+        default:
+          return '继续坚持记录，数据会帮你更了解身体周期';
+      }
+    }
+
+    // 根据记录天数给出鼓励
+    const stats = this.data.quickStats;
+    if (stats && stats.temperatureRecords >= 10) {
+      return '记录数据很丰富，AI分析会更准确哦！';
+    } else if (stats && stats.temperatureRecords >= 5) {
+      return '记录习惯很棒，继续保持下去！';
+    } else {
+      return '每天的记录都很宝贵，坚持就是胜利！';
     }
   }
 });
