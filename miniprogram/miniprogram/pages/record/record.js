@@ -279,7 +279,7 @@ Page({
         // 填充已有的同房数据（取最新一次）
         if (record.intercourse && record.intercourse.length > 0) {
           const latest = record.intercourse[record.intercourse.length - 1];
-          
+
           // 检查是否是"无同房"记录
           if (latest.type === 'none') {
             updateData.noIntercourseToday = true;
@@ -293,7 +293,8 @@ Page({
             updateData.noIntercourseToday = false;
           }
         } else {
-          updateData.noIntercourseToday = false;
+          // 没有记录时默认为"无同房"
+          updateData.noIntercourseToday = true;
         }
         
         this.setData(updateData);
