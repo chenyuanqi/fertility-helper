@@ -105,93 +105,106 @@
       <text class="title-desc">记录月经流量</text>
     </view>
 
+    <!-- 月经情况选择 -->
     <view class="form-group">
-      <view class="form-label">经期标记</view>
-      <view class="period-markers-new">
-        <view class="period-marker-item {{isStartPeriod ? 'active' : ''}}" 
-              data-type="start" bindtap="onPeriodMarkerTap">
-          <view class="marker-icon">🌸</view>
-          <view class="marker-content">
-            <text class="marker-title">经期开始</text>
-            <text class="marker-desc">标记月经周期开始</text>
-          </view>
-          <view class="marker-check {{isStartPeriod ? 'checked' : ''}}">
-            <text class="check-icon">✓</text>
-          </view>
+      <view class="form-label">月经情况</view>
+      <view class="intercourse-options">
+        <view class="intercourse-option {{noMenstrualToday ? 'active' : ''}}" bindtap="setNoMenstrual">
+          <view class="option-icon">🚫</view>
+          <text class="option-text">无月经</text>
         </view>
-        
-        <view class="period-marker-item {{isEndPeriod ? 'active' : ''}}" 
-              data-type="end" bindtap="onPeriodMarkerTap">
-          <view class="marker-icon">🌺</view>
-          <view class="marker-content">
-            <text class="marker-title">经期结束</text>
-            <text class="marker-desc">标记月经周期结束</text>
-          </view>
-          <view class="marker-check {{isEndPeriod ? 'checked' : ''}}">
-            <text class="check-icon">✓</text>
-          </view>
+        <view class="intercourse-option {{!noMenstrualToday ? 'active' : ''}}" bindtap="setHasMenstrual">
+          <view class="option-icon">🩸</view>
+          <text class="option-text">有月经</text>
         </view>
       </view>
     </view>
 
-    <view class="form-group">
-      <view class="form-label">月经量</view>
-      <!-- 简化的月经量选择 -->
-      <view class="flow-options">
-        <view class="flow-option {{menstrualPadCount === 0 ? 'active' : ''}}" data-count="0" bindtap="onPadOptionTap">
-          <view class="flow-icon">🚫</view>
-          <text class="flow-text">无月经</text>
-        </view>
-        <view class="flow-option {{menstrualPadCount === 1 ? 'active' : ''}}" data-count="1" bindtap="onPadOptionTap">
-          <view class="flow-icon">💧</view>
-          <text class="flow-text">少量</text>
-        </view>
-        <view class="flow-option {{menstrualPadCount === 2 ? 'active' : ''}}" data-count="2" bindtap="onPadOptionTap">
-          <view class="flow-icon">💧💧</view>
-          <text class="flow-text">中等</text>
-        </view>
-        <view class="flow-option {{menstrualPadCount === 3 ? 'active' : ''}}" data-count="3" bindtap="onPadOptionTap">
-          <view class="flow-icon">💧💧💧</view>
-          <text class="flow-text">较多</text>
-        </view>
-        <view class="flow-option {{menstrualPadCount >= 4 ? 'active' : ''}}" data-count="4" bindtap="onPadOptionTap">
-          <view class="flow-icon">🩸</view>
-          <text class="flow-text">大量</text>
+    <view class="menstrual-form" wx:if="{{!noMenstrualToday}}">
+      <view class="form-group">
+        <view class="form-label">经期标记</view>
+        <view class="period-markers-new">
+          <view class="period-marker-item {{isStartPeriod ? 'active' : ''}}"
+                data-type="start" bindtap="onPeriodMarkerTap">
+            <view class="marker-icon">🌸</view>
+            <view class="marker-content">
+              <text class="marker-title">经期开始</text>
+              <text class="marker-desc">标记月经周期开始</text>
+            </view>
+            <view class="marker-check {{isStartPeriod ? 'checked' : ''}}">
+              <text class="check-icon">✓</text>
+            </view>
+          </view>
+
+          <view class="period-marker-item {{isEndPeriod ? 'active' : ''}}"
+                data-type="end" bindtap="onPeriodMarkerTap">
+            <view class="marker-icon">🌺</view>
+            <view class="marker-content">
+              <text class="marker-title">经期结束</text>
+              <text class="marker-desc">标记月经周期结束</text>
+            </view>
+            <view class="marker-check {{isEndPeriod ? 'checked' : ''}}">
+              <text class="check-icon">✓</text>
+            </view>
+          </view>
         </view>
       </view>
-      <view class="flow-tip">轻松记录今日月经量</view>
-    </view>
 
-    <view class="form-group">
-      <view class="form-label">经血颜色（可选）</view>
-      <view class="color-grid">
-        <view class="color-item {{menstrualColor === 'bright_red' ? 'active' : ''}}" data-color="bright_red" bindtap="onColorOptionTap">
-          <view class="color-dot" style="background:#ff4d4f;"></view>
-          <view class="color-text">鲜红</view>
+      <view class="form-group">
+        <view class="form-label">月经量</view>
+        <!-- 简化的月经量选择 -->
+        <view class="flow-options">
+          <view class="flow-option {{menstrualPadCount === 1 ? 'active' : ''}}" data-count="1" bindtap="onPadOptionTap">
+            <view class="flow-icon">💧</view>
+            <text class="flow-text">少量</text>
+          </view>
+          <view class="flow-option {{menstrualPadCount === 2 ? 'active' : ''}}" data-count="2" bindtap="onPadOptionTap">
+            <view class="flow-icon">💧💧</view>
+            <text class="flow-text">中等</text>
+          </view>
+          <view class="flow-option {{menstrualPadCount === 3 ? 'active' : ''}}" data-count="3" bindtap="onPadOptionTap">
+            <view class="flow-icon">💧💧💧</view>
+            <text class="flow-text">较多</text>
+          </view>
+          <view class="flow-option {{menstrualPadCount >= 4 ? 'active' : ''}}" data-count="4" bindtap="onPadOptionTap">
+            <view class="flow-icon">🩸</view>
+            <text class="flow-text">大量</text>
+          </view>
         </view>
-        <view class="color-item {{menstrualColor === 'dark_red' ? 'active' : ''}}" data-color="dark_red" bindtap="onColorOptionTap">
-          <view class="color-dot" style="background:#a8071a;"></view>
-          <view class="color-text">暗红</view>
-        </view>
-        <view class="color-item {{menstrualColor === 'brown' ? 'active' : ''}}" data-color="brown" bindtap="onColorOptionTap">
-          <view class="color-dot" style="background:#8B4513;"></view>
-          <view class="color-text">褐色</view>
-        </view>
-        <view class="color-item {{menstrualColor === 'pink' ? 'active' : ''}}" data-color="pink" bindtap="onColorOptionTap">
-          <view class="color-dot" style="background:#ff85c0;"></view>
-          <view class="color-text">粉色</view>
+        <view class="flow-tip">轻松记录今日月经量</view>
+      </view>
+
+      <view class="form-group">
+        <view class="form-label">经血颜色（可选）</view>
+        <view class="color-grid">
+          <view class="color-item {{menstrualColor === 'bright_red' ? 'active' : ''}}" data-color="bright_red" bindtap="onColorOptionTap">
+            <view class="color-dot" style="background:#ff4d4f;"></view>
+            <view class="color-text">鲜红</view>
+          </view>
+          <view class="color-item {{menstrualColor === 'dark_red' ? 'active' : ''}}" data-color="dark_red" bindtap="onColorOptionTap">
+            <view class="color-dot" style="background:#a8071a;"></view>
+            <view class="color-text">暗红</view>
+          </view>
+          <view class="color-item {{menstrualColor === 'brown' ? 'active' : ''}}" data-color="brown" bindtap="onColorOptionTap">
+            <view class="color-dot" style="background:#8B4513;"></view>
+            <view class="color-text">褐色</view>
+          </view>
+          <view class="color-item {{menstrualColor === 'pink' ? 'active' : ''}}" data-color="pink" bindtap="onColorOptionTap">
+            <view class="color-dot" style="background:#ff85c0;"></view>
+            <view class="color-text">粉色</view>
+          </view>
         </view>
       </view>
-    </view>
 
-    <view class="form-group">
-      <view class="form-label">备注</view>
-      <textarea class="textarea-input" 
-                placeholder="记录经期相关情况" 
-                value="{{menstrualNote}}"
-                bindinput="onMenstrualNoteInput"
-                maxlength="100">
-      </textarea>
+      <view class="form-group">
+        <view class="form-label">备注</view>
+        <textarea class="textarea-input"
+                  placeholder="记录经期相关情况"
+                  value="{{menstrualNote}}"
+                  bindinput="onMenstrualNoteInput"
+                  maxlength="100">
+        </textarea>
+      </view>
     </view>
 
     <view class="button-group" wx:if="{{todayRecord && todayRecord.menstrual}}">

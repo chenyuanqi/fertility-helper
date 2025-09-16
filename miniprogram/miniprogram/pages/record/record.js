@@ -14,11 +14,12 @@ Page({
     temperatureOptions: [],
     
     // 经量记录相关（改为卫生巾数量 + 颜色）
-    menstrualPadCount: 0,
+    menstrualPadCount: 1,
     menstrualColor: '',
     isStartPeriod: false,
     isEndPeriod: false,
     menstrualNote: '',
+    noMenstrualToday: true,
     // 预留：可在 UI 上动态生成 pad 选项与颜色选项
     
     // 同房记录相关
@@ -59,6 +60,7 @@ Page({
       temperatureTime: '08:00', // 默认8点
       intercourseTime: '22:00', // 默认22点
       noIntercourseToday: true, // 默认无同房
+      noMenstrualToday: true, // 默认无月经
       temperatureOptions: this.generateTemperatureOptions()
     });
     
@@ -253,12 +255,25 @@ Page({
         
         // 填充已有的经量数据（padCount + color）
         if (record.menstrual) {
-          const padCount = typeof record.menstrual.padCount === 'number' ? record.menstrual.padCount : 0;
-          updateData.menstrualPadCount = padCount;
-          updateData.menstrualColor = record.menstrual.color || '';
-          updateData.isStartPeriod = !!record.menstrual.isStart;
-          updateData.isEndPeriod = !!record.menstrual.isEnd;
-          updateData.menstrualNote = record.menstrual.note || '';
+          // 检查是否是"无月经"记录
+          if (record.menstrual.type === 'none' || record.menstrual.padCount === 0) {
+            updateData.noMenstrualToday = true;
+            updateData.menstrualPadCount = 1; // 默认值
+            updateData.menstrualColor = '';
+            updateData.isStartPeriod = false;
+            updateData.isEndPeriod = false;
+            updateData.menstrualNote = '';
+          } else {
+            const padCount = typeof record.menstrual.padCount === 'number' ? record.menstrual.padCount : 1;
+            updateData.menstrualPadCount = padCount;
+            updateData.menstrualColor = record.menstrual.color || '';
+            updateData.isStartPeriod = !!record.menstrual.isStart;
+            updateData.isEndPeriod = !!record.menstrual.isEnd;
+            updateData.menstrualNote = record.menstrual.note || '';
+            updateData.noMenstrualToday = false;
+          }
+        } else {
+          updateData.noMenstrualToday = true;
         }
         
         // 填充已有的同房数据（取最新一次）
@@ -651,13 +666,39 @@ Page({
   },
 
   // ==================== 经量记录相关方法 ====================
-  
+
+  /**
+   * 设置无月经
+   */
+  setNoMenstrual() {
+    this.setData({
+      noMenstrualToday: true,
+      menstrualPadCount: 1, // 重置为默认值
+      menstrualColor: '',
+      isStartPeriod: false,
+      isEndPeriod: false,
+      menstrualNote: ''
+    });
+    this.markUnsavedChanges();
+  },
+
+  /**
+   * 设置有月经
+   */
+  setHasMenstrual() {
+    this.setData({
+      noMenstrualToday: false,
+      menstrualPadCount: 1, // 默认少量
+    });
+    this.markUnsavedChanges();
+  },
+
   /**
    * 经量选项点击
    */
   // 卫生巾数量选择
   onPadOptionTap(e) {
-    const count = Number(e.currentTarget.dataset.count || 0);
+    const count = Number(e.currentTarget.dataset.count || 1);
     this.setData({ menstrualPadCount: count });
     this.markUnsavedChanges();
   },
@@ -682,23 +723,49 @@ Page({
    * 保存经量记录
    */
   async saveMenstrualRecord() {
-    const { menstrualPadCount, menstrualColor, isStartPeriod, isEndPeriod, menstrualNote, selectedDate } = this.data;
-    
+    const { menstrualPadCount, menstrualColor, isStartPeriod, isEndPeriod, menstrualNote, selectedDate, noMenstrualToday } = this.data;
+
     try {
       this.setData({ isLoading: true });
-      
+
       const dataManager = DataManager.getInstance();
+
+      // 如果选择了"今日无月经"，保存无月经标记
+      if (noMenstrualToday) {
+        const record = {
+          date: selectedDate,
+          padCount: 0,
+          color: undefined,
+          isStart: false,
+          isEnd: false,
+          note: '',
+          type: 'none' // 标记为无月经
+        };
+
+        const result = await dataManager.saveMenstrualRecord(record);
+
+        if (result.success) {
+          this.setData({ hasUnsavedChanges: false });
+          await this.loadTodayRecord();
+          this.notifyRecordSaved();
+        } else {
+          throw new Error(result.error?.message || '保存失败');
+        }
+        return;
+      }
+
+      // 如果没有选择"今日无月经"，正常保存经量数据
       const record = {
         date: selectedDate,
-        padCount: Number(menstrualPadCount || 0),
+        padCount: Number(menstrualPadCount || 1),
         color: menstrualColor || undefined,
         isStart: !!isStartPeriod,
         isEnd: !!isEndPeriod,
         note: menstrualNote
       };
-      
+
       const result = await dataManager.saveMenstrualRecord(record);
-      
+
       if (result.success) {
         this.setData({ hasUnsavedChanges: false });
         await this.loadTodayRecord();
