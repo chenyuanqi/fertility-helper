@@ -277,18 +277,9 @@ Page({
           }
           break;
         case 'reminderTime':
+          // 统一设置所有提醒的时间
           newSettings.reminders.morningTemperature.time = inputValue;
-          break;
-        case 'fertileReminderTime':
-          if (!newSettings.reminders.fertileWindow) {
-            newSettings.reminders.fertileWindow = { enabled: false };
-          }
           newSettings.reminders.fertileWindow.time = inputValue;
-          break;
-        case 'ovulationReminderTime':
-          if (!newSettings.reminders.periodPrediction) {
-            newSettings.reminders.periodPrediction = { enabled: false };
-          }
           newSettings.reminders.periodPrediction.time = inputValue;
           break;
       }
@@ -296,7 +287,7 @@ Page({
       await FertilityStorage.saveUserSettings(newSettings);
       this.setData({ userSettings: newSettings });
       
-      if (inputType === 'reminderTime' || inputType === 'fertileReminderTime' || inputType === 'ovulationReminderTime') {
+      if (inputType === 'reminderTime') {
         const reminderManager = ReminderManager.getInstance();
         await reminderManager.updateReminders(newSettings.reminders);
       }
@@ -364,60 +355,13 @@ Page({
     });
   },
 
-  // 设置提醒时间
+  // 设置统一提醒时间
   setReminderTime() {
-    // 检查晨起测温提醒是否已开启
-    if (!this.data.userSettings.reminders.morningTemperature.enabled) {
-      wx.showToast({
-        title: '请先开启晨起测温提醒',
-        icon: 'none'
-      });
-      return;
-    }
-
     // 显示时间选择模态框
     this.showInputModal(
-      '设置晨起测温提醒时间',
+      '设置提醒时间',
       'reminderTime',
-      this.data.userSettings.reminders.morningTemperature.time || '07:00'
-    );
-  },
-
-  // 设置易孕期提醒时间
-  setFertileReminderTime() {
-    // 检查易孕期提醒是否已开启
-    if (!this.data.userSettings.reminders.fertileWindow.enabled) {
-      wx.showToast({
-        title: '请先开启易孕期提醒',
-        icon: 'none'
-      });
-      return;
-    }
-
-    // 显示时间选择模态框
-    this.showInputModal(
-      '设置易孕期提醒时间',
-      'fertileReminderTime',
-      this.data.userSettings.reminders.fertileWindow.time || '09:00'
-    );
-  },
-
-  // 设置排卵日提醒时间
-  setOvulationReminderTime() {
-    // 检查排卵日提醒是否已开启
-    if (!this.data.userSettings.reminders.periodPrediction.enabled) {
-      wx.showToast({
-        title: '请先开启排卵日提醒',
-        icon: 'none'
-      });
-      return;
-    }
-
-    // 显示时间选择模态框
-    this.showInputModal(
-      '设置排卵日提醒时间',
-      'ovulationReminderTime',
-      this.data.userSettings.reminders.periodPrediction.time || '10:00'
+      this.data.userSettings.reminders.morningTemperature.time || '08:00'
     );
   },
 
